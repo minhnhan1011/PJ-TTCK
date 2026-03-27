@@ -1,8 +1,18 @@
-function homePage() {
+import Sidebar from "../component/sidebar/Sidebar";
+import Header from "../component/header/Header";
+import "./homePage.css";
+
+function HomePage() {
   return (
-    <div>
-      <h1>Home Page</h1>
+    <div className="layout">
+      <Sidebar />
+      <div className="main">
+        <div className="content">
+          <Header />
+        </div>
+      </div>
     </div>
   );
 }
-export default homePage;
+
+export default HomePage;

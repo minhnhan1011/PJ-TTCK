@@ -1,46 +1,39 @@
-import { Link, useLocation } from "react-router-dom";
+import "./Sidebar.css";
+import { Link } from "react-router-dom";
 
-const navItems = [
-  { to: "/", icon: "fa-chart-pie", label: "Tổng quan" },
-  { to: "/benh-nhan", icon: "fa-users", label: "Bệnh nhân" },
-  { to: "/kiosk", icon: "fa-ticket-alt", label: "Kiosk lấy số" },
-  { to: "/xet-nghiem", icon: "fa-flask", label: "Xét nghiệm" },
-  { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế" },
-  { to: "/kham-benh", icon: "fa-stethoscope", label: "Khám bệnh" },
-  { to: "/thanh-toan", icon: "fa-credit-card", label: "Thanh toán" },
-  { to: "/nhan-vien", icon: "fa-user-md", label: "Nhân sự" },
+const menuItems = [
+  { name: "Tổng quan", path: "/" },
+  { name: "Bệnh nhân", path: "/benh-nhan" },
+  { name: "Xét nghiệm", path: "/xet-nghiem" },
+  { name: "Dịch vụ y tế", path: "/dich-vu" },
+  { name: "Khám bệnh", path: "/kham-benh" },
+  { name: "Thanh toán", path: "/thanh-toan" },
+  { name: "Nhân sự", path: "/nhan-su" },
 ];
 
-export default function Sidebar() {
-  const location = useLocation();
-
+function Sidebar() {
   return (
-    <aside className="sidebar">
+    <div className="sidebar">
       <div className="logo">
-        <i className="fas fa-hospital-user"></i> ClinicFlow
+        <span className="logo-text">ClinicFlow</span>
       </div>
-
-      <nav className="nav">
-        {navItems.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={location.pathname === item.to ? "active" : ""}
-          >
-            <i className={`fas ${item.icon}`}></i> {item.label}
-          </Link>
+      <ul className="menu">
+        {menuItems.map((item, index) => (
+          <li key={index}>
+            <Link to={item.path}>
+              <i>{item.icon}</i>
+              {item.name}
+            </Link>
+          </li>
         ))}
-
-        <div className="divider"></div>
-
-        <Link to="/login" className="logout-link">
-          <i className="fas fa-sign-out-alt"></i> Đăng xuất
+      </ul>
+      <div className="logout">
+        <Link to="/login">
+          Đăng xuất
         </Link>
-      </nav>
-
-      <div className="status">
-        Trạng thái: <span className="online">● Online</span>
       </div>
-    </aside>
+    </div>
   );
 }
+
+export default Sidebar;
