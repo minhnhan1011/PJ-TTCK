@@ -1,0 +1,33 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-login{
+    border-left: 1px solid rgba(216, 7, 7, 0.15);
+    padding-left: 10px;
+    height: 25px;
+}
+
+.search-input{
+    padding: 8px 12px;
+    border: 1px solid #1e5db6;
+    border-radius: 20px;
+    width: 350px;
+}
+
+.login-btn {
+    padding: 8px 14px;
+    background-color: #1e5db6;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+}
