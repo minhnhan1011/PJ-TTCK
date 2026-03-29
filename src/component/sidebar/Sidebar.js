@@ -1,14 +1,19 @@
 import { Link, useLocation } from "react-router-dom";
+import "./Sidebar.css";
 
 const navItems = [
   { to: "/", icon: "fa-chart-pie", label: "Tổng quan" },
   { to: "/benh-nhan", icon: "fa-users", label: "Bệnh nhân" },
+  { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Đăng ký khám" },
   { to: "/kiosk", icon: "fa-ticket-alt", label: "Kiosk lấy số" },
-  { to: "/xet-nghiem", icon: "fa-flask", label: "Xét nghiệm" },
-  { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế" },
   { to: "/kham-benh", icon: "fa-stethoscope", label: "Khám bệnh" },
+  { to: "/xet-nghiem", icon: "fa-flask", label: "Xét nghiệm" },
+  { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Đơn thuốc" },
+  { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế" },
   { to: "/thanh-toan", icon: "fa-credit-card", label: "Thanh toán" },
   { to: "/nhan-vien", icon: "fa-user-md", label: "Nhân sự" },
+  { to: "/thuoc", icon: "fa-capsules", label: "Thuốc" },
+  { to: "/loai-thuoc", icon: "fa-pills", label: "Loại thuốc" },
 ];
 
 export default function Sidebar() {
