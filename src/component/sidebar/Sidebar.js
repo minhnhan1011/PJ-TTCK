@@ -16,36 +16,29 @@ const navItems = [
   { to: "/loai-thuoc", icon: "fa-pills", label: "Loại thuốc" },
 ];
 
-export default function Sidebar() {
-  const location = useLocation();
-
+function Sidebar() {
   return (
-    <aside className="sidebar">
+    <div className="sidebar">
       <div className="logo">
-        <i className="fas fa-hospital-user"></i> ClinicFlow
+        <span className="logo-text">ClinicFlow</span>
       </div>
-
-      <nav className="nav">
-        {navItems.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={location.pathname === item.to ? "active" : ""}
-          >
-            <i className={`fas ${item.icon}`}></i> {item.label}
-          </Link>
+      <ul className="menu">
+        {menuItems.map((item, index) => (
+          <li key={index}>
+            <Link to={item.path}>
+              <i>{item.icon}</i>
+              {item.name}
+            </Link>
+          </li>
         ))}
-
-        <div className="divider"></div>
-
-        <Link to="/login" className="logout-link">
-          <i className="fas fa-sign-out-alt"></i> Đăng xuất
+      </ul>
+      <div className="logout">
+        <Link to="/login">
+          Đăng xuất
         </Link>
-      </nav>
-
-      <div className="status">
-        Trạng thái: <span className="online">● Online</span>
       </div>
-    </aside>
+    </div>
   );
 }
+
+export default Sidebar;
