@@ -23,11 +23,11 @@ function Sidebar() {
         <span className="logo-text">ClinicFlow</span>
       </div>
       <ul className="menu">
-        {menuItems.map((item, index) => (
+        {navItems.map((item, index) => (
           <li key={index}>
-            <Link to={item.path}>
-              <i>{item.icon}</i>
-              {item.name}
+            <Link to={item.to}>
+              <i className={`fas ${item.icon}`}></i>
+              {item.label}
             </Link>
           </li>
         ))}

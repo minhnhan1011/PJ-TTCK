@@ -3,43 +3,9 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./ThanhToanPage.css";
 
-const INITIAL_INVOICES = [
-  { mapt: "PT-001", mapk: "PK-001", hoten: "Nguyễn Văn An", mabn: "BN-001", tongtien: 200000, ngaythu: "20/03/2024", trangthai: "Đã thanh toán", nhanvien: "Kế toán D" },
-  { mapt: "PT-002", mapk: "PK-002", hoten: "Trần Thị Bích", mabn: "BN-002", tongtien: 300000, ngaythu: "20/03/2024", trangthai: "Đã thanh toán", nhanvien: "Kế toán D" },
-  { mapt: "PT-003", mapk: "PK-003", hoten: "Phạm Hồng Nhung", mabn: "BN-003", tongtien: 550000, ngaythu: "", trangthai: "Chờ thanh toán", nhanvien: "" },
-];
-
-const SERVICES_DETAIL = [
-  { ten: "Khám tổng quát", gia: 500000 },
-  { ten: "Xét nghiệm máu", gia: 300000 },
-  { ten: "Siêu âm bụng", gia: 400000 },
-];
-
 export default function ThanhToanPage() {
-  const [invoices, setInvoices] = useState(INITIAL_INVOICES);
   const [search, setSearch] = useState("");
   const [showConfirm, setShowConfirm] = useState(null);
-
-  const filtered = invoices.filter((inv) => {
-    const q = search.toLowerCase();
-    return inv.hoten.toLowerCase().includes(q) || inv.mapt.toLowerCase().includes(q) || inv.mabn.toLowerCase().includes(q);
-  });
-
-  const formatCurrency = (n) => n.toLocaleString("vi-VN");
-
-  const stats = {
-    total: invoices.length,
-    revenue: invoices.filter((i) => i.trangthai === "Đã thanh toán").reduce((s, i) => s + i.tongtien, 0),
-    pending: invoices.filter((i) => i.trangthai === "Chờ thanh toán").length,
-    paid: invoices.filter((i) => i.trangthai === "Đã thanh toán").length,
-  };
-
-  const handleCancel = (mapt) => {
-    setInvoices(invoices.map((i) => i.mapt === mapt ? { ...i, trangthai: "Đã hủy" } : i));
-    setShowConfirm(null);
-  };
-
-  const totalDV = SERVICES_DETAIL.reduce((s, d) => s + d.gia, 0);
 
   return (
     <div className="page-layout">
@@ -60,19 +26,19 @@ export default function ThanhToanPage() {
           <div className="stat-cards">
             <div className="stat-card green">
               <div className="stat-label">Hóa đơn hôm nay</div>
-              <div className="stat-number">{stats.total}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card blue">
               <div className="stat-label">Doanh thu hôm nay</div>
-              <div className="stat-number">{formatCurrency(stats.revenue)}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card orange">
               <div className="stat-label">Chờ thanh toán</div>
-              <div className="stat-number">{stats.pending}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card purple">
               <div className="stat-label">Đã thanh toán</div>
-              <div className="stat-number">{stats.paid}</div>
+              <div className="stat-number">0</div>
             </div>
           </div>
 
@@ -83,17 +49,12 @@ export default function ThanhToanPage() {
               <div style={{ marginBottom: "1rem" }}>
                 <label className="field-label">Dịch vụ đã chọn</label>
                 <div className="service-list">
-                  {SERVICES_DETAIL.map((s, i) => (
-                    <div key={i} className="service-row">
-                      <span>{s.ten}</span>
-                      <span style={{ fontWeight: 500 }}>{formatCurrency(s.gia)} VNĐ</span>
-                    </div>
-                  ))}
+                  <div style={{ padding: "1rem", textAlign: "center", color: "#9ca3af" }}>Chưa có dịch vụ</div>
                 </div>
               </div>
               <div style={{ marginBottom: "1rem" }}>
                 <label className="field-label">Tổng tiền</label>
-                <input type="text" className="field-input" value={`${formatCurrency(totalDV)} VNĐ`} readOnly />
+                <input type="text" className="field-input" value="0 VNĐ" readOnly />
               </div>
               <div style={{ marginBottom: "1rem" }}>
                 <label className="field-label">Phương thức thanh toán</label>
@@ -121,21 +82,19 @@ export default function ThanhToanPage() {
                   <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>ĐT: 0123 456 789</p>
                 </div>
                 <div className="invoice-meta">
-                  <div className="meta-row"><span>Mã hóa đơn:</span><span style={{ fontWeight: 500 }}>HD-20240320-001</span></div>
-                  <div className="meta-row"><span>Ngày:</span><span>20/03/2024</span></div>
-                  <div className="meta-row"><span>Bệnh nhân:</span><span>Nguyễn Văn An (BN-001)</span></div>
+                  <div className="meta-row"><span>Mã hóa đơn:</span><span style={{ fontWeight: 500 }}>--</span></div>
+                  <div className="meta-row"><span>Ngày:</span><span>--</span></div>
+                  <div className="meta-row"><span>Bệnh nhân:</span><span>--</span></div>
                 </div>
                 <table className="invoice-table">
                   <thead>
                     <tr><th>Dịch vụ</th><th style={{ textAlign: "right" }}>Thành tiền</th></tr>
                   </thead>
                   <tbody>
-                    {SERVICES_DETAIL.map((s, i) => (
-                      <tr key={i}><td>{s.ten}</td><td style={{ textAlign: "right" }}>{formatCurrency(s.gia)}</td></tr>
-                    ))}
+                    <tr><td colSpan="2" style={{ textAlign: "center", color: "#9ca3af" }}>Chưa có dữ liệu</td></tr>
                   </tbody>
                   <tfoot>
-                    <tr><td style={{ fontWeight: 600 }}>Tổng cộng</td><td style={{ textAlign: "right", fontWeight: 600 }}>{formatCurrency(totalDV)} VNĐ</td></tr>
+                    <tr><td style={{ fontWeight: 600 }}>Tổng cộng</td><td style={{ textAlign: "right", fontWeight: 600 }}>0 VNĐ</td></tr>
                   </tfoot>
                 </table>
                 <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#6b7280", marginTop: "1rem" }}>Cảm ơn quý khách đã sử dụng dịch vụ!</p>
@@ -170,29 +129,7 @@ export default function ThanhToanPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="8" className="empty-state"><p>Không tìm thấy phiếu thu nào</p></td></tr>
-                  ) : filtered.map((inv) => (
-                    <tr key={inv.mapt}>
-                      <td className="code-cell">{inv.mapt}</td>
-                      <td style={{ fontWeight: 500 }}>{inv.hoten}</td>
-                      <td>{inv.mapk}</td>
-                      <td style={{ textAlign: "right", fontWeight: 500 }}>{formatCurrency(inv.tongtien)}</td>
-                      <td style={{ color: "#6b7280" }}>{inv.ngaythu || "-"}</td>
-                      <td>{inv.nhanvien || "-"}</td>
-                      <td>
-                        <span className={`badge-status ${inv.trangthai === "Đã thanh toán" ? "badge-green" : inv.trangthai === "Đã hủy" ? "badge-red" : "badge-orange"}`}>{inv.trangthai}</span>
-                      </td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-view" title="Xem"><i className="fas fa-eye"></i></button>
-                          {inv.trangthai === "Chờ thanh toán" && (
-                            <button className="btn-delete" title="Hủy phiếu" onClick={() => setShowConfirm(inv.mapt)}><i className="fas fa-ban"></i></button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr><td colSpan="8" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                 </tbody>
               </table>
             </div>
@@ -208,7 +145,7 @@ export default function ThanhToanPage() {
             <p>Trạng thái phiếu thu sẽ được cập nhật thành "Đã hủy".</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => handleCancel(showConfirm)}>Xác nhận hủy</button>
+              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xác nhận hủy</button>
             </div>
           </div>
         </div>

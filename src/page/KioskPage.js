@@ -16,7 +16,7 @@ export default function KioskPage() {
   const [clock, setClock] = useState(new Date().toLocaleTimeString("vi-VN"));
   const [lydokham, setLydokham] = useState("");
   const [error, setError] = useState("");
-  const [modal, setModal] = useState(null); // { stt, lydokham, ngay, gio }
+  const [modal, setModal] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,18 +31,7 @@ export default function KioskPage() {
       return;
     }
     setError("");
-    const stt = "K" + String(Math.floor(Math.random() * 100) + 1).padStart(3, "0");
-    const now = new Date();
-    setModal({
-      stt,
-      lydokham,
-      ngay: now.toLocaleDateString("vi-VN"),
-      gio: now.toLocaleTimeString("vi-VN"),
-    });
-  };
-
-  const handlePrint = () => {
-    window.print();
+    // TODO: Gọi API lấy số thứ tự từ backend
   };
 
   const closeModal = () => {
@@ -137,7 +126,7 @@ export default function KioskPage() {
               </div>
             </div>
             <div className="modal-actions">
-              <button className="btn-print" onClick={handlePrint}>
+              <button className="btn-print" onClick={closeModal}>
                 <i className="fas fa-print"></i> In phiếu
               </button>
               <button className="btn-close-modal" onClick={closeModal}>

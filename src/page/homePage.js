@@ -1,23 +1,8 @@
-import { useState } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./homePage.css";
 
-const QUEUE_DATA = [
-  { madk: "DK-0158", hoten: "Nguyễn Văn An", bacsi: "BS. Trần Hoài Nam", gio: "08:15 AM", trangthai: "Đang chờ" },
-  { madk: "DK-0159", hoten: "Trần Thị Bích", bacsi: "BS. Lê Minh Tâm", gio: "08:30 AM", trangthai: "Đang khám" },
-  { madk: "DK-0160", hoten: "Phạm Hồng Nhung", bacsi: "-", gio: "08:45 AM", trangthai: "Đã tiếp nhận" },
-];
-
 export default function HomePage() {
-  const [queue] = useState(QUEUE_DATA);
-
-  const getBadge = (tt) => {
-    if (tt === "Đang chờ") return "badge-status badge-orange";
-    if (tt === "Đang khám") return "badge-status badge-green";
-    return "badge-status badge-gray";
-  };
-
   return (
     <div className="page-layout">
       <Sidebar />
@@ -29,23 +14,19 @@ export default function HomePage() {
           <div className="stat-cards">
             <div className="stat-card blue">
               <div className="stat-label">Bệnh nhân hôm nay</div>
-              <div className="stat-number">42</div>
-              <div className="stat-sub"><i className="fas fa-arrow-up"></i> +8% so với hôm qua</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card orange">
               <div className="stat-label">Đang chờ khám</div>
-              <div className="stat-number">08</div>
-              <div className="stat-sub" style={{ color: "#9ca3af" }}>Trung bình đợi: 14 phút</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card green">
               <div className="stat-label">Doanh thu (VNĐ)</div>
-              <div className="stat-number">12.4M</div>
-              <div className="stat-sub"><i className="fas fa-arrow-up"></i> Vượt mục tiêu</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card purple">
               <div className="stat-label">Bác sĩ trực</div>
-              <div className="stat-number">04</div>
-              <div className="stat-sub" style={{ color: "#9ca3af" }}>Trên tổng số 12 bác sĩ</div>
+              <div className="stat-number">0</div>
             </div>
           </div>
 
@@ -69,20 +50,11 @@ export default function HomePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {queue.map((q) => (
-                    <tr key={q.madk}>
-                      <td className="code-cell">{q.madk}</td>
-                      <td style={{ fontWeight: 500 }}>{q.hoten}</td>
-                      <td>{q.bacsi}</td>
-                      <td style={{ color: "#6b7280" }}>{q.gio}</td>
-                      <td><span className={getBadge(q.trangthai)}>{q.trangthai}</span></td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-edit" title="Chỉnh sửa"><i className="fas fa-edit"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
+                      Chưa có dữ liệu
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>

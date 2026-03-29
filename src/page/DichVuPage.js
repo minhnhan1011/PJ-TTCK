@@ -3,15 +3,7 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DichVuPage.css";
 
-const INITIAL_SERVICES = [
-  { madv: "DV-01", tendv: "Khám chuyên khoa Nội", gia: 150000, trangthai: "Hoạt động" },
-  { madv: "DV-02", tendv: "Xét nghiệm máu tổng quát (CBC)", gia: 250000, trangthai: "Hoạt động" },
-  { madv: "DV-03", tendv: "Chụp X-Quang phổi thẳng", gia: 300000, trangthai: "Tạm ngưng" },
-  { madv: "DV-04", tendv: "Siêu âm bụng tổng quát", gia: 400000, trangthai: "Hoạt động" },
-];
-
 export default function DichVuPage() {
-  const [services, setServices] = useState(INITIAL_SERVICES);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -19,53 +11,11 @@ export default function DichVuPage() {
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
 
-  const filtered = services.filter((s) => s.tendv.toLowerCase().includes(search.toLowerCase()));
-
-  const formatCurrency = (n) => n.toLocaleString("vi-VN");
-
   const openAdd = () => {
     setEditItem(null);
     setForm({ tendv: "", gia: "" });
     setFormErrors({});
     setShowModal(true);
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setForm({ tendv: item.tendv, gia: String(item.gia) });
-    setFormErrors({});
-    setShowModal(true);
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.tendv.trim()) errs.tendv = "Tên dịch vụ không được rỗng";
-    if (!form.gia || Number(form.gia) <= 0) errs.gia = "Giá phải lớn hơn 0";
-    return errs;
-  };
-
-  const handleSave = () => {
-    const errs = validate();
-    setFormErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-
-    if (editItem) {
-      setServices(services.map((s) => s.madv === editItem.madv ? { ...s, tendv: form.tendv, gia: Number(form.gia) } : s));
-    } else {
-      const newItem = {
-        madv: "DV-" + String(services.length + 1).padStart(2, "0"),
-        tendv: form.tendv,
-        gia: Number(form.gia),
-        trangthai: "Hoạt động",
-      };
-      setServices([...services, newItem]);
-    }
-    setShowModal(false);
-  };
-
-  const handleDelete = (madv) => {
-    setServices(services.filter((s) => s.madv !== madv));
-    setShowConfirm(null);
   };
 
   return (
@@ -90,7 +40,7 @@ export default function DichVuPage() {
                 <i className="fas fa-search"></i>
                 <input placeholder="Tìm kiếm tên dịch vụ..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng số: <strong style={{ color: "#2563eb" }}>{services.length}</strong> dịch vụ</div>
+              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng số: <strong style={{ color: "#2563eb" }}>0</strong> dịch vụ</div>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="data-table">
@@ -104,29 +54,12 @@ export default function DichVuPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="5" className="empty-state"><p>Không tìm thấy dịch vụ nào</p></td></tr>
-                  ) : filtered.map((s) => (
-                    <tr key={s.madv}>
-                      <td className="code-cell">{s.madv}</td>
-                      <td style={{ fontWeight: 700 }}>{s.tendv}</td>
-                      <td style={{ textAlign: "right", fontWeight: 500 }}>{formatCurrency(s.gia)}</td>
-                      <td style={{ textAlign: "center" }}>
-                        <span className={`badge-status ${s.trangthai === "Hoạt động" ? "badge-green" : "badge-red"}`}>{s.trangthai}</span>
-                      </td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-edit" title="Chỉnh sửa" onClick={() => openEdit(s)}><i className="fas fa-edit"></i></button>
-                          <button className="btn-delete" title="Xóa" onClick={() => setShowConfirm(s.madv)}><i className="fas fa-trash-alt"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr><td colSpan="5" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>{filtered.length}</strong> trong tổng số <strong>{services.length}</strong> dịch vụ</div>
+              <div>Hiển thị <strong>0</strong> dịch vụ</div>
             </div>
           </div>
         </div>
@@ -153,7 +86,7 @@ export default function DichVuPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -167,7 +100,7 @@ export default function DichVuPage() {
             <p>Hành động này không thể hoàn tác. Dịch vụ đã liên kết phiếu xét nghiệm sẽ không thể xóa.</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => handleDelete(showConfirm)}>Xóa</button>
+              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
             </div>
           </div>
         </div>

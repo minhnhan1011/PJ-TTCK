@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "./LoginPage.css";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
   const [tendn, setTendn] = useState("");
   const [matkhau, setMatkhau] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +23,8 @@ export default function LoginPage() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
+    // TODO: Gọi API đăng nhập từ backend
     setLoading(true);
-    // Simulate login
-    setTimeout(() => {
-      setLoading(false);
-      navigate("/");
-    }, 1000);
   };
 
   return (

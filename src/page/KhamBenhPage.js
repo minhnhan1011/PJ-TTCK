@@ -3,55 +3,11 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./KhamBenhPage.css";
 
-const INITIAL_DATA = [
-  { mapk: "PK-001", hoten: "Nguyễn Văn An", mabn: "BN-001", bacsi: "BS. Trần Hoài Nam", thoigian: "20/03/2024 09:00", trangthai: "Hoàn thành", chuandoan: "Cảm cúm", trieuchung: "Đau đầu, chóng mặt" },
-  { mapk: "PK-002", hoten: "Trần Thị Bích", mabn: "BN-002", bacsi: "BS. Lê Minh Tâm", thoigian: "20/03/2024 10:30", trangthai: "Đang khám", chuandoan: "", trieuchung: "Sốt, ho, đau họng" },
-  { mapk: "PK-003", hoten: "Phạm Hồng Nhung", mabn: "BN-003", bacsi: "BS. Trần Hoài Nam", thoigian: "20/03/2024 14:00", trangthai: "Đang chờ", chuandoan: "", trieuchung: "Đau bụng, buồn nôn" },
-];
-
 export default function KhamBenhPage() {
-  const [data, setData] = useState(INITIAL_DATA);
   const [search, setSearch] = useState("");
   const [filterTT, setFilterTT] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState({ hoten: "", bacsi: "", chuandoan: "", trieuchung: "" });
-
-  const filtered = data.filter((d) => {
-    const q = search.toLowerCase();
-    const matchSearch = d.hoten.toLowerCase().includes(q) || d.mabn.toLowerCase().includes(q);
-    const matchTT = !filterTT || d.trangthai === filterTT;
-    return matchSearch && matchTT;
-  });
-
-  const stats = {
-    total: data.length,
-    done: data.filter((d) => d.trangthai === "Hoàn thành").length,
-    waiting: data.filter((d) => d.trangthai === "Đang chờ").length,
-    cancelled: data.filter((d) => d.trangthai === "Hủy bỏ").length,
-  };
-
-  const getBadge = (tt) => {
-    if (tt === "Hoàn thành") return "badge-status badge-green";
-    if (tt === "Đang khám") return "badge-status badge-blue";
-    if (tt === "Đang chờ") return "badge-status badge-orange";
-    if (tt === "Hủy bỏ") return "badge-status badge-red";
-    return "badge-status badge-gray";
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setForm({ hoten: item.hoten, bacsi: item.bacsi, chuandoan: item.chuandoan, trieuchung: item.trieuchung });
-    setShowModal(true);
-  };
-
-  const handleSave = () => {
-    if (editItem) {
-      setData(data.map((d) => d.mapk === editItem.mapk ? { ...d, ...form } : d));
-    }
-    setShowModal(false);
-    setEditItem(null);
-  };
+  const [form, setForm] = useState({ chuandoan: "", trieuchung: "" });
 
   return (
     <div className="page-layout">
@@ -69,19 +25,19 @@ export default function KhamBenhPage() {
           <div className="stat-cards">
             <div className="stat-card blue">
               <div className="stat-label">Lịch khám hôm nay</div>
-              <div className="stat-number">{stats.total}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card green">
               <div className="stat-label">Đã hoàn thành</div>
-              <div className="stat-number">{stats.done}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card orange">
               <div className="stat-label">Đang chờ</div>
-              <div className="stat-number">{stats.waiting}</div>
+              <div className="stat-number">0</div>
             </div>
             <div className="stat-card purple">
               <div className="stat-label">Hủy bỏ</div>
-              <div className="stat-number">{stats.cancelled}</div>
+              <div className="stat-number">0</div>
             </div>
           </div>
 
@@ -113,38 +69,12 @@ export default function KhamBenhPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="7" className="empty-state"><p>Không tìm thấy phiếu khám nào</p></td></tr>
-                  ) : filtered.map((d) => (
-                    <tr key={d.mapk}>
-                      <td className="code-cell">{d.mapk}</td>
-                      <td>
-                        <div className="data-table name-cell">
-                          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(d.hoten)}&background=e0f2fe&color=0284c7&size=32`} alt={d.hoten} />
-                          <div>
-                            <div className="name">{d.hoten}</div>
-                            <div className="sub">{d.mabn}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>{d.bacsi}</td>
-                      <td style={{ color: "#6b7280" }}>{d.thoigian}</td>
-                      <td><span className={getBadge(d.trangthai)}>{d.trangthai}</span></td>
-                      <td style={{ maxWidth: "10rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.trieuchung}</td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-view" title="Xem chi tiết"><i className="fas fa-eye"></i></button>
-                          <button className="btn-edit" title="Chỉnh sửa" onClick={() => openEdit(d)}><i className="fas fa-edit"></i></button>
-                          <button className="btn-result" title="Kết quả"><i className="fas fa-file-medical"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>1-{filtered.length}</strong> trong tổng số <strong>{data.length}</strong> phiếu khám</div>
+              <div>Hiển thị <strong>0</strong> phiếu khám</div>
             </div>
           </div>
         </div>
@@ -169,7 +99,7 @@ export default function KhamBenhPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
