@@ -1,24 +1,35 @@
+import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
-const Header = () => {
+export default function Header({ userName = "Admin Quản lý", userRole = "Quản trị viên" }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/login");
+  };
+
   return (
-    <div className="header">
-      <div className="header-left">
-        <input type="text" placeholder="Tìm kiếm..." className="search-input" />
-      </div>
-
+    <header className="header">
       <div className="header-right">
-        <div className="header-notify">
-          <span className="notification-icon"></span>
+        <button className="header-bell">
+          <i className="fas fa-bell"></i>
+          <span className="badge">3</span>
+        </button>
+        <div className="header-user">
+          <div className="header-user-info">
+            <div className="header-user-name">{userName}</div>
+            <div className="header-user-role">{userRole}</div>
+          </div>
+          <img
+            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0056b3&color=fff&rounded=true`}
+            alt="Avatar"
+            className="header-avatar"
+          />
         </div>
-        <div className="header-login">
-          <span className="login-btn">
-            <a href="/login">Đăng nhập</a>
-          </span>
-        </div>
+        <button className="header-logout" onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt"></i> Đăng xuất
+        </button>
       </div>
-    </div>
+    </header>
   );
-};
-
-export default Header;
+}

@@ -1,33 +1,98 @@
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  height: 64px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 0;
 }
 
 .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.header-login{
-    border-left: 1px solid rgba(216, 7, 7, 0.15);
-    padding-left: 10px;
-    height: 25px;
+.header-bell {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 1.25rem;
+  position: relative;
+  transition: color 0.2s;
 }
 
-.search-input{
-    padding: 8px 12px;
-    border: 1px solid #1e5db6;
-    border-radius: 20px;
-    width: 350px;
+.header-bell:hover {
+  color: #2563eb;
 }
 
-.login-btn {
-    padding: 8px 14px;
-    background-color: #1e5db6;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
+.header-bell .badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 1.5rem;
+  cursor: pointer;
+}
+
+.header-user-info {
+  text-align: right;
+}
+
+.header-user-name {
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+.header-user-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-logout {
+  background: none;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header-logout:hover {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
 }
