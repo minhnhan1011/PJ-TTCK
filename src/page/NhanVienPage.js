@@ -3,17 +3,9 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./NhanVienPage.css";
 
-const INITIAL_STAFF = [
-  { manv: "NV-001", hoten: "BS. Trần Hoài Nam", chucvu: "Bác sĩ", sdt: "0901 234 567", tendn: "namth_bs", diachi: "HCM" },
-  { manv: "NV-002", hoten: "Nguyễn Thị Lan", chucvu: "Tiếp tân", sdt: "0912 345 678", tendn: "lannt_tt", diachi: "HCM" },
-  { manv: "NV-003", hoten: "Lê Văn Khải", chucvu: "Kế toán", sdt: "0988 765 432", tendn: "khailv_kt", diachi: "HN" },
-  { manv: "NV-004", hoten: "KTV. Phạm Văn B", chucvu: "Kỹ thuật viên", sdt: "0907 111 222", tendn: "bpv_ktv", diachi: "HCM" },
-];
-
 const ROLES = ["Bác sĩ", "Tiếp tân", "Kế toán", "Kỹ thuật viên", "Dược sĩ", "Admin"];
 
 export default function NhanVienPage() {
-  const [staff, setStaff] = useState(INITIAL_STAFF);
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -22,67 +14,11 @@ export default function NhanVienPage() {
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
 
-  const filtered = staff.filter((s) => {
-    const q = search.toLowerCase();
-    const matchSearch = s.hoten.toLowerCase().includes(q) || s.manv.toLowerCase().includes(q);
-    const matchRole = !filterRole || s.chucvu === filterRole;
-    return matchSearch && matchRole;
-  });
-
-  const getBadge = (cv) => {
-    if (cv === "Bác sĩ") return "badge-status badge-blue";
-    if (cv === "Tiếp tân") return "badge-status badge-purple";
-    if (cv === "Kế toán") return "badge-status badge-green";
-    if (cv === "Kỹ thuật viên") return "badge-status badge-teal";
-    if (cv === "Dược sĩ") return "badge-status badge-orange";
-    return "badge-status badge-gray";
-  };
-
   const openAdd = () => {
     setEditItem(null);
     setForm({ hoten: "", chucvu: "Bác sĩ", sdt: "", diachi: "" });
     setFormErrors({});
     setShowModal(true);
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setForm({ hoten: item.hoten, chucvu: item.chucvu, sdt: item.sdt, diachi: item.diachi });
-    setFormErrors({});
-    setShowModal(true);
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.hoten.trim()) errs.hoten = "Họ tên bắt buộc";
-    if (!form.sdt.trim()) errs.sdt = "Số điện thoại bắt buộc";
-    return errs;
-  };
-
-  const handleSave = () => {
-    const errs = validate();
-    setFormErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-
-    if (editItem) {
-      setStaff(staff.map((s) => s.manv === editItem.manv ? { ...s, hoten: form.hoten, chucvu: form.chucvu, sdt: form.sdt, diachi: form.diachi } : s));
-    } else {
-      const newItem = {
-        manv: "NV-" + String(staff.length + 1).padStart(3, "0"),
-        hoten: form.hoten,
-        chucvu: form.chucvu,
-        sdt: form.sdt,
-        diachi: form.diachi,
-        tendn: "",
-      };
-      setStaff([...staff, newItem]);
-    }
-    setShowModal(false);
-  };
-
-  const handleDelete = (manv) => {
-    setStaff(staff.filter((s) => s.manv !== manv));
-    setShowConfirm(null);
   };
 
   return (
@@ -125,33 +61,12 @@ export default function NhanVienPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="6" className="empty-state"><p>Không tìm thấy nhân viên nào</p></td></tr>
-                  ) : filtered.map((s) => (
-                    <tr key={s.manv}>
-                      <td style={{ fontWeight: 500 }}>{s.manv}</td>
-                      <td>
-                        <div className="data-table name-cell">
-                          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(s.hoten)}&background=e0f2fe&color=0284c7&size=32`} alt={s.hoten} />
-                          <span className="name">{s.hoten}</span>
-                        </div>
-                      </td>
-                      <td><span className={getBadge(s.chucvu)}>{s.chucvu}</span></td>
-                      <td>{s.sdt}</td>
-                      <td style={{ color: "#6b7280" }}>{s.tendn || "-"}</td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-edit" title="Chỉnh sửa" onClick={() => openEdit(s)}><i className="fas fa-edit"></i></button>
-                          <button className="btn-delete" title="Xóa" onClick={() => setShowConfirm(s.manv)}><i className="fas fa-trash-alt"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr><td colSpan="6" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>{filtered.length}</strong> trong tổng số <strong>{staff.length}</strong> nhân viên</div>
+              <div>Hiển thị <strong>0</strong> nhân viên</div>
             </div>
           </div>
         </div>
@@ -190,7 +105,7 @@ export default function NhanVienPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -204,7 +119,7 @@ export default function NhanVienPage() {
             <p>Chỉ xóa được nhân viên chưa liên kết phiếu khám hoặc tài khoản.</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => handleDelete(showConfirm)}>Xóa</button>
+              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
             </div>
           </div>
         </div>

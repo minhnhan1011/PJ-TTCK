@@ -3,84 +3,20 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./ThuocPage.css";
 
-const LOAI_THUOC = [
-  { malt: 1, tenlt: "Kháng sinh" },
-  { malt: 2, tenlt: "Giảm đau" },
-  { malt: 3, tenlt: "Hạ sốt" },
-  { malt: 4, tenlt: "Vitamin" },
-];
-
-const INITIAL_DATA = [
-  { mat: 1, tent: "Paracetamol", malt: 2, tenlt: "Giảm đau", dongia: 5000 },
-  { mat: 2, tent: "Amoxicillin", malt: 1, tenlt: "Kháng sinh", dongia: 10000 },
-  { mat: 3, tent: "Ibuprofen", malt: 2, tenlt: "Giảm đau", dongia: 8000 },
-  { mat: 4, tent: "Vitamin C 500mg", malt: 4, tenlt: "Vitamin", dongia: 3000 },
-  { mat: 5, tent: "Cefalexin", malt: 1, tenlt: "Kháng sinh", dongia: 12000 },
-];
-
 export default function ThuocPage() {
-  const [data, setData] = useState(INITIAL_DATA);
   const [search, setSearch] = useState("");
   const [filterLoai, setFilterLoai] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState({ tent: "", malt: "1", dongia: "" });
+  const [form, setForm] = useState({ tent: "", malt: "", dongia: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
 
-  const filtered = data.filter((d) => {
-    const q = search.toLowerCase();
-    const matchSearch = d.tent.toLowerCase().includes(q);
-    const matchLoai = !filterLoai || String(d.malt) === filterLoai;
-    return matchSearch && matchLoai;
-  });
-
-  const formatCurrency = (n) => n.toLocaleString("vi-VN");
-
   const openAdd = () => {
     setEditItem(null);
-    setForm({ tent: "", malt: "1", dongia: "" });
+    setForm({ tent: "", malt: "", dongia: "" });
     setFormErrors({});
     setShowModal(true);
-  };
-
-  const openEdit = (item) => {
-    setEditItem(item);
-    setForm({ tent: item.tent, malt: String(item.malt), dongia: String(item.dongia) });
-    setFormErrors({});
-    setShowModal(true);
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.tent.trim()) errs.tent = "Tên thuốc bắt buộc";
-    if (!form.dongia || Number(form.dongia) <= 0) errs.dongia = "Đơn giá phải > 0";
-    return errs;
-  };
-
-  const handleSave = () => {
-    const errs = validate();
-    setFormErrors(errs);
-    if (Object.keys(errs).length > 0) return;
-
-    const loai = LOAI_THUOC.find((l) => String(l.malt) === form.malt);
-    if (editItem) {
-      setData(data.map((d) => d.mat === editItem.mat ? { ...d, tent: form.tent, malt: Number(form.malt), tenlt: loai?.tenlt || "", dongia: Number(form.dongia) } : d));
-    } else {
-      setData([...data, {
-        mat: data.length + 1,
-        tent: form.tent,
-        malt: Number(form.malt),
-        tenlt: loai?.tenlt || "",
-        dongia: Number(form.dongia),
-      }]);
-    }
-    setShowModal(false);
-  };
-
-  const handleDelete = (mat) => {
-    setData(data.filter((d) => d.mat !== mat));
-    setShowConfirm(null);
   };
 
   return (
@@ -107,9 +43,8 @@ export default function ThuocPage() {
               </div>
               <select className="filter-select" value={filterLoai} onChange={(e) => setFilterLoai(e.target.value)}>
                 <option value="">Tất cả loại</option>
-                {LOAI_THUOC.map((l) => <option key={l.malt} value={l.malt}>{l.tenlt}</option>)}
               </select>
-              <div style={{ fontSize: "0.85rem", color: "#6b7280", marginLeft: "auto" }}>Tổng: <strong style={{ color: "#2563eb" }}>{data.length}</strong> thuốc</div>
+              <div style={{ fontSize: "0.85rem", color: "#6b7280", marginLeft: "auto" }}>Tổng: <strong style={{ color: "#2563eb" }}>0</strong> thuốc</div>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="data-table">
@@ -123,27 +58,12 @@ export default function ThuocPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="5" className="empty-state"><p>Không tìm thấy thuốc nào</p></td></tr>
-                  ) : filtered.map((d) => (
-                    <tr key={d.mat}>
-                      <td className="code-cell">T-{String(d.mat).padStart(3, "0")}</td>
-                      <td style={{ fontWeight: 600 }}>{d.tent}</td>
-                      <td><span className="badge-status badge-blue">{d.tenlt}</span></td>
-                      <td style={{ textAlign: "right", fontWeight: 500 }}>{formatCurrency(d.dongia)}</td>
-                      <td>
-                        <div className="action-btns">
-                          <button className="btn-edit" title="Sửa" onClick={() => openEdit(d)}><i className="fas fa-edit"></i></button>
-                          <button className="btn-delete" title="Xóa" onClick={() => setShowConfirm(d.mat)}><i className="fas fa-trash-alt"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  <tr><td colSpan="5" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>{filtered.length}</strong> trong tổng số <strong>{data.length}</strong> thuốc</div>
+              <div>Hiển thị <strong>0</strong> thuốc</div>
             </div>
           </div>
         </div>
@@ -166,7 +86,7 @@ export default function ThuocPage() {
                 <div className="form-group">
                   <label>Loại thuốc</label>
                   <select value={form.malt} onChange={(e) => setForm({ ...form, malt: e.target.value })}>
-                    {LOAI_THUOC.map((l) => <option key={l.malt} value={l.malt}>{l.tenlt}</option>)}
+                    <option value="">-- Chọn loại thuốc --</option>
                   </select>
                 </div>
                 <div className="form-group">
@@ -178,7 +98,7 @@ export default function ThuocPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -192,7 +112,7 @@ export default function ThuocPage() {
             <p>Chỉ xóa được thuốc chưa từng được kê đơn (bảng DonThuoc).</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => handleDelete(showConfirm)}>Xóa</button>
+              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
             </div>
           </div>
         </div>
