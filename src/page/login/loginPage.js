@@ -7,39 +7,33 @@ import axios from "axios";
 axios.defaults.withCredentials = true;
 
 function LoginPage() {
-  const [values, setValues] = useState({
-    tendn: "",
-    matkhau: "",
+  const [values,setValues]=useState({
+    tendn:"",
+    matkhau:""
   });
-
-  const navigate = useNavigate();
-
-  // xử lý nhập input
-  const handleChange = (e) => {
-    setValues((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  // xử lý login
-  const handleLogin = (e) => {
+  const navigate=useNavigate();
+  axios.defaults.withCredentials=true;
+  const handleLogin =(e)=>{
     e.preventDefault();
-
-    axios
-      .post("http://localhost:4000/login", values)
-      .then((res) => {
-        if (res.data.Status === "Success") {
-          alert("Đăng nhập thành công!");
-          navigate("/"); // về home
-        } else {
-          alert("Tài khoản hoặc mật khẩu không đúng");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Có lỗi xảy ra khi đăng nhập");
-      });
+    axios.post("http://localhost:4000/login",values)
+    .then(res=>{
+      if(res.data.Status==="Success"){
+          alert("Đăng nhập thành công!"); 
+        navigate('/');
+      }else{
+        alert("tai khoan hoac mat khau khong dung");
+      }
+    })
+    .catch((err)=>{
+      console.log(err);
+      alert("co loi xay trong qua trinh dang nhap");
+    });
+  };
+   const handleSubmit = (e) => {
+    setValues(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
   };
 
   return (

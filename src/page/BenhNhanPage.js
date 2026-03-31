@@ -11,7 +11,7 @@ export default function BenhNhanPage() {
 
   return (
     <div className="benhnhan-layout">
-      <Sidebar />
+      <Sidebar />1
       <div className="benhnhan-main">
         <Header />
         <div className="benhnhan-content">
