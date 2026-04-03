@@ -5,83 +5,98 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-  z-index: 10;
   min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Logo */
 .sidebar .logo {
   height: 64px;
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  border-bottom: 1px solid #1e40af;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  letter-spacing: -0.2px;
 }
 
 .sidebar .logo i {
   margin-right: 0.75rem;
 }
 
-.sidebar .nav {
+/* Menu */
+.sidebar .menu {
   flex: 1;
-  padding: 1.5rem 1rem;
+  padding: 0.75rem 0.625rem;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 2px;
+  margin: 0;
 }
 
-.sidebar .nav a {
+.sidebar .menu li a {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  color: #bfdbfe;
+  padding: 0.5rem 0.625rem;
+  color: #ffffff;
   text-decoration: none;
-  border-radius: 0.5rem;
-  transition: background 0.2s, color 0.2s;
-  font-size: 0.9rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
   font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
 }
 
-.sidebar .nav a i {
-  width: 1.5rem;
-  margin-right: 0.5rem;
+.sidebar .menu li a i {
+  width: 1rem;
+  margin-right: 0.625rem;
   text-align: center;
+  font-size: 0.8125rem;
+  flex-shrink: 0;
 }
 
-.sidebar .nav a:hover {
-  background: #1e40af;
-  color: #fff;
+.sidebar .menu li a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
 }
 
-.sidebar .nav a.active {
-  background: #1e40af;
-  color: #fff;
+.sidebar .menu li a.active {
+  background: rgba(59, 130, 246, 0.18);
+  color: #ffffff;
 }
 
-.sidebar .divider {
-  border-top: 1px solid #1e40af;
-  margin: 1rem 0;
+.sidebar .menu li a.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: #3b82f6;
+  border-radius: 0 3px 3px 0;
 }
 
-.sidebar .logout-link {
-  color: #bfdbfe;
+/* Logout */
+.sidebar .logout {
+  padding: 0.5rem 0.625rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.sidebar .logout-link:hover {
-  background: #dc2626;
-  color: #fff;
+.sidebar .logout a {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
 }
 
-.sidebar .status {
-  padding: 1rem;
-  border-top: 1px solid #1e40af;
-  font-size: 0.8rem;
-  color: #93c5fd;
-}
-
-.sidebar .status .online {
-  color: #4ade80;
-  font-weight: 700;
+.sidebar .logout a:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
