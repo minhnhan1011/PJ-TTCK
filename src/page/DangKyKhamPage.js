@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DangKyKhamPage.css";
@@ -6,13 +6,96 @@ import "./DangKyKhamPage.css";
 export default function DangKyKhamPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ hoten: "", lydokham: "", mabn: "" });
+  const [form, setForm] = useState({ hoten: "", lydokham: "", manv: "" });
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [danhSach, setDanhSach] = useState([]);
+  const [danhSachBS, setDanhSachBS] = useState([]);
+
+  const fetchDanhSach = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:4000/api/dang-ky-kham", { credentials: "include" });
+      const data = await res.json();
+      setDanhSach(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setDanhSach([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDanhSachBS = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/api/nhan-vien/bac-si", { credentials: "include" });
+      const data = await res.json();
+      setDanhSachBS(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setDanhSachBS([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchDanhSach();
+    fetchDanhSachBS();
+  }, []);
+
+  const stats = {
+    tong:      danhSach.length,
+    choKham:   danhSach.filter((d) => d.trangthai === "Cho kham").length,
+    dangKham:  danhSach.filter((d) => d.trangthai === "Dang kham").length,
+    hoanThanh: danhSach.filter((d) => d.trangthai === "Hoan thanh").length,
+  };
+
+  const filtered = danhSach.filter((d) =>
+    [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some((f) =>
+      f.toLowerCase().includes(search.toLowerCase())
+    )
+  );
+
+  const validate = () => {
+    const errors = {};
+    if (!form.hoten.trim()) errors.hoten = "Vui lòng nhập họ tên";
+    if (!form.lydokham)     errors.lydokham = "Vui lòng chọn lý do khám";
+    if (!form.manv)         errors.manv = "Vui lòng chọn bác sĩ";
+    return errors;
+  };
 
   const openAdd = () => {
-    setForm({ hoten: "", lydokham: "", mabn: "" });
+    setForm({ hoten: "", lydokham: "", manv: "" });
     setFormErrors({});
     setShowModal(true);
+  };
+
+  const handleSubmit = async () => {
+    const errors = validate();
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch("http://localhost:4000/api/dang-ky-kham", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ hoten: form.hoten, lydokham: form.lydokham, manv: form.manv }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Lỗi server");
+      }
+      setShowModal(false);
+      fetchDanhSach();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const trangThaiLabel = {
+    "Cho kham":   { text: "Chờ khám",   className: "badge-orange" },
+    "Dang kham":  { text: "Đang khám",  className: "badge-green"  },
+    "Hoan thanh": { text: "Hoàn thành", className: "badge-purple" },
   };
 
   return (
@@ -34,19 +117,19 @@ export default function DangKyKhamPage() {
           <div className="stat-cards">
             <div className="stat-card blue">
               <div className="stat-label">Tổng đăng ký</div>
-              <div className="stat-number">0</div>
+              <div className="stat-number">{stats.tong}</div>
             </div>
             <div className="stat-card orange">
               <div className="stat-label">Chờ khám</div>
-              <div className="stat-number">0</div>
+              <div className="stat-number">{stats.choKham}</div>
             </div>
             <div className="stat-card green">
               <div className="stat-label">Đang khám</div>
-              <div className="stat-number">0</div>
+              <div className="stat-number">{stats.dangKham}</div>
             </div>
             <div className="stat-card purple">
               <div className="stat-label">Hoàn thành</div>
-              <div className="stat-number">0</div>
+              <div className="stat-number">{stats.hoanThanh}</div>
             </div>
           </div>
 
@@ -54,7 +137,11 @@ export default function DangKyKhamPage() {
             <div className="table-toolbar">
               <div className="search-box">
                 <i className="fas fa-search"></i>
-                <input placeholder="Tìm theo tên BN, mã BN, mã ĐK..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                <input
+                  placeholder="Tìm theo tên BN, mã ĐK, bác sĩ..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
             </div>
             <div style={{ overflowX: "auto" }}>
@@ -62,21 +149,43 @@ export default function DangKyKhamPage() {
                 <thead>
                   <tr>
                     <th>Mã ĐK</th>
-                    <th>STT</th>
                     <th>Bệnh nhân</th>
                     <th>Lý do khám</th>
+                    <th>Bác sĩ phụ trách</th>
                     <th>Ngày đăng ký</th>
                     <th>Trạng thái</th>
                     <th style={{ textAlign: "right" }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                  {loading ? (
+                    <tr><td colSpan="7" className="empty-state"><p>Đang tải...</p></td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                  ) : (
+                    filtered.map((item) => (
+                      <tr key={item.madk}>
+                        <td>{item.madk}</td>
+                        <td>{item.hoten}</td>
+                        <td>{item.lydokham}</td>
+                        <td>{item.tenbs ?? "-"}</td>
+                        <td>{new Date(item.ngaydangky).toLocaleDateString("vi-VN")}</td>
+                        <td>
+                          <span className={`badge ${trangThaiLabel[item.trangthai]?.className ?? ""}`}>
+                            {trangThaiLabel[item.trangthai]?.text ?? item.trangthai}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {/* thêm nút hủy/sửa sau */}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>0</strong> đăng ký</div>
+              <div>Hiển thị <strong>{filtered.length}</strong> đăng ký</div>
             </div>
           </div>
         </div>
@@ -86,22 +195,33 @@ export default function DangKyKhamPage() {
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-form" onClick={(e) => e.stopPropagation()}>
             <div className="modal-form-header">
-              <h3><i className="fas fa-clipboard-list" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>Lập phiếu đăng ký khám</h3>
-              <button className="btn-close" onClick={() => setShowModal(false)}><i className="fas fa-times"></i></button>
+              <h3>
+                <i className="fas fa-clipboard-list" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>
+                Lập phiếu đăng ký khám
+              </h3>
+              <button className="btn-close" onClick={() => setShowModal(false)}>
+                <i className="fas fa-times"></i>
+              </button>
             </div>
             <div className="modal-form-body">
               <div className="form-group">
-                <label>Mã Bệnh nhân (nếu có)</label>
-                <input type="text" placeholder="VD: BN-001 (bỏ trống nếu BN mới)" value={form.mabn} onChange={(e) => setForm({ ...form, mabn: e.target.value })} />
-              </div>
-              <div className="form-group">
                 <label>Họ và Tên <span className="required">*</span></label>
-                <input type="text" placeholder="Nhập họ tên bệnh nhân..." value={form.hoten} onChange={(e) => setForm({ ...form, hoten: e.target.value })} className={formErrors.hoten ? "input-error" : ""} />
+                <input
+                  type="text"
+                  placeholder="Nhập họ tên bệnh nhân..."
+                  value={form.hoten}
+                  onChange={(e) => setForm({ ...form, hoten: e.target.value })}
+                  className={formErrors.hoten ? "input-error" : ""}
+                />
                 {formErrors.hoten && <div className="error-text">{formErrors.hoten}</div>}
               </div>
               <div className="form-group">
                 <label>Lý do khám <span className="required">*</span></label>
-                <select value={form.lydokham} onChange={(e) => setForm({ ...form, lydokham: e.target.value })} className={formErrors.lydokham ? "input-error" : ""}>
+                <select
+                  value={form.lydokham}
+                  onChange={(e) => setForm({ ...form, lydokham: e.target.value })}
+                  className={formErrors.lydokham ? "input-error" : ""}
+                >
                   <option value="">-- Chọn lý do --</option>
                   <option>Khám tổng quát</option>
                   <option>Sốt / Cảm cúm</option>
@@ -113,10 +233,27 @@ export default function DangKyKhamPage() {
                 </select>
                 {formErrors.lydokham && <div className="error-text">{formErrors.lydokham}</div>}
               </div>
+              <div className="form-group">
+                <label>Bác sĩ phụ trách <span className="required">*</span></label>
+                <select
+                  value={form.manv}
+                  onChange={(e) => setForm({ ...form, manv: e.target.value })}
+                  className={formErrors.manv ? "input-error" : ""}
+                >
+                  <option value="">-- Chọn bác sĩ --</option>
+                  {danhSachBS.map((bs) => (
+                    <option key={bs.manv} value={bs.manv}>{bs.hoten}</option>
+                  ))}
+                </select>
+                {formErrors.manv && <div className="error-text">{formErrors.manv}</div>}
+              </div>
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu & Cấp STT</button>
+              <button className="btn-save" onClick={handleSubmit} disabled={submitting}>
+                <i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>
+                {submitting ? "Đang lưu..." : "Lưu & Cấp STT"}
+              </button>
             </div>
           </div>
         </div>
