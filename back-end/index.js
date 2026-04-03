@@ -24,6 +24,7 @@ const db = mysql.createConnection({
   user: "root",
   password: "",
   database: "qlphongkham",
+  charset: "utf8mb4",
 });
 
 db.connect((err) => {
@@ -97,37 +98,57 @@ app.get("/api/dang-ky-kham", verifyUser, (req, res) => {
     LEFT JOIN nhanvien nv ON dk.manv = nv.manv
     ORDER BY dk.madk DESC
   `;
+  // Phải thêm đoạn này:
   db.query(sql, (err, data) => {
     if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
     res.json(data);
   });
 });
 
-// POST tạo phiếu đăng ký
 app.post("/api/dang-ky-kham", verifyUser, (req, res) => {
   const { hoten, lydokham, manv } = req.body;
-
   if (!hoten || !lydokham || !manv) {
     return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
   }
 
   const sql = `INSERT INTO dangkykham (hoten, manv, lydokham, ngaydangky, trangthai) VALUES (?, ?, ?, NOW(), 'Cho kham')`;
-  db.query(sql, [hoten, manv, lydokham,ngaydangky, trangthai, madk], (err, result) => {
+
+  db.query(sql, [hoten, manv, lydokham], (err, result) => {
     if (err) {
-      console.log("Lỗi SQL:", err);
       return res.status(500).json({ message: "Lỗi tạo phiếu", error: err });
     }
     res.status(201).json({
       madk: result.insertId,
-      hoten,
-      lydokham,
-      manv,
+      hoten, lydokham, manv,
       ngaydangky: new Date().toISOString().split("T")[0],
       trangthai: "Cho kham",
     });
   });
 });
 
+// PUT - cập nhật phiếu
+app.put("/api/dang-ky-kham/:madk", verifyUser, (req, res) => {
+  const { hoten, lydokham, manv } = req.body;
+  const { madk } = req.params;
+  if (!hoten || !lydokham || !manv)
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  db.query(
+    "UPDATE dangkykham SET hoten=?, lydokham=?, manv=? WHERE madk=?",
+    [hoten, lydokham, manv, madk],
+    (err) => {
+      if (err) return res.status(500).json({ message: "Lỗi cập nhật", error: err });
+      res.json({ message: "Cập nhật thành công" });
+    }
+  );
+});
+
+// DELETE - xóa phiếu
+app.delete("/api/dang-ky-kham/:madk", verifyUser, (req, res) => {
+  db.query("DELETE FROM dangkykham WHERE madk=?", [req.params.madk], (err) => {
+    if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
+    res.json({ message: "Xóa thành công" });
+  });
+});
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
