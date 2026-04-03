@@ -3,9 +3,94 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DangKyKhamPage.css";
 
+// --- COMPONENT CON: Tách ra ngoài để tránh lỗi reset khi gõ (Re-mounting) ---
+const ModalForm = ({ 
+  title, 
+  onSubmit, 
+  onClose, 
+  form, 
+  setForm, 
+  formErrors, 
+  danhSachBS, 
+  submitting 
+}) => {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-form" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-form-header">
+          <h3>
+            <i className="fas fa-clipboard-list" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>
+            {title}
+          </h3>
+          <button className="btn-close" onClick={onClose}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <div className="modal-form-body">
+          <div className="form-group">
+            <label>Họ và Tên <span className="required">*</span></label>
+            <input
+              type="text"
+              placeholder="Nhập họ tên bệnh nhân..."
+              value={form.hoten}
+              onChange={(e) => setForm({ ...form, hoten: e.target.value })}
+              className={formErrors.hoten ? "input-error" : ""}
+            />
+            {formErrors.hoten && <div className="error-text">{formErrors.hoten}</div>}
+          </div>
+
+          <div className="form-group">
+            <label>Lý do khám <span className="required">*</span></label>
+            <select
+              value={form.lydokham}
+              onChange={(e) => setForm({ ...form, lydokham: e.target.value })}
+              className={formErrors.lydokham ? "input-error" : ""}
+            >
+              <option value="">-- Chọn lý do --</option>
+              <option>Khám tổng quát</option>
+              <option>Sốt / Cảm cúm</option>
+              <option>Đau bụng</option>
+              <option>Đau đầu</option>
+              <option>Tai mũi họng</option>
+              <option>Da liễu</option>
+              <option>Khác</option>
+            </select>
+            {formErrors.lydokham && <div className="error-text">{formErrors.lydokham}</div>}
+          </div>
+
+          <div className="form-group">
+            <label>Bác sĩ phụ trách <span className="required">*</span></label>
+            <select
+              value={form.manv}
+              onChange={(e) => setForm({ ...form, manv: e.target.value })}
+              className={formErrors.manv ? "input-error" : ""}
+            >
+              <option value="">-- Chọn bác sĩ --</option>
+              {danhSachBS.map((bs) => (
+                <option key={bs.manv} value={bs.manv}>{bs.hoten}</option>
+              ))}
+            </select>
+            {formErrors.manv && <div className="error-text">{formErrors.manv}</div>}
+          </div>
+        </div>
+        <div className="modal-form-footer">
+          <button className="btn-cancel" onClick={onClose}>Hủy</button>
+          <button className="btn-save" onClick={onSubmit} disabled={submitting}>
+            <i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>
+            {submitting ? "Đang lưu..." : "Lưu & Cấp STT"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- COMPONENT CHÍNH ---
 export default function DangKyKhamPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState({ hoten: "", lydokham: "", manv: "" });
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -42,9 +127,9 @@ export default function DangKyKhamPage() {
   }, []);
 
   const stats = {
-    tong:      danhSach.length,
-    choKham:   danhSach.filter((d) => d.trangthai === "Cho kham").length,
-    dangKham:  danhSach.filter((d) => d.trangthai === "Dang kham").length,
+    tong: danhSach.length,
+    choKham: danhSach.filter((d) => d.trangthai === "Cho kham").length,
+    dangKham: danhSach.filter((d) => d.trangthai === "Dang kham").length,
     hoanThanh: danhSach.filter((d) => d.trangthai === "Hoan thanh").length,
   };
 
@@ -57,8 +142,8 @@ export default function DangKyKhamPage() {
   const validate = () => {
     const errors = {};
     if (!form.hoten.trim()) errors.hoten = "Vui lòng nhập họ tên";
-    if (!form.lydokham)     errors.lydokham = "Vui lòng chọn lý do khám";
-    if (!form.manv)         errors.manv = "Vui lòng chọn bác sĩ";
+    if (!form.lydokham) errors.lydokham = "Vui lòng chọn lý do khám";
+    if (!form.manv) errors.manv = "Vui lòng chọn bác sĩ";
     return errors;
   };
 
@@ -66,6 +151,13 @@ export default function DangKyKhamPage() {
     setForm({ hoten: "", lydokham: "", manv: "" });
     setFormErrors({});
     setShowModal(true);
+  };
+
+  const openEdit = (item) => {
+    setEditItem(item);
+    setForm({ hoten: item.hoten, lydokham: item.lydokham, manv: String(item.manv) });
+    setFormErrors({});
+    setShowEditModal(true);
   };
 
   const handleSubmit = async () => {
@@ -92,9 +184,50 @@ export default function DangKyKhamPage() {
     }
   };
 
+  const handleEdit = async () => {
+    const errors = validate();
+    if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
+    setSubmitting(true);
+    try {
+      const res = await fetch(`http://localhost:4000/api/dang-ky-kham/${editItem.madk}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ hoten: form.hoten, lydokham: form.lydokham, manv: form.manv }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Lỗi server");
+      }
+      setShowEditModal(false);
+      fetchDanhSach();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (madk) => {
+    if (!window.confirm("Bạn có chắc muốn xóa phiếu đăng ký này?")) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/dang-ky-kham/${madk}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Lỗi server");
+      }
+      fetchDanhSach();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   const trangThaiLabel = {
-    "Cho kham":   { text: "Chờ khám",   className: "badge-orange" },
-    "Dang kham":  { text: "Đang khám",  className: "badge-green"  },
+    "Cho kham": { text: "Chờ khám", className: "badge-orange" },
+    "Dang kham": { text: "Đang khám", className: "badge-green" },
     "Hoan thanh": { text: "Hoàn thành", className: "badge-purple" },
   };
 
@@ -176,7 +309,12 @@ export default function DangKyKhamPage() {
                           </span>
                         </td>
                         <td style={{ textAlign: "right" }}>
-                          {/* thêm nút hủy/sửa sau */}
+                          <button className="btn-icon btn-edit" onClick={() => openEdit(item)} title="Chỉnh sửa">
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button className="btn-icon btn-delete" onClick={() => handleDelete(item.madk)} title="Xóa">
+                            <i className="fas fa-trash"></i>
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -191,72 +329,32 @@ export default function DangKyKhamPage() {
         </div>
       </div>
 
+      {/* Modal Lập phiếu mới */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-form" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-form-header">
-              <h3>
-                <i className="fas fa-clipboard-list" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>
-                Lập phiếu đăng ký khám
-              </h3>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="modal-form-body">
-              <div className="form-group">
-                <label>Họ và Tên <span className="required">*</span></label>
-                <input
-                  type="text"
-                  placeholder="Nhập họ tên bệnh nhân..."
-                  value={form.hoten}
-                  onChange={(e) => setForm({ ...form, hoten: e.target.value })}
-                  className={formErrors.hoten ? "input-error" : ""}
-                />
-                {formErrors.hoten && <div className="error-text">{formErrors.hoten}</div>}
-              </div>
-              <div className="form-group">
-                <label>Lý do khám <span className="required">*</span></label>
-                <select
-                  value={form.lydokham}
-                  onChange={(e) => setForm({ ...form, lydokham: e.target.value })}
-                  className={formErrors.lydokham ? "input-error" : ""}
-                >
-                  <option value="">-- Chọn lý do --</option>
-                  <option>Khám tổng quát</option>
-                  <option>Sốt / Cảm cúm</option>
-                  <option>Đau bụng</option>
-                  <option>Đau đầu</option>
-                  <option>Tai mũi họng</option>
-                  <option>Da liễu</option>
-                  <option>Khác</option>
-                </select>
-                {formErrors.lydokham && <div className="error-text">{formErrors.lydokham}</div>}
-              </div>
-              <div className="form-group">
-                <label>Bác sĩ phụ trách <span className="required">*</span></label>
-                <select
-                  value={form.manv}
-                  onChange={(e) => setForm({ ...form, manv: e.target.value })}
-                  className={formErrors.manv ? "input-error" : ""}
-                >
-                  <option value="">-- Chọn bác sĩ --</option>
-                  {danhSachBS.map((bs) => (
-                    <option key={bs.manv} value={bs.manv}>{bs.hoten}</option>
-                  ))}
-                </select>
-                {formErrors.manv && <div className="error-text">{formErrors.manv}</div>}
-              </div>
-            </div>
-            <div className="modal-form-footer">
-              <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSubmit} disabled={submitting}>
-                <i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>
-                {submitting ? "Đang lưu..." : "Lưu & Cấp STT"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalForm
+          title="Lập phiếu đăng ký khám"
+          onSubmit={handleSubmit}
+          onClose={() => setShowModal(false)}
+          form={form}
+          setForm={setForm}
+          formErrors={formErrors}
+          danhSachBS={danhSachBS}
+          submitting={submitting}
+        />
+      )}
+
+      {/* Modal Chỉnh sửa */}
+      {showEditModal && (
+        <ModalForm
+          title="Chỉnh sửa phiếu đăng ký"
+          onSubmit={handleEdit}
+          onClose={() => setShowEditModal(false)}
+          form={form}
+          setForm={setForm}
+          formErrors={formErrors}
+          danhSachBS={danhSachBS}
+          submitting={submitting}
+        />
       )}
     </div>
   );
