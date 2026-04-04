@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./NhanVienPage.css";
 
 const ROLES = ["Bác sĩ", "Tiếp tân", "Kế toán", "Kỹ thuật viên", "Dược sĩ", "Admin"];
@@ -13,6 +15,22 @@ export default function NhanVienPage() {
   const [form, setForm] = useState({ hoten: "", chucvu: "Bác sĩ", sdt: "", diachi: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/nhan-vien");
+        toast.info("Sẵn sàng kết nối API Nhân viên");
+      } catch {
+        toast.error("Lỗi tải danh sách nhân viên!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const openAdd = () => {
     setEditItem(null);
@@ -23,6 +41,7 @@ export default function NhanVienPage() {
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải danh sách nhân viên..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -105,7 +124,7 @@ export default function NhanVienPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => { toast.success("Lưu nhân viên thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -119,7 +138,7 @@ export default function NhanVienPage() {
             <p>Chỉ xóa được nhân viên chưa liên kết phiếu khám hoặc tài khoản.</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
+              <button className="btn-danger" onClick={() => { toast.success("Xóa nhân viên thành công!"); setShowConfirm(null); }}>Xóa</button>
             </div>
           </div>
         </div>

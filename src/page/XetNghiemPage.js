@@ -1,14 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./XetNghiemPage.css";
 
 export default function XetNghiemPage() {
-  const [ketqua, setKetqua] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/xet-nghiem");
+        toast.info("Sẵn sàng kết nối API Xét nghiệm");
+      } catch {
+        toast.error("Lỗi tải yêu cầu xét nghiệm!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải yêu cầu xét nghiệm..." />}
       <Sidebar />
       <div className="page-main">
         <Header />

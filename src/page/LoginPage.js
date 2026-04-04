@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./LoginPage.css";
 
 export default function LoginPage() {
@@ -25,10 +27,12 @@ export default function LoginPage() {
 
     // TODO: Gọi API đăng nhập từ backend
     setLoading(true);
+    toast.info("Đang xử lý đăng nhập...");
   };
 
   return (
     <div className="login-page">
+      {loading && <Loading text="Đang đăng nhập..." />}
       <div className="login-container">
         {/* Left banner */}
         <div className="login-banner">

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./DangKyKhamPage.css";
 
 export default function DangKyKhamPage() {
@@ -8,6 +10,22 @@ export default function DangKyKhamPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ hoten: "", lydokham: "", mabn: "" });
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/dang-ky-kham");
+        toast.info("Sẵn sàng kết nối API Đăng ký khám");
+      } catch {
+        toast.error("Lỗi tải danh sách đăng ký!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const openAdd = () => {
     setForm({ hoten: "", lydokham: "", mabn: "" });
@@ -17,6 +35,7 @@ export default function DangKyKhamPage() {
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải danh sách đăng ký..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -116,7 +135,7 @@ export default function DangKyKhamPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu & Cấp STT</button>
+              <button className="btn-save" onClick={() => { toast.success("Lưu đăng ký thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu & Cấp STT</button>
             </div>
           </div>
         </div>
