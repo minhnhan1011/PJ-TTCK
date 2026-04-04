@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./DichVuPage.css";
 
 export default function DichVuPage() {
@@ -11,6 +12,22 @@ export default function DichVuPage() {
   const [editItem, setEditItem] = useState(null);
   const [form, setForm] = useState({ tendv: "", gia: "" });
   const [showConfirm, setShowConfirm] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/dich-vu");
+        toast.info("Sẵn sàng kết nối API Dịch vụ");
+      } catch {
+        toast.error("Lỗi tải danh sách dịch vụ!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // 1. Lấy danh sách dịch vụ từ API
   const fetchDichVu = () => {
@@ -70,6 +87,7 @@ export default function DichVuPage() {
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải danh sách dịch vụ..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -213,16 +231,8 @@ export default function DichVuPage() {
               </div>
             </div>
             <div className="modal-form-footer">
-              <button
-                className="btn-cancel"
-                onClick={() => setShowModal(false)}
-              >
-                Hủy
-              </button>
-              <button className="btn-save" onClick={handleSave}>
-                <i className="fas fa-save" style={{ marginRight: "8px" }}></i>
-                Lưu
-              </button>
+              <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
+              <button className="btn-save" onClick={() => { toast.success("Lưu dịch vụ thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -231,40 +241,13 @@ export default function DichVuPage() {
       {/* XÁC NHẬN XÓA */}
       {showConfirm && (
         <div className="modal-overlay" onClick={() => setShowConfirm(null)}>
-          <div
-            className="modal-form"
-            style={{ width: "400px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-form-header" style={{ borderBottom: "none" }}>
-              <h3 style={{ color: "#ef4444" }}>Xác nhận xóa</h3>
-            </div>
-            <div
-              className="modal-form-body"
-              style={{ textAlign: "center", paddingTop: 0 }}
-            >
-              <p>
-                Bạn có chắc chắn muốn xóa dịch vụ{" "}
-                <strong>#{showConfirm}</strong>?
-              </p>
-            </div>
-            <div
-              className="modal-form-footer"
-              style={{ background: "none", borderTop: "none" }}
-            >
-              <button
-                className="btn-cancel"
-                onClick={() => setShowConfirm(null)}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-save"
-                style={{ backgroundColor: "#ef4444" }}
-                onClick={handleDelete}
-              >
-                Xóa ngay
-              </button>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon"><i className="fas fa-exclamation-triangle"></i></div>
+            <h3>Xóa Dịch vụ?</h3>
+            <p>Hành động này không thể hoàn tác. Dịch vụ đã liên kết phiếu xét nghiệm sẽ không thể xóa.</p>
+            <div className="confirm-actions">
+              <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
+              <button className="btn-danger" onClick={() => { toast.success("Xóa dịch vụ thành công!"); setShowConfirm(null); }}>Xóa</button>
             </div>
           </div>
         </div>

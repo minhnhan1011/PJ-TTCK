@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./KioskPage.css";
 
 const LY_DO_KHAM = [
@@ -17,6 +19,7 @@ export default function KioskPage() {
   const [lydokham, setLydokham] = useState("");
   const [error, setError] = useState("");
   const [modal, setModal] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,7 +34,10 @@ export default function KioskPage() {
       return;
     }
     setError("");
+    setLoading(true);
     // TODO: Gọi API lấy số thứ tự từ backend
+    toast.info("Đang lấy số thứ tự...");
+    setLoading(false);
   };
 
   const closeModal = () => {
@@ -41,6 +47,7 @@ export default function KioskPage() {
 
   return (
     <div className="kiosk-page">
+      {loading && <Loading text="Đang lấy số thứ tự..." />}
       <div className="kiosk-overlay"></div>
 
       <div className="kiosk-card">

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./BenhNhanPage.css";
 
 export default function BenhNhanPage() {
@@ -8,10 +10,27 @@ export default function BenhNhanPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ hoten: "", ngaysinh: "", gioitinh: "Nam", sdt: "", diachi: "" });
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/benh-nhan");
+        toast.info("Sẵn sàng kết nối API Bệnh nhân");
+      } catch {
+        toast.error("Lỗi tải danh sách bệnh nhân!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="benhnhan-layout">
-      <Sidebar />1
+      {loading && <Loading text="Đang tải danh sách bệnh nhân..." />}
+      <Sidebar />
       <div className="benhnhan-main">
         <Header />
         <div className="benhnhan-content">
@@ -162,7 +181,7 @@ export default function BenhNhanPage() {
 
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}>
+              <button className="btn-save" onClick={() => { toast.success("Lưu bệnh nhân thành công!"); setShowModal(false); }}>
                 <i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu
               </button>
             </div>

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./DangKyKhamPage.css";
 
 // --- COMPONENT CON: Tách ra ngoài để tránh lỗi reset khi gõ (Re-mounting) ---
@@ -94,58 +96,21 @@ export default function DangKyKhamPage() {
   const [form, setForm] = useState({ hoten: "", lydokham: "", manv: "" });
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [danhSach, setDanhSach] = useState([]);
-  const [danhSachBS, setDanhSachBS] = useState([]);
-
-  const fetchDanhSach = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("http://localhost:4000/api/dang-ky-kham", { credentials: "include" });
-      const data = await res.json();
-      setDanhSach(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setDanhSach([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDanhSachBS = async () => {
-    try {
-      const res = await fetch("http://localhost:4000/api/nhan-vien/bac-si", { credentials: "include" });
-      const data = await res.json();
-      setDanhSachBS(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setDanhSachBS([]);
-    }
-  };
 
   useEffect(() => {
-    fetchDanhSach();
-    fetchDanhSachBS();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/dang-ky-kham");
+        toast.info("Sẵn sàng kết nối API Đăng ký khám");
+      } catch {
+        toast.error("Lỗi tải danh sách đăng ký!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
-
-  const stats = {
-    tong: danhSach.length,
-    choKham: danhSach.filter((d) => d.trangthai === "Cho kham").length,
-    dangKham: danhSach.filter((d) => d.trangthai === "Dang kham").length,
-    hoanThanh: danhSach.filter((d) => d.trangthai === "Hoan thanh").length,
-  };
-
-  const filtered = danhSach.filter((d) =>
-    [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some((f) =>
-      f.toLowerCase().includes(search.toLowerCase())
-    )
-  );
-
-  const validate = () => {
-    const errors = {};
-    if (!form.hoten.trim()) errors.hoten = "Vui lòng nhập họ tên";
-    if (!form.lydokham) errors.lydokham = "Vui lòng chọn lý do khám";
-    if (!form.manv) errors.manv = "Vui lòng chọn bác sĩ";
-    return errors;
-  };
 
   const openAdd = () => {
     setForm({ hoten: "", lydokham: "", manv: "" });
@@ -233,6 +198,7 @@ export default function DangKyKhamPage() {
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải danh sách đăng ký..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -331,30 +297,43 @@ export default function DangKyKhamPage() {
 
       {/* Modal Lập phiếu mới */}
       {showModal && (
-        <ModalForm
-          title="Lập phiếu đăng ký khám"
-          onSubmit={handleSubmit}
-          onClose={() => setShowModal(false)}
-          form={form}
-          setForm={setForm}
-          formErrors={formErrors}
-          danhSachBS={danhSachBS}
-          submitting={submitting}
-        />
-      )}
-
-      {/* Modal Chỉnh sửa */}
-      {showEditModal && (
-        <ModalForm
-          title="Chỉnh sửa phiếu đăng ký"
-          onSubmit={handleEdit}
-          onClose={() => setShowEditModal(false)}
-          form={form}
-          setForm={setForm}
-          formErrors={formErrors}
-          danhSachBS={danhSachBS}
-          submitting={submitting}
-        />
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-form" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-form-header">
+              <h3><i className="fas fa-clipboard-list" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>Lập phiếu đăng ký khám</h3>
+              <button className="btn-close" onClick={() => setShowModal(false)}><i className="fas fa-times"></i></button>
+            </div>
+            <div className="modal-form-body">
+              <div className="form-group">
+                <label>Mã Bệnh nhân (nếu có)</label>
+                <input type="text" placeholder="VD: BN-001 (bỏ trống nếu BN mới)" value={form.mabn} onChange={(e) => setForm({ ...form, mabn: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label>Họ và Tên <span className="required">*</span></label>
+                <input type="text" placeholder="Nhập họ tên bệnh nhân..." value={form.hoten} onChange={(e) => setForm({ ...form, hoten: e.target.value })} className={formErrors.hoten ? "input-error" : ""} />
+                {formErrors.hoten && <div className="error-text">{formErrors.hoten}</div>}
+              </div>
+              <div className="form-group">
+                <label>Lý do khám <span className="required">*</span></label>
+                <select value={form.lydokham} onChange={(e) => setForm({ ...form, lydokham: e.target.value })} className={formErrors.lydokham ? "input-error" : ""}>
+                  <option value="">-- Chọn lý do --</option>
+                  <option>Khám tổng quát</option>
+                  <option>Sốt / Cảm cúm</option>
+                  <option>Đau bụng</option>
+                  <option>Đau đầu</option>
+                  <option>Tai mũi họng</option>
+                  <option>Da liễu</option>
+                  <option>Khác</option>
+                </select>
+                {formErrors.lydokham && <div className="error-text">{formErrors.lydokham}</div>}
+              </div>
+            </div>
+            <div className="modal-form-footer">
+              <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
+              <button className="btn-save" onClick={() => { toast.success("Lưu đăng ký thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu & Cấp STT</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

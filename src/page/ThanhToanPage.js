@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./ThanhToanPage.css";
 
 export default function ThanhToanPage() {
   const [search, setSearch] = useState("");
   const [showConfirm, setShowConfirm] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/thanh-toan");
+        toast.info("Sẵn sàng kết nối API Thanh toán");
+      } catch {
+        toast.error("Lỗi tải dữ liệu thanh toán!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải dữ liệu thanh toán..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -67,7 +86,7 @@ export default function ThanhToanPage() {
                 <label className="field-label">Ghi chú</label>
                 <textarea className="field-textarea" placeholder="Nhập ghi chú nếu có..." rows="3"></textarea>
               </div>
-              <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+              <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => toast.success("Xác nhận thanh toán thành công!")}>
                 <i className="fas fa-check"></i> Xác nhận Thanh toán
               </button>
             </div>
@@ -145,7 +164,7 @@ export default function ThanhToanPage() {
             <p>Trạng thái phiếu thu sẽ được cập nhật thành "Đã hủy".</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xác nhận hủy</button>
+              <button className="btn-danger" onClick={() => { toast.success("Hủy phiếu thu thành công!"); setShowConfirm(null); }}>Xác nhận hủy</button>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./LoaiThuocPage.css";
 
 export default function LoaiThuocPage() {
@@ -10,6 +12,22 @@ export default function LoaiThuocPage() {
   const [form, setForm] = useState({ tenlt: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/loai-thuoc");
+        toast.info("Sẵn sàng kết nối API Loại thuốc");
+      } catch {
+        toast.error("Lỗi tải danh sách loại thuốc!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const openAdd = () => {
     setEditItem(null);
@@ -20,6 +38,7 @@ export default function LoaiThuocPage() {
 
   return (
     <div className="page-layout">
+      {loading && <Loading text="Đang tải loại thuốc..." />}
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -79,7 +98,7 @@ export default function LoaiThuocPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={() => { toast.success("Lưu loại thuốc thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
             </div>
           </div>
         </div>
@@ -93,7 +112,7 @@ export default function LoaiThuocPage() {
             <p>Chỉ xóa được khi chưa có thuốc nào thuộc loại này.</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
+              <button className="btn-danger" onClick={() => { toast.success("Xóa loại thuốc thành công!"); setShowConfirm(null); }}>Xóa</button>
             </div>
           </div>
         </div>

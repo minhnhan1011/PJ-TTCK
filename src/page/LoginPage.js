@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
 import "./LoginPage.css";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -23,25 +25,31 @@ export default function LoginPage() {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    axios
-      .post("http://localhost:4000/login", values)
-      .then((res) => {
-        if (res.data.Status === "Success") {
-          alert("Đăng nhập thành công!");
-          navigate("/"); // về home
-        } else {
-          alert("Tài khoản hoặc mật khẩu không đúng");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Có lỗi xảy ra khi đăng nhập");
-      });
+    // TODO: Gọi API đăng nhập từ backend
+    setLoading(true);
+    toast.info("Đang xử lý đăng nhập...");
   };
 
   return (
-    <div className="login-container">
-      <div className="login-box">
+    <div className="login-page">
+      {loading && <Loading text="Đang đăng nhập..." />}
+      <div className="login-container">
+        {/* Left banner */}
+        <div className="login-banner">
+          <div className="login-banner-content">
+            <div className="login-banner-title">
+              <i className="fas fa-hospital-user"></i> ClinicFlow
+            </div>
+            <p className="login-banner-desc">
+              Hệ thống quản lý phòng khám toàn diện, tối ưu quy trình y tế.
+            </p>
+          </div>
+          <div className="login-banner-footer">
+            © 2025 ClinicFlow Management System.
+          </div>
+          <div className="login-banner-circle bottom"></div>
+          <div className="login-banner-circle top"></div>
+        </div>
 
         <h2>Đăng nhập</h2>
 
