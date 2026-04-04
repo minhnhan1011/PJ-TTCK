@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const jwt = require("jsonwebtoken");
@@ -26,6 +26,10 @@ const db = mysql.createConnection({
   database: "qlphongkham",
   charset: "utf8mb4",
 });
+
+//dichvu
+const dichvuRoute = require("./dichvu")(db);
+app.use("/api/dichvu", dichvuRoute);
 
 db.connect((err) => {
   if (err) {
@@ -80,13 +84,16 @@ app.post("/login", (req, res) => {
   });
 });
 
-
 // GET danh sách bác sĩ cho dropdown
 app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
-  db.query("SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'", (err, data) => {
-    if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
-    res.json(data);
-  });
+  db.query(
+    "SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'",
+    (err, data) => {
+      if (err)
+        return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+      res.json(data);
+    },
+  );
 });
 
 // GET danh sách đăng ký khám
@@ -100,7 +107,8 @@ app.get("/api/dang-ky-kham", verifyUser, (req, res) => {
   `;
   // Phải thêm đoạn này:
   db.query(sql, (err, data) => {
-    if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+    if (err)
+      return res.status(500).json({ message: "Lỗi truy vấn", error: err });
     res.json(data);
   });
 });
@@ -119,7 +127,9 @@ app.post("/api/dang-ky-kham", verifyUser, (req, res) => {
     }
     res.status(201).json({
       madk: result.insertId,
-      hoten, lydokham, manv,
+      hoten,
+      lydokham,
+      manv,
       ngaydangky: new Date().toISOString().split("T")[0],
       trangthai: "Cho kham",
     });
@@ -136,9 +146,10 @@ app.put("/api/dang-ky-kham/:madk", verifyUser, (req, res) => {
     "UPDATE dangkykham SET hoten=?, lydokham=?, manv=? WHERE madk=?",
     [hoten, lydokham, manv, madk],
     (err) => {
-      if (err) return res.status(500).json({ message: "Lỗi cập nhật", error: err });
+      if (err)
+        return res.status(500).json({ message: "Lỗi cập nhật", error: err });
       res.json({ message: "Cập nhật thành công" });
-    }
+    },
   );
 });
 
