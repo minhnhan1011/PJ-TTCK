@@ -1,0 +1,16 @@
+.layout {
+  display: flex;
+}
+
+/* Sidebar đã có width 240px rồi */
+
+.main {
+  flex: 1;
+  background: #f5f7fb;
+  min-height: 100vh;
+}
+
+/* content bên trong */
+.content {
+  padding: 20px;
+}

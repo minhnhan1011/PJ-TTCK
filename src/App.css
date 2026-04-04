@@ -1,0 +1,55 @@
+/* Reset CSS cơ bản */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Remove default list styles */
+ul, ol {
+  list-style: none;
+}
+
+/* Remove default link styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Images */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Body */
+body {
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background-color: #f5f7fb;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* Buttons */
+button {
+  border: none;
+  outline: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* Inputs */
+input, textarea {
+  outline: none;
+  border: none;
+  font-family: inherit;
+}
+
+/* Table */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
