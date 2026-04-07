@@ -117,53 +117,95 @@ app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
   });
 });
 
-app.get("/api/dang-ky-kham", verifyUser, (req, res) => {
+// GET danh sách đăng ký khám (JOIN lấy tên BN, tên BS)
+app.get("/api/dang-ky-kham", (req, res) => {
   const sql = `
-    SELECT dk.madk, dk.hoten, dk.lydokham, dk.ngaydangky, dk.trangthai,
-           nv.manv, nv.hoten AS tenbs
+    SELECT dk.madk, dk.stt, dk.lydokham, dk.ngaydangky, dk.trangthai,
+           bn.mabn, bn.hoten, bn.gioitinh, bn.ngaysinh, bn.sdt,
+           nv.hoten AS tenbs
     FROM dangkykham dk
+    LEFT JOIN benhnhan bn ON dk.mabn = bn.mabn
     LEFT JOIN nhanvien nv ON dk.manv = nv.manv
-    ORDER BY dk.madk DESC
+    ORDER BY dk.ngaydangky DESC
   `;
-  db.query(sql, (err, data) => {
-    if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
-    res.json(data);
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json(rows);
   });
 });
 
-app.post("/api/dang-ky-kham", verifyUser, (req, res) => {
-  const { hoten, lydokham, manv } = req.body;
-  if (!hoten || !lydokham || !manv) return res.status(400).json({ message: "Thiếu thông tin" });
+// POST tạo phiếu đăng ký mới
+app.post("/api/dang-ky-kham", (req, res) => {
+  const { mabn, lydokham, manv } = req.body;
+  if (!mabn || !lydokham || !manv)
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
 
-  const sql = `INSERT INTO dangkykham (hoten, manv, lydokham, ngaydangky, trangthai) VALUES (?, ?, ?, NOW(), 'Cho kham')`;
-  db.query(sql, [hoten, manv, lydokham], (err, result) => {
-    if (err) return res.status(500).json({ message: "Lỗi tạo phiếu", error: err });
-    res.status(201).json({
-      madk: result.insertId, hoten, lydokham, manv,
-      ngaydangky: new Date().toISOString().split("T")[0],
-      trangthai: "Cho kham",
+  // Lấy STT tiếp theo trong ngày
+  const sttSql = `
+    SELECT COALESCE(MAX(stt), 0) + 1 AS stt_next
+    FROM dangkykham
+    WHERE DATE(ngaydangky) = CURDATE()
+  `;
+  db.query(sttSql, (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    const stt = rows[0].stt_next;
+
+    const insertSql = `
+      INSERT INTO dangkykham (mabn, manv, stt, lydokham, trangthai)
+      VALUES (?, ?, ?, ?, 'Cho kham')
+    `;
+    db.query(insertSql, [mabn, manv, stt, lydokham], (err2, result) => {
+      if (err2) return res.status(500).json({ message: err2.message });
+      res.json({ message: "Tạo phiếu thành công", madk: result.insertId, stt });
     });
   });
 });
 
-app.put("/api/dang-ky-kham/:madk", verifyUser, (req, res) => {
-  const { hoten, lydokham, manv } = req.body;
+// PUT cập nhật phiếu
+app.put("/api/dang-ky-kham/:madk", (req, res) => {
   const { madk } = req.params;
+  const { mabn, lydokham, manv, trangthai } = req.body; // 👈 thêm trangthai
+  if (!mabn || !lydokham || !manv)
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+
+  const sql = `
+    UPDATE dangkykham SET mabn=?, lydokham=?, manv=?, trangthai=? WHERE madk=?
+  `; // 👈 thêm trangthai=?
+  db.query(sql, [mabn, lydokham, manv, trangthai ?? "Cho kham", madk], (err) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ message: "Cập nhật thành công" });
+  });
+});
+
+// DELETE xóa phiếu
+app.delete("/api/dang-ky-kham/:madk", (req, res) => {
+  const { madk } = req.params;
+  db.query("DELETE FROM dangkykham WHERE madk=?", [madk], (err) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ message: "Xóa thành công" });
+  });
+});
+
+// GET danh sách bác sĩ
+app.get("/api/nhan-vien/bac-si", (req, res) => {
   db.query(
-    "UPDATE dangkykham SET hoten=?, lydokham=?, manv=? WHERE madk=?",
-    [hoten, lydokham, manv, madk],
-    (err) => {
-      if (err) return res.status(500).json({ message: "Lỗi cập nhật", error: err });
-      res.json({ message: "Cập nhật thành công" });
+    "SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'",
+    (err, rows) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json(rows);
     }
   );
 });
 
-app.delete("/api/dang-ky-kham/:madk", verifyUser, (req, res) => {
-  db.query("DELETE FROM dangkykham WHERE madk=?", [req.params.madk], (err) => {
-    if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
-    res.json({ message: "Xóa thành công" });
-  });
+// GET danh sách bệnh nhân
+app.get("/api/benh-nhan", (req, res) => {
+  db.query(
+    "SELECT mabn, hoten, gioitinh, ngaysinh, sdt FROM benhnhan ORDER BY hoten",
+    (err, rows) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json(rows);
+    }
+  );
 });
 
 
