@@ -3,6 +3,7 @@ import Header from "../component/header/Header";
 import "./BenhNhanPage.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { Spin } from "antd";
 
 export default function BenhNhanPage() {
   const [benhnhan, setBenhnhan] = useState([]);
@@ -95,65 +96,65 @@ export default function BenhNhanPage() {
 
           {/* Table */}
           <Spin spinning={loading} tip="Đang tải dữ liệu...">
-          <div className="table-container">
-            <div className="table-toolbar">
-              <div className="search-box">
-                <i className="fas fa-search"></i>
-                <input type="text" placeholder="Tìm theo tên, SĐT..." />
+            <div className="table-container">
+              <div className="table-toolbar">
+                <div className="search-box">
+                  <i className="fas fa-search"></i>
+                  <input type="text" placeholder="Tìm theo tên, SĐT..." />
+                </div>
               </div>
-            </div>
 
-            <div style={{ overflowX: "auto" }}>
-              <table className="patient-table">
-                <thead>
-                  <tr>
-                    <th>Mã BN</th>
-                    <th>Họ và Tên</th>
-                    <th>Giới tính</th>
-                    <th>Ngày sinh</th>
-                    <th>Địa chỉ</th>
-                    <th>Số điện thoại</th>
-
-                    <th style={{ textAlign: "right" }}>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {benhnhan.length > 0 ? (
-                    benhnhan.map((bn, index) => (
-                      <tr key={index}>
-                        <td>{bn.mabn}</td>
-                        <td>{bn.hoten}</td>
-                        <td>{bn.gioitinh}</td>
-                        <td>{bn.ngaysinh}</td>
-                        <td>{bn.sdt}</td>
-                        <td>{bn.diachi}</td>
-                        <td style={{ textAlign: "right" }}></td>
-                      </tr>
-                    ))
-                  ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table className="patient-table">
+                  <thead>
                     <tr>
-                      <td
-                        colSpan="7"
-                        style={{
-                          textAlign: "center",
-                          padding: "2rem",
-                          color: "#9ca3af",
-                        }}
-                      >
-                        Chưa có dữ liệu
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      <th>Mã BN</th>
+                      <th>Họ và Tên</th>
+                      <th>Giới tính</th>
+                      <th>Ngày sinh</th>
+                      <th>Địa chỉ</th>
+                      <th>Số điện thoại</th>
 
-            <div className="table-pagination">
-              <div>
-                Hiển thị <strong>{benhnhan.length}</strong> bệnh nhân
+                      <th style={{ textAlign: "right" }}>Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {benhnhan.length > 0 ? (
+                      benhnhan.map((bn, index) => (
+                        <tr key={index}>
+                          <td>{bn.mabn}</td>
+                          <td>{bn.hoten}</td>
+                          <td>{bn.gioitinh}</td>
+                          <td>{bn.ngaysinh}</td>
+                          <td>{bn.sdt}</td>
+                          <td>{bn.diachi}</td>
+                          <td style={{ textAlign: "right" }}></td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="7"
+                          style={{
+                            textAlign: "center",
+                            padding: "2rem",
+                            color: "#9ca3af",
+                          }}
+                        >
+                          Chưa có dữ liệu
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="table-pagination">
+                <div>
+                  Hiển thị <strong>{benhnhan.length}</strong> bệnh nhân
+                </div>
               </div>
             </div>
-          </div>
           </Spin>
         </div>
       </div>
