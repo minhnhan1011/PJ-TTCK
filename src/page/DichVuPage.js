@@ -1,22 +1,91 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DichVuPage.css";
 
 export default function DichVuPage() {
+  const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  const [form, setForm] = useState({ tendv: "", gia: "" });
+  const [form, setForm] = useState({
+    tendv: "",
+    gia: "",
+    trangthai: "Hoạt động",
+  });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
 
+  axios.defaults.withCredentials = true;
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/api/dich-vu");
+      const sortedData = res.data.sort((a, b) => a.madv - b.madv);
+      setData(sortedData);
+    } catch (err) {
+      console.error("Lỗi lấy dữ liệu:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const openAdd = () => {
     setEditItem(null);
-    setForm({ tendv: "", gia: "" });
+    setForm({ tendv: "", gia: "", trangthai: "Hoạt động" });
     setFormErrors({});
     setShowModal(true);
   };
+
+  const openEdit = (item) => {
+    setEditItem(item);
+    setForm({ tendv: item.tendv, gia: item.gia, trangthai: item.trangthai });
+    setFormErrors({});
+    setShowModal(true);
+  };
+
+  const handleSave = async () => {
+    // Validate dữ liệu
+    if (!form.tendv || !form.gia) {
+      setFormErrors({
+        tendv: !form.tendv ? "Vui lòng nhập tên dịch vụ" : "",
+        gia: !form.gia ? "Vui lòng nhập giá" : "",
+      });
+      return;
+    }
+
+    try {
+      if (editItem) {
+        await axios.put(
+          `http://localhost:4000/api/dich-vu/${editItem.madv}`,
+          form,
+        );
+      } else {
+        await axios.post("http://localhost:4000/api/dich-vu", form);
+      }
+      setShowModal(false);
+      fetchData(); // Load lại để dịch vụ mới nằm ở cuối
+    } catch (err) {
+      alert("Lỗi khi lưu dữ liệu!");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:4000/api/dich-vu/${showConfirm}`);
+      setShowConfirm(null);
+      fetchData();
+    } catch (err) {
+      alert("Lỗi khi xóa!");
+    }
+  };
+
+  const filteredData = data.filter((item) =>
+    item.tendv.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div className="page-layout">
@@ -27,7 +96,7 @@ export default function DichVuPage() {
           <div className="page-topbar">
             <div>
               <h1>Danh mục Dịch vụ Khám & Xét nghiệm</h1>
-              <p>Cấu hình tên dịch vụ và đơn giá làm cơ sở tính viện phí.</p>
+              <p>Quản lý cấu hình đơn giá dịch vụ y tế.</p>
             </div>
             <button className="btn-primary" onClick={openAdd}>
               <i className="fas fa-plus-circle"></i> Thêm Dịch vụ mới
@@ -35,72 +104,185 @@ export default function DichVuPage() {
           </div>
 
           <div className="table-container">
-            <div className="table-toolbar" style={{ justifyContent: "space-between" }}>
+            <div className="table-toolbar">
               <div className="search-box">
                 <i className="fas fa-search"></i>
-                <input placeholder="Tìm kiếm tên dịch vụ..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                <input
+                  placeholder="Tìm kiếm tên dịch vụ..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng số: <strong style={{ color: "#2563eb" }}>0</strong> dịch vụ</div>
             </div>
-            <div style={{ overflowX: "auto" }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: "6rem" }}>Mã DV</th>
-                    <th>Tên Dịch vụ</th>
-                    <th style={{ textAlign: "right", width: "12rem" }}>Giá Dịch vụ (VNĐ)</th>
-                    <th style={{ textAlign: "center", width: "8rem" }}>Trạng thái</th>
-                    <th style={{ textAlign: "right", width: "8rem" }}>Thao tác</th>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ width: "100px" }}>Mã DV</th>
+                  <th>Tên Dịch vụ</th>
+                  <th style={{ textAlign: "right" }}>Giá Dịch vụ (VNĐ)</th>
+                  <th style={{ textAlign: "center" }}>Trạng thái</th>
+                  <th style={{ textAlign: "right" }}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((item, index) => (
+                  <tr key={item.madv}>
+                    {/* index bắt đầu từ 0, nên +1 sẽ ra 1, 2, 3... theo đúng thứ tự hàng */}
+                    <td>DV{index + 1}</td>
+                    <td>
+                      <strong>{item.tendv}</strong>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      {Number(item.gia).toLocaleString()} đ
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      <span
+                        className={`status-badge ${item.trangthai === "Hoạt động" ? "active" : "inactive"}`}
+                      >
+                        {item.trangthai}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <button
+                        className="btn-icon edit"
+                        onClick={() => openEdit(item)}
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button
+                        className="btn-icon delete"
+                        onClick={() => setShowConfirm(item.madv)}
+                      >
+                        <i className="fas fa-trash"></i>
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  <tr><td colSpan="5" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="table-pagination">
-              <div>Hiển thị <strong>0</strong> dịch vụ</div>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
 
+      {/* MODAL THEO GIAO DIỆN BẢNG 2 */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-form" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-form-header">
-              <h3><i className="fas fa-microscope" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>{editItem ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới"}</h3>
-              <button className="btn-close" onClick={() => setShowModal(false)}><i className="fas fa-times"></i></button>
-            </div>
-            <div className="modal-form-body">
-              <div className="form-group">
-                <label>Tên Dịch vụ <span className="required">*</span></label>
-                <input type="text" placeholder="Nhập tên dịch vụ..." value={form.tendv} onChange={(e) => setForm({ ...form, tendv: e.target.value })} className={formErrors.tendv ? "input-error" : ""} />
-                {formErrors.tendv && <div className="error-text">{formErrors.tendv}</div>}
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <div className="header-left">
+                <i className="fas fa-stethoscope modal-icon-blue"></i>
+                <span className="modal-title">
+                  {editItem ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới"}
+                </span>
               </div>
-              <div className="form-group">
-                <label>Giá Dịch vụ (VNĐ) <span className="required">*</span></label>
-                <input type="number" placeholder="VD: 200000" value={form.gia} onChange={(e) => setForm({ ...form, gia: e.target.value })} className={formErrors.gia ? "input-error" : ""} />
-                {formErrors.gia && <div className="error-text">{formErrors.gia}</div>}
+              <button
+                className="btn-close-x"
+                onClick={() => setShowModal(false)}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="input-group-new">
+                <label>
+                  Tên Dịch vụ <span className="text-red">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Nhập tên dịch vụ..."
+                  value={form.tendv}
+                  onChange={(e) => setForm({ ...form, tendv: e.target.value })}
+                  className={formErrors.tendv ? "input-error" : ""}
+                />
+                {formErrors.tendv && (
+                  <small className="error-text">{formErrors.tendv}</small>
+                )}
+              </div>
+
+              <div className="input-group-new">
+                <label>
+                  Giá Dịch vụ (VNĐ) <span className="text-red">*</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="VD: 200000"
+                  value={form.gia}
+                  onChange={(e) => setForm({ ...form, gia: e.target.value })}
+                  className={formErrors.gia ? "input-error" : ""}
+                />
+                {formErrors.gia && (
+                  <small className="error-text">{formErrors.gia}</small>
+                )}
+                <div className="input-group-new">
+                  <label>Trạng thái</label>
+                  <select
+                    value={form.trangthai}
+                    onChange={(e) =>
+                      setForm({ ...form, trangthai: e.target.value })
+                    }
+                    className="modal-select"
+                  >
+                    <option value="Hoạt động">Hoat dong</option>
+                    <option value="Ngừng hoạt động">Ngung hoat dong</option>
+                  </select>
+                </div>
               </div>
             </div>
-            <div className="modal-form-footer">
-              <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+
+            <div className="modal-footer">
+              <button
+                className="btn-huy-new"
+                onClick={() => setShowModal(false)}
+              >
+                Hủy
+              </button>
+              <button className="btn-luu-new" onClick={handleSave}>
+                <i className="fas fa-save"></i> {editItem ? "Cập nhật" : "Lưu"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* MODAL XÁC NHẬN XÓA */}
       {showConfirm && (
-        <div className="modal-overlay" onClick={() => setShowConfirm(null)}>
-          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon"><i className="fas fa-exclamation-triangle"></i></div>
-            <h3>Xóa Dịch vụ?</h3>
-            <p>Hành động này không thể hoàn tác. Dịch vụ đã liên kết phiếu xét nghiệm sẽ không thể xóa.</p>
-            <div className="confirm-actions">
-              <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
-              <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
+        <div className="modal-overlay">
+          <div className="confirm-dialog">
+            <i
+              className="fas fa-exclamation-triangle"
+              style={{ color: "#ef4444", fontSize: "2rem" }}
+            ></i>
+            <h3>Xác nhận xóa?</h3>
+            <p>Dịch vụ này sẽ bị xóa vĩnh viễn khỏi danh mục.</p>
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                justifyContent: "center",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                className="btn-huy-new"
+                onClick={() => setShowConfirm(null)}
+              >
+                Hủy
+              </button>
+              <button
+                className="btn-danger"
+                onClick={handleDelete}
+                style={{
+                  background: "#ef4444",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 20px",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                Xóa
+              </button>
             </div>
           </div>
         </div>
