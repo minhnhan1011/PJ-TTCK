@@ -7,6 +7,8 @@ import axios from "axios";
 export default function BenhNhanPage() {
   const [benhnhan, setBenhnhan] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [values, setValues] = useState({
     mabn: "",
     hoten: "",
@@ -92,6 +94,7 @@ export default function BenhNhanPage() {
           </div>
 
           {/* Table */}
+          <Spin spinning={loading} tip="Đang tải dữ liệu...">
           <div className="table-container">
             <div className="table-toolbar">
               <div className="search-box">
@@ -151,6 +154,7 @@ export default function BenhNhanPage() {
               </div>
             </div>
           </div>
+          </Spin>
         </div>
       </div>
 

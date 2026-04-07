@@ -2,12 +2,14 @@ import { useState } from "react";
 import "./LoginPage.css";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { message, Spin } from "antd";
 
 export default function LoginPage() {
   const [values, setValues] = useState({
     tendn: "",
     matkhau: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -22,20 +24,24 @@ export default function LoginPage() {
   // xử lý login
   const handleLogin = (e) => {
     e.preventDefault();
+    setLoading(true);
 
     axios
       .post("http://localhost:4000/login", values)
       .then((res) => {
         if (res.data.Status === "Success") {
-          alert("Đăng nhập thành công!");
+          message.success("Đăng nhập thành công!");
           navigate("/"); // về home
         } else {
-          alert("Tài khoản hoặc mật khẩu không đúng");
+          message.error("Tài khoản hoặc mật khẩu không đúng!");
         }
       })
       .catch((err) => {
         console.error(err);
-        alert("Có lỗi xảy ra khi đăng nhập");
+        message.error("Có lỗi xảy ra khi đăng nhập!");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -45,27 +51,33 @@ export default function LoginPage() {
 
         <h2>Đăng nhập</h2>
 
-        <form onSubmit={handleLogin}>
-          <input
-            type="text"
-            name="tendn"
-            placeholder="Tên đăng nhập"
-            value={values.tendn}
-            onChange={handleChange}
-            required
-          />
+        <Spin spinning={loading} tip="Đang đăng nhập...">
+          <form onSubmit={handleLogin}>
+            <input
+              type="text"
+              name="tendn"
+              placeholder="Tên đăng nhập"
+              value={values.tendn}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
 
-          <input
-            type="password"
-            name="matkhau"
-            placeholder="Mật khẩu"
-            value={values.matkhau}
-            onChange={handleChange}
-            required
-          />
+            <input
+              type="password"
+              name="matkhau"
+              placeholder="Mật khẩu"
+              value={values.matkhau}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
 
-          <button type="submit">Đăng nhập</button>
-        </form>
+            <button type="submit" disabled={loading}>
+              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            </button>
+          </form>
+        </Spin>
 
         <p className="signup-text">
           Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
