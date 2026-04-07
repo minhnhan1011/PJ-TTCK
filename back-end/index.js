@@ -38,7 +38,10 @@ db.connect((err) => {
 app.get("/", (req, res) => {
   res.send("OK SERVER");
 });
-
+app.get('/logout', function (req, res) {
+    res.clearCookie('token');
+    return res.json({ Status: "Success" });
+})
 const verifyUser = (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
@@ -80,6 +83,35 @@ app.post("/login", (req, res) => {
   });
 });
 
+// show  benh nhan
+app.get("/benhnhan",(req,res)=>{
+    const sql="SELECT *FROM benhnhan";
+    db.query(sql,(err,data)=>{
+        if(err){
+            return res.json(err)
+        }else{
+            return res.json(data)
+        }
+    })
+})
+app.post("/thembn",(req,res)=>{
+    const sql="INSERT INTO benhnhan(`mabn`,`hoten`,`ngaysinh`,`gioitinh`,`diachi`,`sdt`) VALUES(?)";
+    const values=[
+        req.body.mabn,
+        req.body.hoten,
+        req.body.ngaysinh,
+        req.body.gioitinh,
+        req.body.sdt,
+        req.body.diachi,
+    ]
+    db.query(sql,[values],(err,data)=>{
+        if(err){
+            return res.json(err)
+        }else{
+            return res.json(data)
+        }
+    })
+})
 
 // GET danh sách bác sĩ cho dropdown
 app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
