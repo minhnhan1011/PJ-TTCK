@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+import { message, Spin } from "antd";
 import "./DangKyKhamPage.css";
 
 const ModalForm = ({ 
@@ -104,6 +105,7 @@ export default function DangKyKhamPage() {
       setDanhSach(Array.isArray(data) ? data : []);
     } catch (err) {
       setDanhSach([]);
+      message.error("Không thể tải danh sách đăng ký khám!");
     } finally {
       setLoading(false);
     }
@@ -116,6 +118,7 @@ export default function DangKyKhamPage() {
       setDanhSachBS(Array.isArray(data) ? data : []);
     } catch (err) {
       setDanhSachBS([]);
+      message.error("Không thể tải danh sách bác sĩ!");
     }
   };
 
@@ -174,9 +177,10 @@ export default function DangKyKhamPage() {
         throw new Error(err.message || "Lỗi server");
       }
       setShowModal(false);
+      message.success("Lập phiếu đăng ký khám thành công!");
       fetchDanhSach();
     } catch (err) {
-      alert(err.message);
+      message.error(err.message || "Có lỗi xảy ra khi lập phiếu!");
     } finally {
       setSubmitting(false);
     }
@@ -198,9 +202,10 @@ export default function DangKyKhamPage() {
         throw new Error(err.message || "Lỗi server");
       }
       setShowEditModal(false);
+      message.success("Cập nhật phiếu đăng ký thành công!");
       fetchDanhSach();
     } catch (err) {
-      alert(err.message);
+      message.error(err.message || "Có lỗi xảy ra khi cập nhật!");
     } finally {
       setSubmitting(false);
     }
@@ -217,9 +222,10 @@ export default function DangKyKhamPage() {
         const err = await res.json();
         throw new Error(err.message || "Lỗi server");
       }
+      message.success("Xóa phiếu đăng ký thành công!");
       fetchDanhSach();
     } catch (err) {
-      alert(err.message);
+      message.error(err.message || "Có lỗi xảy ra khi xóa!");
     }
   };
 
@@ -264,6 +270,7 @@ export default function DangKyKhamPage() {
             </div>
           </div>
 
+          <Spin spinning={loading} tip="Đang tải dữ liệu...">
           <div className="table-container">
             <div className="table-toolbar">
               <div className="search-box">
@@ -289,9 +296,7 @@ export default function DangKyKhamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {loading ? (
-                    <tr><td colSpan="7" className="empty-state"><p>Đang tải...</p></td></tr>
-                  ) : filtered.length === 0 ? (
+                  {filtered.length === 0 ? (
                     <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                   ) : (
                     filtered.map((item) => (
@@ -324,6 +329,7 @@ export default function DangKyKhamPage() {
               <div>Hiển thị <strong>{filtered.length}</strong> đăng ký</div>
             </div>
           </div>
+          </Spin>
         </div>
       </div>
 

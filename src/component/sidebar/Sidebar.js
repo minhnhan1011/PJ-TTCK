@@ -32,7 +32,11 @@ function Sidebar() {
           </li>
         ))}
       </ul>
-      
+      <div className="logout">
+        <Link to="/login">
+          Đăng xuất
+        </Link>
+      </div>
     </div>
   );
 }
