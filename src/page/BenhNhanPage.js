@@ -94,7 +94,7 @@ export default function BenhNhanPage() {
             <div className="table-toolbar">
               <div className="search-box">
                 <i className="fas fa-search"></i>
-                <input type="text" placeholder="Tìm theo tên, SĐT..." />
+<input type="text" placeholder="Tìm theo tên, SĐT..." />
               </div>
             </div>
  
@@ -171,7 +171,7 @@ export default function BenhNhanPage() {
                 </div>
  
                 <div className="form-row">
-                  <div className="form-group">
+<div className="form-group">
                     <label>Ngày sinh</label>
                     <input type="date" name="ngaysinh" onChange={handleInput} />
                   </div>
