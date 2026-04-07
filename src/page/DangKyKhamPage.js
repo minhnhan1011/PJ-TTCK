@@ -259,7 +259,7 @@ export default function DangKyKhamPage() {
               <div className="stat-number">{stats.dangKham}</div>
             </div>
             <div className="stat-card purple">
-              <div className="stat-label">Hoàn thành</div>
+              <div className="stat-label">Hoàn thanh</div>
               <div className="stat-number">{stats.hoanThanh}</div>
             </div>
           </div>
