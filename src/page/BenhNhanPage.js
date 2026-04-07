@@ -3,10 +3,13 @@ import Header from "../component/header/Header";
 import "./BenhNhanPage.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { message, Spin } from "antd";
  
 export default function BenhNhanPage() {
   const [benhnhan, setBenhnhan] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [values, setValues] = useState({
     mabn: '',
     hoten: '',
@@ -19,9 +22,11 @@ export default function BenhNhanPage() {
  
   
   useEffect(() => {
+    setLoading(true);
     axios.get('http://localhost:4000/benhnhan')
       .then(res => setBenhnhan(res.data))
-      .catch(err => console.log(err))
+      .catch(() => message.error("Không thể tải danh sách bệnh nhân!"))
+      .finally(() => setLoading(false))
   }, [])
  
   
@@ -35,19 +40,21 @@ export default function BenhNhanPage() {
   
   const handleCreate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     axios.post('http://localhost:4000/thembn', values)
-      .then(res => {
-        alert("Thêm bệnh nhân thành công!");
+      .then(() => {
+        message.success("Thêm bệnh nhân thành công!");
         setShowModal(false);
-        // Reload lại danh sách
+        setLoading(true);
         axios.get('http://localhost:4000/benhnhan')
           .then(res => setBenhnhan(res.data))
-          .catch(err => console.log(err))
+          .catch(() => message.error("Không thể tải lại danh sách!"))
+          .finally(() => setLoading(false));
       })
-      .catch(err => {
-        console.log(err);
-        alert("Có lỗi xảy ra khi thêm bệnh nhân");
-      });
+      .catch(() => {
+        message.error("Có lỗi xảy ra khi thêm bệnh nhân!");
+      })
+      .finally(() => setSubmitting(false));
   }
  
   return (
@@ -90,6 +97,7 @@ export default function BenhNhanPage() {
           </div>
  
           {/* Table */}
+          <Spin spinning={loading} tip="Đang tải dữ liệu...">
           <div className="table-container">
             <div className="table-toolbar">
               <div className="search-box">
@@ -141,6 +149,7 @@ export default function BenhNhanPage() {
               </div>
             </div>
           </div>
+          </Spin>
         </div>
       </div>
  
@@ -196,10 +205,10 @@ export default function BenhNhanPage() {
               </div>
  
               <div className="modal-form-footer">
-                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-                <button type="submit" className="btn-save">
+                <button type="button" className="btn-cancel" onClick={() => setShowModal(false)} disabled={submitting}>Hủy</button>
+                <button type="submit" className="btn-save" disabled={submitting}>
                   <i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>
-                  Lưu
+                  {submitting ? "Đang lưu..." : "Lưu"}
                 </button>
               </div>
             </form>
