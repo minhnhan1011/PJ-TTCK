@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./homePage.css";
@@ -5,6 +6,36 @@ import "./homePage.css";
 export default function HomePage() {
   return (
     <div className="page-layout">
+=======
+import { useState, useEffect } from "react";
+import Sidebar from "../component/sidebar/Sidebar";
+import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
+import "./homePage.css";
+
+export default function HomePage() {
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/dashboard");
+        toast.info("Sẵn sàng kết nối API Dashboard");
+      } catch {
+        toast.error("Lỗi tải dữ liệu tổng quan!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div className="page-layout">
+      {loading && <Loading text="Đang tải dữ liệu tổng quan..." />}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       <Sidebar />
       <div className="page-main">
         <Header />

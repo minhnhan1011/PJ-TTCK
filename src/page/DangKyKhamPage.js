@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
@@ -86,6 +87,16 @@ const ModalForm = ({
 };
 
 // --- COMPONENT CHÍNH ---
+=======
+import { useState, useEffect, useMemo } from "react";
+import Sidebar from "../component/sidebar/Sidebar";
+import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
+import axios from "axios"; // Nhớ dùng axios cho đồng bộ với các trang khác
+import "./DangKyKhamPage.css";
+
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 export default function DangKyKhamPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -95,6 +106,7 @@ export default function DangKyKhamPage() {
   const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+<<<<<<< HEAD
   const [danhSach, setDanhSach] = useState([]);
   const [danhSachBS, setDanhSachBS] = useState([]);
 
@@ -106,11 +118,27 @@ export default function DangKyKhamPage() {
       setDanhSach(Array.isArray(data) ? data : []);
     } catch (err) {
       setDanhSach([]);
+=======
+
+  // --- 1. KHAI BÁO CÁC BIẾN THIẾU ---
+  const [listDangKy, setListDangKy] = useState([]);
+  const [danhSachBS, setDanhSachBS] = useState([]);
+
+  // --- 2. HÀM LẤY DANH SÁCH (fetchDanhSach) ---
+  const fetchDanhSach = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("http://localhost:4000/api/dang-ky-kham", { withCredentials: true });
+      setListDangKy(res.data);
+    } catch (err) {
+      toast.error("Lỗi tải danh sách đăng ký!");
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     } finally {
       setLoading(false);
     }
   };
 
+<<<<<<< HEAD
   const fetchDanhSachBS = async () => {
     try {
       const res = await fetch("http://localhost:4000/api/nhan-vien/bac-si", { credentials: "include" });
@@ -118,11 +146,20 @@ export default function DangKyKhamPage() {
       setDanhSachBS(Array.isArray(data) ? data : []);
     } catch (err) {
       setDanhSachBS([]);
+=======
+  const fetchBacSi = async () => {
+    try {
+      const res = await axios.get("http://localhost:4000/api/nhan-vien/bac-si", { withCredentials: true });
+      setDanhSachBS(res.data);
+    } catch (err) {
+      console.error("Lỗi tải danh sách bác sĩ");
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     }
   };
 
   useEffect(() => {
     fetchDanhSach();
+<<<<<<< HEAD
     fetchDanhSachBS();
   }, []);
 
@@ -143,10 +180,39 @@ export default function DangKyKhamPage() {
     const errors = {};
     if (!form.hoten.trim()) errors.hoten = "Vui lòng nhập họ tên";
     if (!form.lydokham) errors.lydokham = "Vui lòng chọn lý do khám";
+=======
+    fetchBacSi();
+  }, []);
+
+  // --- 3. HÀM VALIDATE ---
+  const validate = () => {
+    let errors = {};
+    if (!form.hoten) errors.hoten = "Vui lòng nhập họ tên";
+    if (!form.lydokham) errors.lydokham = "Vui lòng chọn lý do";
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     if (!form.manv) errors.manv = "Vui lòng chọn bác sĩ";
     return errors;
   };
 
+<<<<<<< HEAD
+=======
+  // --- 4. TÍNH TOÁN STATS VÀ FILTER ---
+  const stats = useMemo(() => {
+    return {
+      tong: listDangKy.length,
+      choKham: listDangKy.filter(i => i.trangthai === 'Cho kham').length,
+      dangKham: listDangKy.filter(i => i.trangthai === 'Dang kham').length,
+      hoanThanh: listDangKy.filter(i => i.trangthai === 'Hoan thanh').length,
+    };
+  }, [listDangKy]);
+
+  const filtered = listDangKy.filter(item => 
+    item.hoten.toLowerCase().includes(search.toLowerCase()) || 
+    (item.tenbs && item.tenbs.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  // --- 5. CÁC HÀM XỬ LÝ (Mở Add, Edit, Delete...) ---
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   const openAdd = () => {
     setForm({ hoten: "", lydokham: "", manv: "" });
     setFormErrors({});
@@ -165,6 +231,7 @@ export default function DangKyKhamPage() {
     if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
     setSubmitting(true);
     try {
+<<<<<<< HEAD
       const res = await fetch("http://localhost:4000/api/dang-ky-kham", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,6 +246,14 @@ export default function DangKyKhamPage() {
       fetchDanhSach();
     } catch (err) {
       alert(err.message);
+=======
+      await axios.post("http://localhost:4000/api/dang-ky-kham", form, { withCredentials: true });
+      toast.success("Lập phiếu thành công!");
+      setShowModal(false);
+      fetchDanhSach();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Lỗi khi lưu");
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     } finally {
       setSubmitting(false);
     }
@@ -189,6 +264,7 @@ export default function DangKyKhamPage() {
     if (Object.keys(errors).length > 0) { setFormErrors(errors); return; }
     setSubmitting(true);
     try {
+<<<<<<< HEAD
       const res = await fetch(`http://localhost:4000/api/dang-ky-kham/${editItem.madk}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -203,6 +279,14 @@ export default function DangKyKhamPage() {
       fetchDanhSach();
     } catch (err) {
       alert(err.message);
+=======
+      await axios.put(`http://localhost:4000/api/dang-ky-kham/${editItem.madk}`, form, { withCredentials: true });
+      toast.success("Cập nhật thành công!");
+      setShowEditModal(false);
+      fetchDanhSach();
+    } catch (err) {
+      toast.error("Lỗi khi cập nhật");
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     } finally {
       setSubmitting(false);
     }
@@ -211,6 +295,7 @@ export default function DangKyKhamPage() {
   const handleDelete = async (madk) => {
     if (!window.confirm("Bạn có chắc muốn xóa phiếu đăng ký này?")) return;
     try {
+<<<<<<< HEAD
       const res = await fetch(`http://localhost:4000/api/dang-ky-kham/${madk}`, {
         method: "DELETE",
         credentials: "include",
@@ -222,6 +307,13 @@ export default function DangKyKhamPage() {
       fetchDanhSach();
     } catch (err) {
       alert(err.message);
+=======
+      await axios.delete(`http://localhost:4000/api/dang-ky-kham/${madk}`, { withCredentials: true });
+      toast.success("Đã xóa!");
+      fetchDanhSach();
+    } catch (err) {
+      toast.error("Lỗi khi xóa");
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     }
   };
 
@@ -233,6 +325,10 @@ export default function DangKyKhamPage() {
 
   return (
     <div className="page-layout">
+<<<<<<< HEAD
+=======
+      {loading && <Loading text="Đang tải danh sách đăng ký..." />}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -247,6 +343,10 @@ export default function DangKyKhamPage() {
             </button>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Hiển thị chỉ số Stats */}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
           <div className="stat-cards">
             <div className="stat-card blue">
               <div className="stat-label">Tổng đăng ký</div>
@@ -266,12 +366,20 @@ export default function DangKyKhamPage() {
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          {/* Bảng dữ liệu */}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
           <div className="table-container">
             <div className="table-toolbar">
               <div className="search-box">
                 <i className="fas fa-search"></i>
                 <input
+<<<<<<< HEAD
                   placeholder="Tìm theo tên BN, mã ĐK, bác sĩ..."
+=======
+                  placeholder="Tìm theo tên BN..."
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -291,6 +399,7 @@ export default function DangKyKhamPage() {
                   </tr>
                 </thead>
                 <tbody>
+<<<<<<< HEAD
                   {loading ? (
                     <tr><td colSpan="7" className="empty-state"><p>Đang tải...</p></td></tr>
                   ) : filtered.length === 0 ? (
@@ -325,10 +434,34 @@ export default function DangKyKhamPage() {
             <div className="table-pagination">
               <div>Hiển thị <strong>{filtered.length}</strong> đăng ký</div>
             </div>
+=======
+                  {filtered.map((item) => (
+                    <tr key={item.madk}>
+                      <td>{item.madk}</td>
+                      <td>{item.hoten}</td>
+                      <td>{item.lydokham}</td>
+                      <td>{item.tenbs ?? "-"}</td>
+                      <td>{new Date(item.ngaydangky).toLocaleDateString("vi-VN")}</td>
+                      <td>
+                        <span className={`badge ${trangThaiLabel[item.trangthai]?.className ?? ""}`}>
+                          {trangThaiLabel[item.trangthai]?.text ?? item.trangthai}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        <button className="btn-icon btn-edit" onClick={() => openEdit(item)}><i className="fas fa-edit"></i></button>
+                        <button className="btn-icon btn-delete" onClick={() => handleDelete(item.madk)}><i className="fas fa-trash"></i></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
           </div>
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Modal Lập phiếu mới */}
       {showModal && (
         <ModalForm
@@ -355,6 +488,48 @@ export default function DangKyKhamPage() {
           danhSachBS={danhSachBS}
           submitting={submitting}
         />
+=======
+      {/* Modal Lập phiếu mới (Dùng chung cho cả Add và Edit cho gọn) */}
+      {(showModal || showEditModal) && (
+        <div className="modal-overlay" onClick={() => { setShowModal(false); setShowEditModal(false); }}>
+          <div className="modal-form" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-form-header">
+              <h3>{showEditModal ? "Sửa phiếu khám" : "Lập phiếu đăng ký"}</h3>
+            </div>
+            <div className="modal-form-body">
+              <div className="form-group">
+                <label>Họ tên <span className="required">*</span></label>
+                <input type="text" value={form.hoten} onChange={(e) => setForm({ ...form, hoten: e.target.value })} />
+                {formErrors.hoten && <span className="error-text">{formErrors.hoten}</span>}
+              </div>
+              <div className="form-group">
+                <label>Lý do <span className="required">*</span></label>
+                <select value={form.lydokham} onChange={(e) => setForm({ ...form, lydokham: e.target.value })}>
+                  <option value="">-- Chọn lý do --</option>
+                  <option>Khám tổng quát</option>
+                  <option>Sốt / Cảm cúm</option>
+                  <option>Khác</option>
+                </select>
+                {formErrors.lydokham && <span className="error-text">{formErrors.lydokham}</span>}
+              </div>
+              <div className="form-group">
+                <label>Bác sĩ <span className="required">*</span></label>
+                <select value={form.manv} onChange={(e) => setForm({ ...form, manv: e.target.value })}>
+                  <option value="">-- Chọn bác sĩ --</option>
+                  {danhSachBS.map(bs => <option key={bs.manv} value={bs.manv}>{bs.hoten}</option>)}
+                </select>
+                {formErrors.manv && <span className="error-text">{formErrors.manv}</span>}
+              </div>
+            </div>
+            <div className="modal-form-footer">
+              <button onClick={() => { setShowModal(false); setShowEditModal(false); }}>Hủy</button>
+              <button className="btn-save" onClick={showEditModal ? handleEdit : handleSubmit} disabled={submitting}>
+                {submitting ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
+          </div>
+        </div>
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       )}
     </div>
   );

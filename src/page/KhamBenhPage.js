@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+=======
+import { useState, useEffect } from "react";
+import Sidebar from "../component/sidebar/Sidebar";
+import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 import "./KhamBenhPage.css";
 
 export default function KhamBenhPage() {
@@ -8,9 +16,32 @@ export default function KhamBenhPage() {
   const [filterTT, setFilterTT] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ chuandoan: "", trieuchung: "" });
+<<<<<<< HEAD
 
   return (
     <div className="page-layout">
+=======
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/phieu-kham");
+        toast.info("Sẵn sàng kết nối API Khám bệnh");
+      } catch {
+        toast.error("Lỗi tải danh sách phiếu khám!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  return (
+    <div className="page-layout">
+      {loading && <Loading text="Đang tải danh sách phiếu khám..." />}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -99,7 +130,11 @@ export default function KhamBenhPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
+<<<<<<< HEAD
               <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+=======
+              <button className="btn-save" onClick={() => { toast.success("Lưu phiếu khám thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
             </div>
           </div>
         </div>

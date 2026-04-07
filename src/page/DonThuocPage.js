@@ -1,6 +1,14 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
+=======
+import { useState, useEffect } from "react";
+import Sidebar from "../component/sidebar/Sidebar";
+import Header from "../component/header/Header";
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 import "./DonThuocPage.css";
 
 export default function DonThuocPage() {
@@ -10,6 +18,25 @@ export default function DonThuocPage() {
   const [form, setForm] = useState({ mapk: "", mat: "", soluong: "", lieudung: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+<<<<<<< HEAD
+=======
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // TODO: const res = await apiGet("/don-thuoc");
+        toast.info("Sẵn sàng kết nối API Đơn thuốc");
+      } catch {
+        toast.error("Lỗi tải danh sách đơn thuốc!");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 
   const openAdd = () => {
     setEditItem(null);
@@ -20,6 +47,10 @@ export default function DonThuocPage() {
 
   return (
     <div className="page-layout">
+<<<<<<< HEAD
+=======
+      {loading && <Loading text="Đang tải đơn thuốc..." />}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       <Sidebar />
       <div className="page-main">
         <Header />
@@ -102,7 +133,11 @@ export default function DonThuocPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
+<<<<<<< HEAD
               <button className="btn-save" onClick={() => setShowModal(false)}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+=======
+              <button className="btn-save" onClick={() => { toast.success("Lưu đơn thuốc thành công!"); setShowModal(false); }}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
             </div>
           </div>
         </div>
@@ -116,7 +151,11 @@ export default function DonThuocPage() {
             <p>Chỉ xóa được khi phiếu khám chưa thanh toán.</p>
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
+<<<<<<< HEAD
               <button className="btn-danger" onClick={() => setShowConfirm(null)}>Xóa</button>
+=======
+              <button className="btn-danger" onClick={() => { toast.success("Xóa đơn thuốc thành công!"); setShowConfirm(null); }}>Xóa</button>
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
             </div>
           </div>
         </div>

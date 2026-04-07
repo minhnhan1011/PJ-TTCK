@@ -9,13 +9,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+<<<<<<< HEAD
   "type": "commonjs",
+=======
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+<<<<<<< HEAD
     "mysql": "^2.18.1",
     "mysql2": "^3.20.0"
   }
+=======
+    "mysql2": "^3.20.0"
+  },
+  "devDependencies": {},
+  "type": "commonjs"
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 }

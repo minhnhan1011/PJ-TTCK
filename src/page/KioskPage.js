@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+<<<<<<< HEAD
+=======
+import Loading from "../component/loading/Loading";
+import { toast } from "react-toastify";
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 import "./KioskPage.css";
 
 const LY_DO_KHAM = [
@@ -17,6 +22,10 @@ export default function KioskPage() {
   const [lydokham, setLydokham] = useState("");
   const [error, setError] = useState("");
   const [modal, setModal] = useState(null);
+<<<<<<< HEAD
+=======
+  const [loading, setLoading] = useState(false);
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,7 +40,14 @@ export default function KioskPage() {
       return;
     }
     setError("");
+<<<<<<< HEAD
     // TODO: Gọi API lấy số thứ tự từ backend
+=======
+    setLoading(true);
+    // TODO: Gọi API lấy số thứ tự từ backend
+    toast.info("Đang lấy số thứ tự...");
+    setLoading(false);
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   };
 
   const closeModal = () => {
@@ -41,6 +57,10 @@ export default function KioskPage() {
 
   return (
     <div className="kiosk-page">
+<<<<<<< HEAD
+=======
+      {loading && <Loading text="Đang lấy số thứ tự..." />}
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
       <div className="kiosk-overlay"></div>
 
       <div className="kiosk-card">

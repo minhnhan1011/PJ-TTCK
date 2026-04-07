@@ -7,11 +7,21 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^13.5.0",
+<<<<<<< HEAD
     "axios": "^1.13.6",
+=======
+    "antd": "^6.3.5",
+    "axios": "^1.14.0",
+    "moment": "^2.30.1",
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2",
     "react-scripts": "5.0.1",
+<<<<<<< HEAD
+=======
+    "react-toastify": "^11.0.5",
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -37,5 +47,23 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+<<<<<<< HEAD
+=======
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
+  "main": "index.js",
+  "devDependencies": {
+    "jest": "^27.5.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/minhnhan1011/PJ-TTCK.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/minhnhan1011/PJ-TTCK/issues"
+>>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   }
 }
