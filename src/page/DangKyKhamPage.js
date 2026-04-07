@@ -3,7 +3,6 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DangKyKhamPage.css";
 
-// --- COMPONENT CON: Tách ra ngoài để tránh lỗi reset khi gõ (Re-mounting) ---
 const ModalForm = ({ 
   title, 
   onSubmit, 
@@ -85,7 +84,6 @@ const ModalForm = ({
   );
 };
 
-// --- COMPONENT CHÍNH ---
 export default function DangKyKhamPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -261,7 +259,7 @@ export default function DangKyKhamPage() {
               <div className="stat-number">{stats.dangKham}</div>
             </div>
             <div className="stat-card purple">
-              <div className="stat-label">Hoàn thành</div>
+              <div className="stat-label">Hoàn thanh</div>
               <div className="stat-number">{stats.hoanThanh}</div>
             </div>
           </div>
