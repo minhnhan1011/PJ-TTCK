@@ -1,0 +1,50 @@
+/* ThuocPage - uses common.css */
+.page-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header-flex h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.btn-add {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.price-text {
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.table-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.ant-table-thead > tr > th {
+  background-color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+.stat-card {
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-card b {
+  font-size: 18px;
+  margin-left: 5px;
+}

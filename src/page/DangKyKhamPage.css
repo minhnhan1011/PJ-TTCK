@@ -1,0 +1,15 @@
+/* DangKyKhamPage - uses common.css */
+.btn-icon {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: background 0.15s;
+  margin-left: 4px;
+}
+.btn-edit  { color: #2563eb; }
+.btn-edit:hover  { background: #eff6ff; }
+.btn-delete { color: #dc2626; }
+.btn-delete:hover { background: #fef2f2; }
