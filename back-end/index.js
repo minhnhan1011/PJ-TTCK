@@ -79,6 +79,36 @@ app.post("/login", (req, res) => {
 });
 
 
+// show  benh nhan
+app.get("/benhnhan",(req,res)=>{
+    const sql="SELECT *FROM benhnhan";
+    db.query(sql,(err,data)=>{
+        if(err){
+            return res.json(err)
+        }else{
+            return res.json(data)
+        }
+    })
+})
+app.post("/thembn",(req,res)=>{
+    const sql="INSERT INTO benhnhan(`mabn`,`hoten`,`ngaysinh`,`gioitinh`,`diachi`,`sdt`) VALUES(?)";
+    const values=[
+        req.body.mabn,
+        req.body.hoten,
+        req.body.ngaysinh,
+        req.body.gioitinh,
+        req.body.sdt,
+        req.body.diachi,
+    ]
+    db.query(sql,[values],(err,data)=>{
+        if(err){
+            return res.json(err)
+        }else{
+            return res.json(data)
+        }
+    })
+})
+
 
 app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
   db.query("SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'", (err, data) => {
