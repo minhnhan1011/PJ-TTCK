@@ -4,15 +4,12 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const Header = () => {
-<<<<<<< HEAD
   const [name, setName]=useState('');
   const [auth,setAuth]=useState(false);
-  const[makh,setMakh]=useState('');
-=======
+  const [makh,setMakh]=useState('');
   const [name, setName] = useState('');
   const [auth, setAuth] = useState(false);
   const [makh, setMakh] = useState('');
->>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   axios.defaults.withCredentials = true;
 
   const handleLogout = () => {
@@ -20,10 +17,7 @@ const Header = () => {
       .then(() => window.location.reload(true))
       .catch(err => console.log(err));
   };
-<<<<<<< HEAD
-=======
 
->>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -31,11 +25,8 @@ const Header = () => {
         if (res.data.Status === "Success") {
           setAuth(true);
           setName(res.data.name);
-<<<<<<< HEAD
-          setMakh(res.data.makh); // Lưu mã khách hàng
-=======
+          setMakh(res.data.makh);
           setMakh(res.data.makh); 
->>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
         } else {
           setAuth(false);
         }
@@ -48,7 +39,6 @@ const Header = () => {
 
   return (
     <div className="header">
-<<<<<<< HEAD
       <div className="header-left">
         <input type="text" placeholder="Tìm kiếm..." className="search-input" />
       </div>
@@ -66,7 +56,6 @@ const Header = () => {
           )}
           
         </div>
-=======
       {/* Đã dẹp bỏ phần header-left chứa input tìm kiếm dư thừa */}
       <div className="header-left"></div> 
 
@@ -82,13 +71,8 @@ const Header = () => {
           </Link>
         )}
       </div>
->>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
     </div>
   );
 };
 
-<<<<<<< HEAD
 export default Header;
-=======
-export default Header;
->>>>>>> d89c09939460a2e95c5c466d7a36e4eddc324b7a
