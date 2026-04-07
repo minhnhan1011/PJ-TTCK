@@ -45,7 +45,6 @@ export default function BenhNhanPage() {
               <div className="stat-number">0</div>
             </div>
           </div>
-
           {/* Table */}
           <div className="table-container">
             <div className="table-toolbar">
