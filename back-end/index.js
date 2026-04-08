@@ -11,7 +11,7 @@ app.use(
     origin: ["http://localhost:3000", "http://localhost:3001"],
     methods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
-  })
+  }),
 );
 
 app.use(cookieParser());
@@ -65,11 +65,13 @@ app.post("/login", (req, res) => {
   const sql = "SELECT * FROM taikhoan WHERE tendn=? AND matkhau=?";
   db.query(sql, [req.body.tendn, req.body.matkhau], (err, data) => {
     if (err) return res.json("Tài khoản hoặc mật khẩu đã sai");
-    
+
     if (data.length > 0) {
       const name = data[0].tendn;
       const matk = data[0].matk;
-      const token = jwt.sign({ name, matk }, "jwt-secret-key", { expiresIn: "1d" });
+      const token = jwt.sign({ name, matk }, "jwt-secret-key", {
+        expiresIn: "1d",
+      });
       res.cookie("token", token);
       return res.json({ Status: "Success" });
     } else {
@@ -78,43 +80,46 @@ app.post("/login", (req, res) => {
   });
 });
 
-
 // show  benh nhan
-app.get("/benhnhan",(req,res)=>{
-    const sql="SELECT *FROM benhnhan";
-    db.query(sql,(err,data)=>{
-        if(err){
-            return res.json(err)
-        }else{
-            return res.json(data)
-        }
-    })
-})
-app.post("/thembn",(req,res)=>{
-    const sql="INSERT INTO benhnhan(`mabn`,`hoten`,`ngaysinh`,`gioitinh`,`diachi`,`sdt`) VALUES(?)";
-    const values=[
-        req.body.mabn,
-        req.body.hoten,
-        req.body.ngaysinh,
-        req.body.gioitinh,
-        req.body.sdt,
-        req.body.diachi,
-    ]
-    db.query(sql,[values],(err,data)=>{
-        if(err){
-            return res.json(err)
-        }else{
-            return res.json(data)
-        }
-    })
-})
-
+app.get("/benhnhan", (req, res) => {
+  const sql = "SELECT *FROM benhnhan";
+  db.query(sql, (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      return res.json(data);
+    }
+  });
+});
+app.post("/thembn", (req, res) => {
+  const sql =
+    "INSERT INTO benhnhan(`mabn`,`hoten`,`ngaysinh`,`gioitinh`,`diachi`,`sdt`) VALUES(?)";
+  const values = [
+    req.body.mabn,
+    req.body.hoten,
+    req.body.ngaysinh,
+    req.body.gioitinh,
+    req.body.sdt,
+    req.body.diachi,
+  ];
+  db.query(sql, [values], (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      return res.json(data);
+    }
+  });
+});
 
 app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
-  db.query("SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'", (err, data) => {
-    if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
-    res.json(data);
-  });
+  db.query(
+    "SELECT manv, hoten FROM nhanvien WHERE chucvu = 'Bac si'",
+    (err, data) => {
+      if (err)
+        return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+      res.json(data);
+    },
+  );
 });
 
 // GET danh sách đăng ký khám (JOIN lấy tên BN, tên BS)
@@ -171,10 +176,14 @@ app.put("/api/dang-ky-kham/:madk", (req, res) => {
   const sql = `
     UPDATE dangkykham SET mabn=?, lydokham=?, manv=?, trangthai=? WHERE madk=?
   `; // 👈 thêm trangthai=?
-  db.query(sql, [mabn, lydokham, manv, trangthai ?? "Cho kham", madk], (err) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json({ message: "Cập nhật thành công" });
-  });
+  db.query(
+    sql,
+    [mabn, lydokham, manv, trangthai ?? "Cho kham", madk],
+    (err) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ message: "Cập nhật thành công" });
+    },
+  );
 });
 
 // DELETE xóa phiếu
@@ -193,7 +202,7 @@ app.get("/api/nhan-vien/bac-si", (req, res) => {
     (err, rows) => {
       if (err) return res.status(500).json({ message: err.message });
       res.json(rows);
-    }
+    },
   );
 });
 
@@ -204,106 +213,159 @@ app.get("/api/benh-nhan", (req, res) => {
     (err, rows) => {
       if (err) return res.status(500).json({ message: err.message });
       res.json(rows);
-    }
+    },
   );
 });
 
-
 // GET danh sách loại thuốc cho dropdown
 app.get("/api/loai-thuoc", verifyUser, (req, res) => {
-    db.query("SELECT * FROM loaithuoc", (err, data) => {
-        if (err) return res.status(500).json({ message: "Lỗi truy vấn", error: err });
-        res.json(data);
-    });
+  db.query("SELECT * FROM loaithuoc", (err, data) => {
+    if (err)
+      return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+    res.json(data);
+  });
 });
 
 app.get("/api/thuoc", verifyUser, (req, res) => {
-    const sql = `
+  const sql = `
         SELECT t.*, lt.tenlt 
         FROM thuoc t 
         LEFT JOIN loaithuoc lt ON t.malt = lt.malt 
         ORDER BY t.mat DESC
     `;
-    db.query(sql, (err, data) => {
-        if (err) return res.status(500).json(err);
-        res.json(data);
-    });
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    res.json(data);
+  });
 });
 
 app.post("/api/thuoc", verifyUser, (req, res) => {
-    const { tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi } = req.body;
-    const sql = `
+  const { tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi } =
+    req.body;
+  const sql = `
         INSERT INTO thuoc (tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi, trangthai) 
         VALUES (?, ?, ?, ?, ?, ?, ?, 'Con han')
     `;
-    db.query(sql, [tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success" });
-    });
+  db.query(
+    sql,
+    [tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ Status: "Success" });
+    },
+  );
 });
 
 app.put("/api/thuoc/:id", verifyUser, (req, res) => {
-    const id = req.params.id;
-    const { tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi } = req.body;
-    const sql = `
+  const id = req.params.id;
+  const { tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi } =
+    req.body;
+  const sql = `
         UPDATE thuoc 
         SET tent=?, malt=?, dongia=?, ngaysanxuat=?, hansudung=?, soluong=?, donvi=? 
         WHERE mat=?
     `;
-    db.query(sql, [tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi, id], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success" });
-    });
+  db.query(
+    sql,
+    [tent, malt, dongia, ngaysanxuat, hansudung, soluong, donvi, id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ Status: "Success" });
+    },
+  );
 });
 
 app.delete("/api/thuoc/:id", verifyUser, (req, res) => {
-    db.query("DELETE FROM thuoc WHERE mat = ?", [req.params.id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success" });
-    });
+  db.query("DELETE FROM thuoc WHERE mat = ?", [req.params.id], (err) => {
+    if (err) return res.status(500).json(err);
+    res.json({ Status: "Success" });
+  });
 });
 
-
-
-
 app.get("/api/nhanvien", verifyUser, (req, res) => {
-    db.query("SELECT * FROM nhanvien ORDER BY manv DESC", (err, data) => {
-        if (err) return res.status(500).json(err);
-        res.json(data);
-    });
+  db.query("SELECT * FROM nhanvien ORDER BY manv DESC", (err, data) => {
+    if (err) return res.status(500).json(err);
+    res.json(data);
+  });
 });
 
 app.post("/api/nhanvien", verifyUser, (req, res) => {
-    const { hoten, chucvu, sdt, diachi } = req.body;
-    if (!hoten || !chucvu) {
-        return res.status(400).json({ Message: "Họ tên và chức vụ là bắt buộc" });
-    }
-    const sql = "INSERT INTO nhanvien (hoten, chucvu, sdt, diachi) VALUES (?, ?, ?, ?)";
-    db.query(sql, [hoten, chucvu, sdt, diachi], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success", id: result.insertId });
-    });
+  const { hoten, chucvu, sdt, diachi } = req.body;
+  if (!hoten || !chucvu) {
+    return res.status(400).json({ Message: "Họ tên và chức vụ là bắt buộc" });
+  }
+  const sql =
+    "INSERT INTO nhanvien (hoten, chucvu, sdt, diachi) VALUES (?, ?, ?, ?)";
+  db.query(sql, [hoten, chucvu, sdt, diachi], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ Status: "Success", id: result.insertId });
+  });
 });
 
 app.put("/api/nhanvien/:id", verifyUser, (req, res) => {
-    const { hoten, chucvu, sdt, diachi } = req.body;
-    const id = req.params.id;
-    const sql = "UPDATE nhanvien SET hoten = ?, chucvu = ?, sdt = ?, diachi = ? WHERE manv = ?";
-    db.query(sql, [hoten, chucvu, sdt, diachi, id], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success" });
-    });
+  const { hoten, chucvu, sdt, diachi } = req.body;
+  const id = req.params.id;
+  const sql =
+    "UPDATE nhanvien SET hoten = ?, chucvu = ?, sdt = ?, diachi = ? WHERE manv = ?";
+  db.query(sql, [hoten, chucvu, sdt, diachi, id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ Status: "Success" });
+  });
 });
 
 app.delete("/api/nhanvien/:id", verifyUser, (req, res) => {
-    const id = req.params.id;
-    db.query("DELETE FROM nhanvien WHERE manv = ?", [id], (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ Status: "Success" });
-    });
+  const id = req.params.id;
+  db.query("DELETE FROM nhanvien WHERE manv = ?", [id], (err) => {
+    if (err) return res.status(500).json(err);
+    res.json({ Status: "Success" });
+  });
 });
-
 
 app.listen(4000, () => {
   console.log("Server running on port 4000");
+});
+// GET - Lấy danh sách dịch vụ
+app.get("/api/dich-vu", verifyUser, (req, res) => {
+  const sql = "SELECT * FROM dichvu ORDER BY madv DESC";
+  db.query(sql, (err, data) => {
+    if (err)
+      return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+    res.json(data);
+  });
+});
+
+// POST - Thêm dịch vụ mới
+app.post("/api/dich-vu", verifyUser, (req, res) => {
+  // THÊM: lấy trangthai từ body
+  const { tendv, gia, trangthai } = req.body;
+  // SỬA: thêm cột trangthai vào câu lệnh SQL
+  const sql = "INSERT INTO dichvu (tendv, gia, trangthai) VALUES (?, ?, ?)";
+  db.query(sql, [tendv, gia, trangthai], (err, result) => {
+    if (err)
+      return res.status(500).json({ message: "Lỗi thêm dịch vụ", error: err });
+    res.status(201).json({ madv: result.insertId, tendv, gia, trangthai });
+  });
+});
+
+// PUT - Cập nhật dịch vụ
+app.put("/api/dich-vu/:madv", verifyUser, (req, res) => {
+  // THÊM: lấy trangthai từ body
+  const { tendv, gia, trangthai } = req.body;
+  const { madv } = req.params;
+  // SỬA: cập nhật thêm cột trangthai
+  const sql = "UPDATE dichvu SET tendv=?, gia=?, trangthai=? WHERE madv=?";
+  db.query(sql, [tendv, gia, trangthai, madv], (err) => {
+    if (err)
+      return res.status(500).json({ message: "Lỗi cập nhật", error: err });
+    res.json({ message: "Cập nhật thành công" });
+  });
+});
+
+// DELETE - Xóa dịch vụ
+app.delete("/api/dich-vu/:madv", verifyUser, (req, res) => {
+  const { madv } = req.params;
+  db.query("DELETE FROM dichvu WHERE madv=?", [madv], (err) => {
+    if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
+    res.json({ message: "Xóa thành công" });
+  });
 });
