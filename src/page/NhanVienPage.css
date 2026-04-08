@@ -95,3 +95,29 @@
 .ant-table-row:hover {
   background-color: #f8fafc !important;
 }
+/* Tùy chỉnh thanh tìm kiếm mới cho mượt hơn */
+.ant-input-affix-wrapper {
+  border-radius: 8px !important; /* Bo góc nhẹ cho đồng bộ với nút bấm */
+  padding: 8px 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  transition: all 0.3s;
+}
+
+.ant-input-affix-wrapper:hover, 
+.ant-input-affix-wrapper-focused {
+  border-color: #2563eb !important; /* Đổi màu viền sang xanh khi hover */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Căn chỉnh tiêu đề và thanh tìm kiếm trên mobile (nếu có) */
+@media (max-width: 768px) {
+  .page-content > div:first-child {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start !important;
+  }
+  
+  .ant-input {
+    width: 100% !important;
+  }
+}

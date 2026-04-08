@@ -4,9 +4,9 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 
 const Header = () => {
-  const [name, setName]=useState('');
-  const [auth,setAuth]=useState(false);
-  const[makh,setMakh]=useState('');
+  const [name, setName] = useState('');
+  const [auth, setAuth] = useState(false);
+  const [makh, setMakh] = useState('');
   axios.defaults.withCredentials = true;
 
   const handleLogout = () => {
@@ -14,6 +14,7 @@ const Header = () => {
       .then(() => window.location.reload(true))
       .catch(err => console.log(err));
   };
+
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -21,7 +22,7 @@ const Header = () => {
         if (res.data.Status === "Success") {
           setAuth(true);
           setName(res.data.name);
-          setMakh(res.data.makh); // Lưu mã khách hàng
+          setMakh(res.data.makh); 
         } else {
           setAuth(false);
         }
@@ -34,23 +35,24 @@ const Header = () => {
 
   return (
     <div className="header">
+      {/* 1. Phần bên trái giờ để trống hoặc có thể thêm Breadcrumb/Tiêu đề trang sau này */}
       <div className="header-left">
-        <input type="text" placeholder="Tìm kiếm..." className="search-input" />
+        {/* Đã xóa thanh tìm kiếm cũ ở đây để dời xuống từng trang cụ thể */}
       </div>
 
-       <div className="d-flex align-items-center gap-3">
-          {auth ? (
-            <>
-              <span className="text-white">Xin chào, {name}</span>
-              <button className="btn btn-danger" onClick={handleLogout}>Đăng Xuất</button>
-            </>
-          ) : (
-            <Link to="/login" className="text-white">
-              Dang nhap
-            </Link>
-          )}
-          
-        </div>
+      {/* 2. Phần thông tin người dùng giữ nguyên */}
+      <div className="d-flex align-items-center gap-3">
+        {auth ? (
+          <>
+            <span className="text-white">Xin chào, {name}</span>
+            <button className="btn btn-danger" onClick={handleLogout}>Đăng Xuất</button>
+          </>
+        ) : (
+          <Link to="/login" className="text-white">
+            Đăng nhập
+          </Link>
+        )}
+      </div>
     </div>
   );
 };
