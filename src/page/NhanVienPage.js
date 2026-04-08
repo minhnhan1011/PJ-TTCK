@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { Table, Button, Space, message, Modal, Form, Input, Select } from 'antd';
+import { SearchOutlined } from '@ant-design/icons'; // Thêm icon tìm kiếm
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./NhanVienPage.css";
@@ -10,9 +11,9 @@ const NhanVienPage = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [searchText, setSearchText] = useState(''); // State để lưu nội dung tìm kiếm
   const [form] = Form.useForm();
 
-  // 1. Lấy danh sách nhân viên (Đã sửa URL thành /api/nhanvien)
   const loadData = async () => {
     setLoading(true);
     try {
@@ -27,7 +28,15 @@ const NhanVienPage = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  // 2. Xử lý khi nhấn nút "Thêm mới" hoặc "Sửa"
+  // --- LOGIC TÌM KIẾM THEO TÊN HOẶC CHỨC VỤ ---
+  const filteredData = useMemo(() => {
+    const lowerSearch = searchText.toLowerCase();
+    return data.filter(item => 
+      item.hoten.toLowerCase().includes(lowerSearch) || 
+      item.chucvu.toLowerCase().includes(lowerSearch)
+    );
+  }, [data, searchText]);
+
   const showModal = (item = null) => {
     setEditingItem(item);
     if (item) {
@@ -38,42 +47,34 @@ const NhanVienPage = () => {
     setIsModalOpen(true);
   };
 
-  // 3. Xử lý Lưu (Cả Thêm và Sửa - Đã sửa URL)
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
       if (editingItem) {
-        // Gọi API Sửa (Sử dụng manv làm ID)
         await axios.put(`http://localhost:4000/api/nhanvien/${editingItem.manv}`, values, { withCredentials: true });
-        message.success("Cập nhật nhân viên thành công!");
+        message.success("Cập nhật thành công!");
       } else {
-        // Gọi API Thêm mới
         await axios.post('http://localhost:4000/api/nhanvien', values, { withCredentials: true });
-        message.success("Thêm nhân viên mới thành công!");
+        message.success("Thêm mới thành công!");
       }
       setIsModalOpen(false);
       loadData();
     } catch (error) {
-      message.error("Có lỗi xảy ra khi lưu dữ liệu!");
+      if (!error.errorFields) message.error("Lỗi lưu dữ liệu!");
     }
   };
 
-  // 4. Xử lý Xóa (Đã sửa URL)
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Xác nhận xóa',
-      content: 'Bạn có chắc chắn muốn xóa nhân viên này không?',
       okText: 'Xóa',
       okType: 'danger',
-      cancelText: 'Hủy',
       onOk: async () => {
         try {
           await axios.delete(`http://localhost:4000/api/nhanvien/${id}`, { withCredentials: true });
-          message.success("Đã xóa nhân viên!");
+          message.success("Đã xóa!");
           loadData();
-        } catch (error) {
-          message.error("Lỗi khi xóa nhân viên!");
-        }
+        } catch (error) { message.error("Lỗi xóa!"); }
       },
     });
   };
@@ -102,32 +103,47 @@ const NhanVienPage = () => {
       <div className="page-main">
         <Header />
         <div className="page-content" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h2 style={{ fontWeight: 'bold' }}>Quản lý Nhân viên</h2>
+          
+          {/* PHẦN TIÊU ĐỀ VÀ TÌM KIẾM MỚI DỜI XUỐNG ĐÂY */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontWeight: 'bold', margin: 0 }}>Quản lý Nhân viên</h2>
+            
+            <Input 
+              placeholder="Tìm theo tên hoặc chức vụ..." 
+              prefix={<SearchOutlined />} 
+              style={{ width: 350, borderRadius: '8px' }} 
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+
             <Button type="primary" size="large" onClick={() => showModal()}>+ Thêm nhân viên mới</Button>
           </div>
           
           <div className="table-container" style={{ background: '#fff', padding: '20px', borderRadius: '8px' }}>
-            <Table dataSource={data} columns={columns} rowKey="manv" loading={loading} pagination={{ pageSize: 7 }} />
+            <Table 
+              dataSource={filteredData} // Sử dụng dữ liệu đã lọc
+              columns={columns} 
+              rowKey="manv" 
+              loading={loading} 
+              pagination={{ pageSize: 7 }} 
+            />
           </div>
         </div>
       </div>
 
-      {/* MODAL FORM THÊM/SỬA */}
       <Modal 
         title={editingItem ? "Chỉnh sửa nhân viên" : "Thêm nhân viên mới"} 
         open={isModalOpen} 
         onOk={handleSave} 
         onCancel={() => setIsModalOpen(false)}
-        okText="Lưu dữ liệu"
-        cancelText="Hủy bỏ"
         width={600}
       >
-        <Form form={form} layout="vertical" name="nhanvien_form" style={{ marginTop: '20px' }}>
-          <Form.Item name="hoten" label="Họ và Tên" rules={[{ required: true, message: 'Vui lòng nhập họ tên!' }]}>
-            <Input placeholder="Ví dụ: Nguyễn Văn A" />
+        <Form form={form} layout="vertical" style={{ marginTop: '20px' }}>
+          <Form.Item name="hoten" label="Họ và Tên" rules={[{ required: true, message: 'Nhập họ tên!' }]}>
+            <Input placeholder="Ví dụ: Nguyễn Lê Thanh Trúc" />
           </Form.Item>
-          <Form.Item name="chucvu" label="Chức vụ" rules={[{ required: true, message: 'Vui lòng chọn chức vụ!' }]}>
+          
+          <Form.Item name="chucvu" label="Chức vụ" rules={[{ required: true, message: 'Chọn chức vụ!' }]}>
             <Select placeholder="Chọn chức vụ">
               <Select.Option value="Bac si">Bác sĩ</Select.Option>
               <Select.Option value="Y ta">Y tá</Select.Option>
@@ -135,11 +151,21 @@ const NhanVienPage = () => {
               <Select.Option value="Ky thuat vien">Kỹ thuật viên</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item name="sdt" label="Số điện thoại">
-            <Input placeholder="Nhập số điện thoại..." />
+
+          {/* Ràng buộc 10 số điện thoại */}
+          <Form.Item 
+            name="sdt" 
+            label="Số điện thoại"
+            rules={[
+              { required: true, message: 'Nhập số điện thoại!' },
+              { pattern: /^[0-9]{10}$/, message: 'Phải đúng 10 chữ số!' }
+            ]}
+          >
+            <Input placeholder="Nhập 10 chữ số..." maxLength={10} />
           </Form.Item>
+
           <Form.Item name="diachi" label="Địa chỉ">
-            <Input.TextArea placeholder="Nhập địa chỉ chi tiết..." rows={2} />
+            <Input.TextArea placeholder="Nhập địa chỉ..." rows={2} />
           </Form.Item>
         </Form>
       </Modal>
