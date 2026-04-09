@@ -273,7 +273,19 @@ app.get("/api/don-thuoc", verifyUser, (req, res) => {
 });
 
 app.post("/api/don-thuoc", verifyUser, (req, res) => {
-  const { mapk, mat, soluong, lieudung } = req.body;
+  const { mapk, items } = req.body;
+  // Batch insert: { mapk, items: [{ mat, soluong, lieudung }] }
+  if (mapk && Array.isArray(items) && items.length > 0) {
+    const values = items.filter(i => i.mat && i.soluong > 0).map(i => [mapk, i.mat, i.soluong, i.lieudung || ""]);
+    if (values.length === 0) return res.status(400).json({ message: "Không có thuốc hợp lệ" });
+    db.query("INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES ?", [values], (err) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ Status: "Success" });
+    });
+    return;
+  }
+  // Single insert fallback
+  const { mat, soluong, lieudung } = req.body;
   if (!mapk || !mat || !soluong) return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
   db.query("INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES (?,?,?,?)", [mapk, mat, soluong, lieudung], (err, r) => {
     if (err) return res.status(500).json({ message: err.message });

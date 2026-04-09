@@ -5,12 +5,18 @@ import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DonThuocPage.css";
 
+const emptyLine = { mat: "", soluong: "", lieudung: "" };
+
 export default function DonThuocPage() {
   const [data, setData] = useState([]);
   const [thuocList, setThuocList] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  // Form thêm mới: 1 mapk + nhiều dòng thuốc
+  const [formMapk, setFormMapk] = useState("");
+  const [formLines, setFormLines] = useState([{ ...emptyLine }]);
+  // Form sửa: 1 dòng duy nhất
   const [form, setForm] = useState({ mapk: "", mat: "", soluong: "", lieudung: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
@@ -33,10 +39,46 @@ export default function DonThuocPage() {
     return data.filter(i => String(i.mapk).includes(s) || (i.tenbn||"").toLowerCase().includes(s) || (i.tent||"").toLowerCase().includes(s));
   }, [data, search]);
 
-  const openAdd = () => { setEditItem(null); setForm({ mapk: "", mat: "", soluong: "", lieudung: "" }); setFormErrors({}); setShowModal(true); };
-  const openEdit = (item) => { setEditItem(item); setForm({ mapk: item.mapk, mat: item.mat, soluong: item.soluong, lieudung: item.lieudung || "" }); setFormErrors({}); setShowModal(true); };
+  const openAdd = () => {
+    setEditItem(null);
+    setFormMapk("");
+    setFormLines([{ ...emptyLine }]);
+    setFormErrors({});
+    setShowModal(true);
+  };
+  const openEdit = (item) => {
+    setEditItem(item);
+    setForm({ mapk: item.mapk, mat: item.mat, soluong: item.soluong, lieudung: item.lieudung || "" });
+    setFormErrors({});
+    setShowModal(true);
+  };
 
-  const validate = () => {
+  // -- helpers cho multi-line --
+  const updateLine = (idx, field, value) => {
+    setFormLines(prev => prev.map((l, i) => i === idx ? { ...l, [field]: value } : l));
+  };
+  const addLine = () => setFormLines(prev => [...prev, { ...emptyLine }]);
+  const removeLine = (idx) => {
+    if (formLines.length <= 1) return;
+    setFormLines(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  // validate
+  const validateAdd = () => {
+    const errs = {};
+    if (!formMapk) errs.mapk = "Mã phiếu khám là bắt buộc";
+    const lineErrs = formLines.map(l => {
+      const e = {};
+      if (!l.mat) e.mat = true;
+      if (!l.soluong || Number(l.soluong) <= 0) e.soluong = true;
+      return e;
+    });
+    const hasLineErr = lineErrs.some(e => Object.keys(e).length > 0);
+    if (hasLineErr) errs.lines = lineErrs;
+    setFormErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+  const validateEdit = () => {
     const errs = {};
     if (!form.mapk) errs.mapk = "Mã phiếu khám là bắt buộc";
     if (!form.mat) errs.mat = "Vui lòng chọn thuốc";
@@ -46,13 +88,21 @@ export default function DonThuocPage() {
   };
 
   const handleSave = () => {
-    if (!validate()) return;
-    const payload = { mapk: Number(form.mapk), mat: Number(form.mat), soluong: Number(form.soluong), lieudung: form.lieudung };
-    const req = editItem
-      ? axios.put(`http://localhost:4000/api/don-thuoc/${editItem.madt}`, payload, { withCredentials: true })
-      : axios.post("http://localhost:4000/api/don-thuoc", payload, { withCredentials: true });
-    req.then(() => { message.success(editItem ? "Cập nhật thành công!" : "Kê đơn thành công!"); setShowModal(false); loadData(); })
-       .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+    if (editItem) {
+      // Sửa 1 dòng
+      if (!validateEdit()) return;
+      const payload = { mapk: Number(form.mapk), mat: Number(form.mat), soluong: Number(form.soluong), lieudung: form.lieudung };
+      axios.put(`http://localhost:4000/api/don-thuoc/${editItem.madt}`, payload, { withCredentials: true })
+        .then(() => { message.success("Cập nhật thành công!"); setShowModal(false); loadData(); })
+        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+    } else {
+      // Thêm batch
+      if (!validateAdd()) return;
+      const items = formLines.filter(l => l.mat && Number(l.soluong) > 0).map(l => ({ mat: Number(l.mat), soluong: Number(l.soluong), lieudung: l.lieudung }));
+      axios.post("http://localhost:4000/api/don-thuoc", { mapk: Number(formMapk), items }, { withCredentials: true })
+        .then(() => { message.success(`Kê đơn thành công (${items.length} thuốc)!`); setShowModal(false); loadData(); })
+        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+    }
   };
 
   const handleDelete = () => {
@@ -154,40 +204,80 @@ export default function DonThuocPage() {
 
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-form" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-form modal-wide" onClick={(e) => e.stopPropagation()}>
             <div className="modal-form-header">
               <h3><i className="fas fa-prescription-bottle-alt" style={{ marginRight: "0.5rem", color: "#2563eb" }}></i>{editItem ? "Cập nhật Đơn thuốc" : "Kê đơn thuốc mới"}</h3>
               <button className="btn-close" onClick={() => setShowModal(false)}><i className="fas fa-times"></i></button>
             </div>
             <div className="modal-form-body">
+              {/* Mã PK */}
               <div className="form-group">
                 <label>Mã Phiếu khám <span className="required">*</span></label>
-                <input type="number" placeholder="VD: 1" value={form.mapk} onChange={(e) => setForm({ ...form, mapk: e.target.value })} className={formErrors.mapk ? "input-error" : ""} />
+                {editItem ? (
+                  <input type="number" value={form.mapk} onChange={(e) => setForm({ ...form, mapk: e.target.value })} className={formErrors.mapk ? "input-error" : ""} />
+                ) : (
+                  <input type="number" placeholder="VD: 1" value={formMapk} onChange={(e) => setFormMapk(e.target.value)} className={formErrors.mapk ? "input-error" : ""} />
+                )}
                 {formErrors.mapk && <div className="error-text">{formErrors.mapk}</div>}
               </div>
-              <div className="form-group">
-                <label>Thuốc <span className="required">*</span></label>
-                <select value={form.mat} onChange={(e) => setForm({ ...form, mat: e.target.value })} className={formErrors.mat ? "input-error" : ""}>
-                  <option value="">-- Chọn thuốc --</option>
-                  {thuocList.map(t => <option key={t.mat} value={t.mat}>{t.tent} ({t.donvi} — {Number(t.dongia).toLocaleString()}đ)</option>)}
-                </select>
-                {formErrors.mat && <div className="error-text">{formErrors.mat}</div>}
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Số lượng <span className="required">*</span></label>
-                  <input type="number" min="1" placeholder="VD: 10" value={form.soluong} onChange={(e) => setForm({ ...form, soluong: e.target.value })} className={formErrors.soluong ? "input-error" : ""} />
-                  {formErrors.soluong && <div className="error-text">{formErrors.soluong}</div>}
-                </div>
-                <div className="form-group">
-                  <label>Liều dùng</label>
-                  <input type="text" placeholder="VD: Sau ăn, 2 lần/ngày" value={form.lieudung} onChange={(e) => setForm({ ...form, lieudung: e.target.value })} />
-                </div>
-              </div>
+
+              {editItem ? (
+                /* === SỬA: 1 dòng duy nhất === */
+                <>
+                  <div className="form-group">
+                    <label>Thuốc <span className="required">*</span></label>
+                    <select value={form.mat} onChange={(e) => setForm({ ...form, mat: e.target.value })} className={formErrors.mat ? "input-error" : ""}>
+                      <option value="">-- Chọn thuốc --</option>
+                      {thuocList.map(t => <option key={t.mat} value={t.mat}>{t.tent} ({t.donvi} — {Number(t.dongia).toLocaleString()}đ)</option>)}
+                    </select>
+                    {formErrors.mat && <div className="error-text">{formErrors.mat}</div>}
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Số lượng <span className="required">*</span></label>
+                      <input type="number" min="1" value={form.soluong} onChange={(e) => setForm({ ...form, soluong: e.target.value })} className={formErrors.soluong ? "input-error" : ""} />
+                      {formErrors.soluong && <div className="error-text">{formErrors.soluong}</div>}
+                    </div>
+                    <div className="form-group">
+                      <label>Liều dùng</label>
+                      <input type="text" placeholder="VD: Sau ăn, 2 lần/ngày" value={form.lieudung} onChange={(e) => setForm({ ...form, lieudung: e.target.value })} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* === THÊM MỚI: nhiều dòng thuốc === */
+                <>
+                  <div className="drug-lines-header">
+                    <label style={{ fontWeight: 600, fontSize: "0.95rem" }}>Danh sách thuốc kê đơn</label>
+                    <button type="button" className="btn-add-line" onClick={addLine}><i className="fas fa-plus"></i> Thêm dòng</button>
+                  </div>
+                  <div className="drug-lines">
+                    {formLines.map((line, idx) => {
+                      const lineErr = formErrors.lines?.[idx] || {};
+                      return (
+                        <div className="drug-line" key={idx}>
+                          <span className="drug-line-no">{idx + 1}</span>
+                          <div className="drug-line-fields">
+                            <select value={line.mat} onChange={(e) => updateLine(idx, "mat", e.target.value)} className={lineErr.mat ? "input-error" : ""}>
+                              <option value="">-- Chọn thuốc --</option>
+                              {thuocList.map(t => <option key={t.mat} value={t.mat}>{t.tent} ({t.donvi} — {Number(t.dongia).toLocaleString()}đ)</option>)}
+                            </select>
+                            <input type="number" min="1" placeholder="SL" value={line.soluong} onChange={(e) => updateLine(idx, "soluong", e.target.value)} className={lineErr.soluong ? "input-error" : ""} style={{ width: "80px" }} />
+                            <input type="text" placeholder="Liều dùng" value={line.lieudung} onChange={(e) => updateLine(idx, "lieudung", e.target.value)} style={{ flex: 1, minWidth: "120px" }} />
+                          </div>
+                          <button type="button" className="btn-remove-line" onClick={() => removeLine(idx)} title="Xóa dòng" disabled={formLines.length <= 1}>
+                            <i className="fas fa-trash-alt"></i>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>Lưu</button>
+              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>{editItem ? "Lưu" : `Kê đơn (${formLines.filter(l=>l.mat&&l.soluong>0).length} thuốc)`}</button>
             </div>
           </div>
         </div>

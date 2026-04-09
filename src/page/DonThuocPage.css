@@ -43,3 +43,126 @@
   font-weight: 700;
   color: #059669;
 }
+
+/* Modal rộng hơn cho multi-line */
+.modal-wide {
+  width: 700px;
+  max-width: 95vw;
+}
+
+/* Header dòng thuốc */
+.drug-lines-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.75rem 0 0.5rem;
+}
+
+.btn-add-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px dashed #93c5fd;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-add-line:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+/* Danh sách dòng thuốc */
+.drug-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.drug-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.drug-line-no {
+  width: 24px;
+  height: 24px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.drug-line-fields {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.drug-line-fields select {
+  flex: 2;
+  min-width: 180px;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+.drug-line-fields select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+
+.drug-line-fields input {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  outline: none;
+}
+.drug-line-fields input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.1);
+}
+
+.btn-remove-line {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.3rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.btn-remove-line:hover:not(:disabled) {
+  color: #ef4444;
+  background: #fef2f2;
+}
+.btn-remove-line:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
