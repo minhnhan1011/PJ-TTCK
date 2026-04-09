@@ -20,15 +20,18 @@ const ThuocPage = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [resThuoc, resLoai] = await Promise.all([
-        axios.get('http://localhost:4000/api/thuoc', { withCredentials: true }),
-        axios.get('http://localhost:4000/api/loai-thuoc', { withCredentials: true })
-      ]);
+      const resThuoc = await axios.get('http://localhost:4000/api/thuoc', { withCredentials: true });
       setThuocList(Array.isArray(resThuoc.data) ? resThuoc.data : []);
+    } catch (error) {
+      message.error("Lỗi tải danh sách thuốc!");
+    }
+    try {
+      const resLoai = await axios.get('http://localhost:4000/api/loai-thuoc', { withCredentials: true });
       setLoaiThuoc(Array.isArray(resLoai.data) ? resLoai.data : []);
     } catch (error) {
-      message.error("Lỗi tải dữ liệu!");
-    } finally { setLoading(false); }
+      message.error("Lỗi tải loại thuốc!");
+    }
+    setLoading(false);
   };
 
   useEffect(() => { loadData(); }, []);

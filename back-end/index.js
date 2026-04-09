@@ -217,13 +217,93 @@ app.get("/api/benh-nhan", (req, res) => {
   );
 });
 
-// GET danh sách loại thuốc cho dropdown
+// ===== LOẠI THUỐC (CRUD) =====
 app.get("/api/loai-thuoc", verifyUser, (req, res) => {
-  db.query("SELECT * FROM loaithuoc", (err, data) => {
-    if (err)
-      return res.status(500).json({ message: "Lỗi truy vấn", error: err });
+  db.query("SELECT * FROM loaithuoc ORDER BY malt DESC", (err, data) => {
+    if (err) return res.status(500).json({ message: err.message });
     res.json(data);
   });
+});
+
+app.post("/api/loai-thuoc", verifyUser, (req, res) => {
+  const { tenlt } = req.body;
+  if (!tenlt) return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
+  db.query("INSERT INTO loaithuoc (tenlt) VALUES (?)", [tenlt], (err, r) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ Status: "Success", malt: r.insertId });
+  });
+});
+
+app.put("/api/loai-thuoc/:id", verifyUser, (req, res) => {
+  const { tenlt } = req.body;
+  if (!tenlt) return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
+  db.query("UPDATE loaithuoc SET tenlt=? WHERE malt=?", [tenlt, req.params.id], (err) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ Status: "Success" });
+  });
+});
+
+app.delete("/api/loai-thuoc/:id", verifyUser, (req, res) => {
+  db.query("SELECT COUNT(*) AS cnt FROM thuoc WHERE malt=?", [req.params.id], (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    if (rows[0].cnt > 0) return res.status(400).json({ message: "Không thể xóa — đang có thuốc thuộc loại này" });
+    db.query("DELETE FROM loaithuoc WHERE malt=?", [req.params.id], (err2) => {
+      if (err2) return res.status(500).json({ message: err2.message });
+      res.json({ Status: "Success" });
+    });
+  });
+});
+
+// ===== ĐƠN THUỐC (CRUD + tính tiền) =====
+app.get("/api/don-thuoc", verifyUser, (req, res) => {
+  const sql = `
+    SELECT dt.madt, dt.mapk, dt.mat, dt.soluong, dt.lieudung,
+           t.tent, t.dongia, t.donvi,
+           bn.hoten AS tenbn
+    FROM donthuoc dt
+    LEFT JOIN thuoc t ON dt.mat = t.mat
+    LEFT JOIN phieukham pk ON dt.mapk = pk.mapk
+    LEFT JOIN dangkykham dkk ON pk.madk = dkk.madk
+    LEFT JOIN benhnhan bn ON dkk.mabn = bn.mabn
+    ORDER BY dt.madt DESC`;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json(data);
+  });
+});
+
+app.post("/api/don-thuoc", verifyUser, (req, res) => {
+  const { mapk, mat, soluong, lieudung } = req.body;
+  if (!mapk || !mat || !soluong) return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  db.query("INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES (?,?,?,?)", [mapk, mat, soluong, lieudung], (err, r) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ Status: "Success", madt: r.insertId });
+  });
+});
+
+app.put("/api/don-thuoc/:id", verifyUser, (req, res) => {
+  const { mapk, mat, soluong, lieudung } = req.body;
+  if (!mapk || !mat || !soluong) return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  db.query("UPDATE donthuoc SET mapk=?,mat=?,soluong=?,lieudung=? WHERE madt=?", [mapk, mat, soluong, lieudung, req.params.id], (err) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ Status: "Success" });
+  });
+});
+
+app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
+  db.query("DELETE FROM donthuoc WHERE madt=?", [req.params.id], (err) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ Status: "Success" });
+  });
+});
+
+app.get("/api/don-thuoc/tong-tien/:mapk", verifyUser, (req, res) => {
+  db.query(
+    "SELECT COALESCE(SUM(dt.soluong * t.dongia),0) AS tongtien FROM donthuoc dt LEFT JOIN thuoc t ON dt.mat=t.mat WHERE dt.mapk=?",
+    [req.params.mapk], (err, rows) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ tongtien: rows[0].tongtien });
+    });
 });
 
 app.get("/api/thuoc", verifyUser, (req, res) => {
