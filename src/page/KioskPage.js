@@ -96,9 +96,14 @@ export default function KioskPage() {
             <span>{clock}</span>
           </div>
           <div className="note">Vui lòng lấy phiếu in và ngồi chờ tại sảnh.</div>
-          <Link to="/" className="admin-link">
-            <i className="fas fa-cog"></i> Quản trị
-          </Link>
+          <div className="kiosk-footer-actions">
+            <button className="kiosk-back-btn" onClick={() => window.history.back()}>
+              <i className="fas fa-arrow-left"></i> Quay lại
+            </button>
+            <Link to="/" className="admin-link">
+              <i className="fas fa-cog"></i> Quản trị
+            </Link>
+          </div>
         </div>
       </div>
 
