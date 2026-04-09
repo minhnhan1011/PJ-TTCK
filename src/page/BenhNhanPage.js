@@ -3,13 +3,14 @@ import Header from "../component/header/Header";
 import "./BenhNhanPage.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Spin } from "antd";
+import { Spin, message } from "antd";
 
 export default function BenhNhanPage() {
   const [benhnhan, setBenhnhan] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState("");
   const [values, setValues] = useState({
     mabn: "",
     hoten: "",
@@ -20,10 +21,12 @@ export default function BenhNhanPage() {
   });
 
   useEffect(() => {
+    setLoading(true);
     axios
       .get("http://localhost:4000/benhnhan")
       .then((res) => setBenhnhan(res.data))
-      .catch((err) => console.log(err));
+      .catch(() => message.error("Lỗi tải danh sách bệnh nhân!"))
+      .finally(() => setLoading(false));
   }, []);
 
   function handleInput(e) {
@@ -35,21 +38,23 @@ export default function BenhNhanPage() {
 
   const handleCreate = (e) => {
     e.preventDefault();
+    setSubmitting(true);
     axios
       .post("http://localhost:4000/thembn", values)
       .then((res) => {
-        alert("Thêm bệnh nhân thành công!");
+        message.success("Thêm bệnh nhân thành công!");
         setShowModal(false);
-        // Reload lại danh sách
+        setLoading(true);
         axios
           .get("http://localhost:4000/benhnhan")
           .then((res) => setBenhnhan(res.data))
-          .catch((err) => console.log(err));
+          .catch(() => message.error("Lỗi tải danh sách!"))
+          .finally(() => setLoading(false));
       })
-      .catch((err) => {
-        console.log(err);
-        alert("Có lỗi xảy ra khi thêm bệnh nhân");
-      });
+      .catch(() => {
+        message.error("Có lỗi xảy ra khi thêm bệnh nhân");
+      })
+      .finally(() => setSubmitting(false));
   };
 
   return (
@@ -100,7 +105,7 @@ export default function BenhNhanPage() {
             <div className="table-toolbar">
               <div className="search-box">
                 <i className="fas fa-search"></i>
-                  <input type="text" placeholder="Tìm theo tên, SĐT..." />
+                  <input type="text" placeholder="Tìm theo tên, SĐT..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
             </div>
 
@@ -120,14 +125,18 @@ export default function BenhNhanPage() {
                 </thead>
                 <tbody>
                   {benhnhan.length > 0 ? (
-                    benhnhan.map((bn, index) => (
+                    benhnhan.filter(bn => {
+                      if (!search.trim()) return true;
+                      const s = search.toLowerCase();
+                      return (bn.hoten||"").toLowerCase().includes(s) || (bn.sdt||"").includes(s);
+                    }).map((bn, index) => (
                       <tr key={index}>
                         <td>{bn.mabn}</td>
                         <td>{bn.hoten}</td>
                         <td>{bn.gioitinh}</td>
                         <td>{bn.ngaysinh}</td>
-                        <td>{bn.sdt}</td>
                         <td>{bn.diachi}</td>
+                        <td>{bn.sdt}</td>
                         <td style={{ textAlign: "right" }}></td>
                       </tr>
                     ))
@@ -250,12 +259,12 @@ export default function BenhNhanPage() {
                 >
                   Hủy
                 </button>
-                <button type="submit" className="btn-save">
+                <button type="submit" className="btn-save" disabled={submitting}>
                   <i
                     className="fas fa-save"
                     style={{ marginRight: "0.4rem" }}
                   ></i>
-                  Lưu
+                  {submitting ? "Đang lưu..." : "Lưu"}
                 </button>
               </div>
             </form>

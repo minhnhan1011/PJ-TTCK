@@ -196,3 +196,24 @@
 .upload-btn:hover {
   background: #d1d5db;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .xn-content {
+    flex-direction: column;
+  }
+
+  .xn-left {
+    width: 100%;
+  }
+
+  .xn-right {
+    width: 100%;
+  }
+
+  .xn-form-header,
+  .xn-form-body,
+  .xn-form-footer {
+    padding: 1rem;
+  }
+}

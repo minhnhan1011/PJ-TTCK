@@ -14,3 +14,13 @@
 .content {
   padding: 20px;
 }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+  .content {
+    padding: 12px;
+  }
+}

@@ -20,6 +20,7 @@ export default function DonThuocPage() {
   const [form, setForm] = useState({ mapk: "", mat: "", soluong: "", lieudung: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const [tongTienMapk, setTongTienMapk] = useState("");
   const [tongTien, setTongTien] = useState(null);
 
@@ -89,19 +90,21 @@ export default function DonThuocPage() {
 
   const handleSave = () => {
     if (editItem) {
-      // Sửa 1 dòng
       if (!validateEdit()) return;
+      setSubmitting(true);
       const payload = { mapk: Number(form.mapk), mat: Number(form.mat), soluong: Number(form.soluong), lieudung: form.lieudung };
       axios.put(`http://localhost:4000/api/don-thuoc/${editItem.madt}`, payload, { withCredentials: true })
         .then(() => { message.success("Cập nhật thành công!"); setShowModal(false); loadData(); })
-        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"))
+        .finally(() => setSubmitting(false));
     } else {
-      // Thêm batch
       if (!validateAdd()) return;
+      setSubmitting(true);
       const items = formLines.filter(l => l.mat && Number(l.soluong) > 0).map(l => ({ mat: Number(l.mat), soluong: Number(l.soluong), lieudung: l.lieudung }));
       axios.post("http://localhost:4000/api/don-thuoc", { mapk: Number(formMapk), items }, { withCredentials: true })
         .then(() => { message.success(`Kê đơn thành công (${items.length} thuốc)!`); setShowModal(false); loadData(); })
-        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+        .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"))
+        .finally(() => setSubmitting(false));
     }
   };
 
@@ -277,7 +280,7 @@ export default function DonThuocPage() {
             </div>
             <div className="modal-form-footer">
               <button className="btn-cancel" onClick={() => setShowModal(false)}>Hủy</button>
-              <button className="btn-save" onClick={handleSave}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>{editItem ? "Lưu" : `Kê đơn (${formLines.filter(l=>l.mat&&l.soluong>0).length} thuốc)`}</button>
+              <button className="btn-save" onClick={handleSave} disabled={submitting}><i className="fas fa-save" style={{ marginRight: "0.4rem" }}></i>{submitting ? "Đang lưu..." : (editItem ? "Lưu" : `Kê đơn (${formLines.filter(l=>l.mat&&l.soluong>0).length} thuốc)`)}</button>
             </div>
           </div>
         </div>

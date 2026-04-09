@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { message, Spin } from "antd";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./DichVuPage.css";
@@ -9,6 +10,8 @@ export default function DichVuPage() {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     tendv: "",
     gia: "",
@@ -20,12 +23,15 @@ export default function DichVuPage() {
   axios.defaults.withCredentials = true;
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const res = await axios.get("http://localhost:4000/api/dich-vu");
       const sortedData = res.data.sort((a, b) => a.madv - b.madv);
       setData(sortedData);
     } catch (err) {
-      console.error("Lỗi lấy dữ liệu:", err);
+      message.error("Lỗi tải danh sách dịch vụ!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,7 +54,6 @@ export default function DichVuPage() {
   };
 
   const handleSave = async () => {
-    // Validate dữ liệu
     if (!form.tendv || !form.gia) {
       setFormErrors({
         tendv: !form.tendv ? "Vui lòng nhập tên dịch vụ" : "",
@@ -57,6 +62,7 @@ export default function DichVuPage() {
       return;
     }
 
+    setSubmitting(true);
     try {
       if (editItem) {
         await axios.put(
@@ -66,20 +72,24 @@ export default function DichVuPage() {
       } else {
         await axios.post("http://localhost:4000/api/dich-vu", form);
       }
+      message.success(editItem ? "Cập nhật thành công!" : "Thêm dịch vụ thành công!");
       setShowModal(false);
-      fetchData(); // Load lại để dịch vụ mới nằm ở cuối
+      fetchData();
     } catch (err) {
-      alert("Lỗi khi lưu dữ liệu!");
+      message.error("Lỗi khi lưu dữ liệu!");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
     try {
       await axios.delete(`http://localhost:4000/api/dich-vu/${showConfirm}`);
+      message.success("Xóa dịch vụ thành công!");
       setShowConfirm(null);
       fetchData();
     } catch (err) {
-      alert("Lỗi khi xóa!");
+      message.error("Lỗi khi xóa!");
     }
   };
 
@@ -103,6 +113,7 @@ export default function DichVuPage() {
             </button>
           </div>
 
+          <Spin spinning={loading} tip="Đang tải...">
           <div className="table-container">
             <div className="table-toolbar">
               <div className="search-box">
@@ -161,6 +172,7 @@ export default function DichVuPage() {
               </tbody>
             </table>
           </div>
+          </Spin>
         </div>
       </div>
 
@@ -223,8 +235,8 @@ export default function DichVuPage() {
                     }
                     className="modal-select"
                   >
-                    <option value="Hoạt động">Hoat dong</option>
-                    <option value="Ngừng hoạt động">Ngung hoat dong</option>
+                    <option value="Hoạt động">Hoạt động</option>
+                    <option value="Ngừng hoạt động">Ngừng hoạt động</option>
                   </select>
                 </div>
               </div>
@@ -237,8 +249,8 @@ export default function DichVuPage() {
               >
                 Hủy
               </button>
-              <button className="btn-luu-new" onClick={handleSave}>
-                <i className="fas fa-save"></i> {editItem ? "Cập nhật" : "Lưu"}
+              <button className="btn-luu-new" onClick={handleSave} disabled={submitting}>
+                <i className="fas fa-save"></i> {submitting ? "Đang lưu..." : (editItem ? "Cập nhật" : "Lưu")}
               </button>
             </div>
           </div>

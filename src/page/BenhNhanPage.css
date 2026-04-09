@@ -385,3 +385,46 @@
 .btn-save:hover {
   background: #1d4ed8;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .benhnhan-content {
+    padding: 1rem;
+  }
+
+  .benhnhan-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .benhnhan-topbar h1 {
+    font-size: 1.2rem;
+  }
+
+  .btn-add-patient {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .patient-table th,
+  .patient-table td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.78rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-cards {
+    grid-template-columns: 1fr;
+  }
+}

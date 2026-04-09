@@ -166,3 +166,53 @@
   opacity: 0.3;
   cursor: not-allowed;
 }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .tinh-tien-bar {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .tinh-tien-group {
+    width: 100%;
+  }
+
+  .tinh-tien-group input {
+    flex: 1;
+    width: auto;
+  }
+
+  .modal-wide {
+    width: 95vw;
+  }
+
+  .drug-line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+  }
+
+  .drug-line-fields {
+    flex-direction: column;
+  }
+
+  .drug-line-fields select,
+  .drug-line-fields input {
+    width: 100% !important;
+    min-width: 0;
+  }
+
+  .drug-line-no {
+    align-self: flex-start;
+  }
+
+  .btn-remove-line {
+    align-self: flex-end;
+  }
+
+  .tong-tien-value {
+    font-size: 1rem;
+  }
+}

@@ -55,3 +55,10 @@
 .login-text a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 480px) {
+  .register-box {
+    width: 90vw;
+    padding: 20px;
+  }
+}

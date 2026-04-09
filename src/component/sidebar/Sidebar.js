@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 
@@ -17,27 +18,43 @@ const navItems = [
 ];
 
 function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+
   return (
-    <div className="sidebar">
-      <div className="logo">
-        <span className="logo-text">ClinicFlow</span>
+    <>
+      {/* Nút hamburger cho mobile */}
+      <button className="sidebar-toggle" aria-label="Mở menu" onClick={() => setMobileOpen(true)}>
+        <i className="fas fa-bars"></i>
+      </button>
+
+      {/* Overlay khi mở sidebar trên mobile */}
+      {mobileOpen && <div className="sidebar-overlay" onClick={() => setMobileOpen(false)}></div>}
+
+      <div className={`sidebar ${mobileOpen ? "open" : ""}`}>
+        <div className="logo">
+          <span className="logo-text">ClinicFlow</span>
+          <button className="sidebar-close" onClick={() => setMobileOpen(false)}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <ul className="menu">
+          {navItems.map((item, index) => (
+            <li key={index}>
+              <Link to={item.to} className={location.pathname === item.to ? "active" : ""} onClick={() => setMobileOpen(false)}>
+                <i className={`fas ${item.icon}`}></i>
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="logout">
+          <Link to="/login" onClick={() => setMobileOpen(false)}>
+            Đăng xuất
+          </Link>
+        </div>
       </div>
-      <ul className="menu">
-        {navItems.map((item, index) => (
-          <li key={index}>
-            <Link to={item.to}>
-              <i className={`fas ${item.icon}`}></i>
-              {item.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-      <div className="logout">
-        <Link to="/login">
-          Đăng xuất
-        </Link>
-      </div>
-    </div>
+    </>
   );
 }
 

@@ -122,3 +122,28 @@
 .btn-secondary:hover { background: #4b5563; }
 .btn-secondary.green { background: #16a34a; }
 .btn-secondary.green:hover { background: #15803d; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .meta-row {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .service-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .invoice-preview {
+    padding: 0.75rem;
+  }
+  .invoice-table th,
+  .invoice-table td {
+    font-size: 0.78rem;
+    padding: 0.3rem 0;
+  }
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

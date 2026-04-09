@@ -52,6 +52,14 @@
   text-decoration: none;
 }
 
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+  .login-box {
+    width: 90vw;
+    padding: 20px;
+  }
+}
+
 .forgot-password-link:hover {
   text-decoration: underline;
 }
