@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./LoginPage.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { message, Spin } from "antd";
 
@@ -11,9 +11,7 @@ export default function LoginPage() {
   });
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-
-  // xử lý nhập input
+  // Xử lý nhập liệu
   const handleChange = (e) => {
     setValues((prev) => ({
       ...prev,
@@ -21,7 +19,7 @@ export default function LoginPage() {
     }));
   };
 
-  // xử lý login
+  // Xử lý đăng nhập
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -29,16 +27,29 @@ export default function LoginPage() {
     axios
       .post("http://localhost:4000/login", values)
       .then((res) => {
+        // Kiểm tra Status trả về từ Server
         if (res.data.Status === "Success") {
           message.success("Đăng nhập thành công!");
-          navigate("/"); // về home
+
+          // LẤY VAI TRÒ TỪ SERVER TRẢ VỀ
+          // Lưu ý: res.data.vaitro phải khớp với tên bạn SELECT trong SQL ở Backend
+          const role = res.data.vaitro;
+
+          if (role) {
+            localStorage.setItem("userRole", role);
+            
+            // Dùng href để reload toàn bộ ứng dụng, đảm bảo Sidebar nhận Role mới
+            window.location.href = "/";
+          } else {
+            message.error("Không tìm thấy vai trò người dùng!");
+          }
         } else {
-          message.error("Tài khoản hoặc mật khẩu không đúng!");
+          message.error(res.data.Error || "Tài khoản hoặc mật khẩu không đúng!");
         }
       })
       .catch((err) => {
-        console.error(err);
-        message.error("Có lỗi xảy ra khi đăng nhập!");
+        console.error("Login Error:", err);
+        message.error("Không thể kết nối đến máy chủ!");
       })
       .finally(() => {
         setLoading(false);
@@ -48,45 +59,42 @@ export default function LoginPage() {
   return (
     <div className="login-container">
       <div className="login-box">
-
-        <h2>Đăng nhập</h2>
-
-        <Spin spinning={loading} tip="Đang đăng nhập...">
+        <h2>Hệ Thống ClinicFlow</h2>
+        <Spin spinning={loading} tip="Đang kiểm tra thông tin...">
           <form onSubmit={handleLogin}>
-            <input
-              type="text"
-              name="tendn"
-              placeholder="Tên đăng nhập"
-              value={values.tendn}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-
-            <input
-              type="password"
-              name="matkhau"
-              placeholder="Mật khẩu"
-              value={values.matkhau}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-
-            <button type="submit" disabled={loading}>
-              {loading ? "Đang xử lý..." : "Đăng nhập"}
+            <div className="input-group">
+              <input
+                type="text"
+                name="tendn"
+                placeholder="Tên đăng nhập"
+                value={values.tendn}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="input-group">
+              <input
+                type="password"
+                name="matkhau"
+                placeholder="Mật khẩu"
+                value={values.matkhau}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
+            </div>
+            <button className="login-btn" type="submit" disabled={loading}>
+              {loading ? "Đang xử lý..." : "Đăng nhập ngay"}
             </button>
-
             <div className="login-links">
-              <Link to="/forgot-password" className="forgot-password-link">Quên mật khẩu?</Link>
+              <Link to="/forgot-password">Quên mật khẩu?</Link>
             </div>
           </form>
         </Spin>
-
         <p className="signup-text">
-          Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+          Nhân viên mới? <Link to="/register">Đăng ký tài khoản</Link>
         </p>
-
       </div>
     </div>
   );

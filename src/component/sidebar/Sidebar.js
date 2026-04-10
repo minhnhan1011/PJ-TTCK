@@ -1,34 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Thêm useEffect
 import { Link, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 
 const navItems = [
-  { to: "/", icon: "fa-chart-pie", label: "Tổng quan" },
-  { to: "/benh-nhan", icon: "fa-users", label: "Bệnh nhân" },
-  { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Đăng ký khám" },
-  { to: "/kiosk", icon: "fa-ticket-alt", label: "Kiosk lấy số" },
-  { to: "/kham-benh", icon: "fa-stethoscope", label: "Khám bệnh" },
-  { to: "/xet-nghiem", icon: "fa-flask", label: "Xét nghiệm" },
-  { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Đơn thuốc" },
-  { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế" },
-  { to: "/thanh-toan", icon: "fa-credit-card", label: "Thanh toán" },
-  { to: "/nhan-vien", icon: "fa-user-md", label: "Nhân sự" },
-  { to: "/thuoc", icon: "fa-capsules", label: "Thuốc" },
-  { to: "/loai-thuoc", icon: "fa-pills", label: "Loại thuốc" },
+  { to: "/", icon: "fa-chart-pie", label: "Tổng quan", roles: ["admin"] },
+  { to: "/benh-nhan", icon: "fa-users", label: "Quản lý Bệnh nhân", roles: ["admin"] },
+  { to: "/nhan-vien", icon: "fa-user-md", label: "Quản lý Nhân sự", roles: ["admin"] },
+  { to: "/kiosk", icon: "fa-ticket-alt", label: "Kiosk lấy số", roles: ["admin"] },
+  { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Quản lý Đăng ký", roles: ["tieptan"] },
+  { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế", roles: ["admin", "tieptan"] },
+  { to: "/kham-benh", icon: "fa-stethoscope", label: "Quản lý Khám bệnh", roles: ["bacsi"] },
+  { to: "/loai-thuoc", icon: "fa-pills", label: "Quản lý Loại thuốc", roles: ["admin", "bacsi"] },
+  { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Quản lý Đơn thuốc", roles: ["bacsi","duocsi"] },
+  { to: "/thuoc", icon: "fa-capsules", label: "Quản lý Thuốc", roles: ["admin", "duocsi"] },
+  { to: "/xet-nghiem", icon: "fa-flask", label: "Phiếu Xét nghiệm", roles: ["bacsi", "ktv"] },
+  { to: "/thanh-toan", icon: "fa-credit-card", label: "Quản lý Thanh toán", roles: ["thungan"] },
 ];
 
 function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  
+  // Lấy role từ localStorage
+  const userRole = localStorage.getItem("userRole") || "";
+
+  // DÒNG NÀY ĐỂ GIÀU KIỂM TRA: Mở F12 -> Console để xem nó hiện chữ gì
+  console.log("Vai trò đang nhận trong Sidebar:", userRole);
+
+  const filteredNavItems = navItems.filter((item) =>
+    item.roles.includes(userRole)
+  );
 
   return (
     <>
-      {/* Nút hamburger cho mobile */}
-      <button className="sidebar-toggle" aria-label="Mở menu" onClick={() => setMobileOpen(true)}>
+      <button className="sidebar-toggle" onClick={() => setMobileOpen(true)}>
         <i className="fas fa-bars"></i>
       </button>
 
-      {/* Overlay khi mở sidebar trên mobile */}
       {mobileOpen && <div className="sidebar-overlay" onClick={() => setMobileOpen(false)}></div>}
 
       <div className={`sidebar ${mobileOpen ? "open" : ""}`}>
@@ -38,19 +46,30 @@ function Sidebar() {
             <i className="fas fa-times"></i>
           </button>
         </div>
+        
         <ul className="menu">
-          {navItems.map((item, index) => (
-            <li key={index}>
-              <Link to={item.to} className={location.pathname === item.to ? "active" : ""} onClick={() => setMobileOpen(false)}>
-                <i className={`fas ${item.icon}`}></i>
-                {item.label}
-              </Link>
-            </li>
-          ))}
+          {filteredNavItems.length > 0 ? (
+            filteredNavItems.map((item, index) => (
+              <li key={index}>
+                <Link
+                  to={item.to}
+                  className={location.pathname === item.to ? "active" : ""}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <i className={`fas ${item.icon}`}></i>
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))
+          ) : (
+            <li style={{color: "white", padding: "10px"}}>Không có menu cho role: {userRole}</li>
+          )}
         </ul>
+
         <div className="logout">
-          <Link to="/login" onClick={() => setMobileOpen(false)}>
-            Đăng xuất
+          <Link to="/login" onClick={() => localStorage.removeItem("userRole")}>
+            <i className="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
           </Link>
         </div>
       </div>

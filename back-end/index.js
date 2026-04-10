@@ -64,18 +64,24 @@ app.get("/auth", verifyUser, (req, res) => {
 app.post("/login", (req, res) => {
   const sql = "SELECT * FROM taikhoan WHERE tendn=? AND matkhau=?";
   db.query(sql, [req.body.tendn, req.body.matkhau], (err, data) => {
-    if (err) return res.json("Tài khoản hoặc mật khẩu đã sai");
+    if (err) return res.json({ Status: "Error", Error: "Lỗi truy vấn dữ liệu" });
 
     if (data.length > 0) {
       const name = data[0].tendn;
       const matk = data[0].matk;
-      const token = jwt.sign({ name, matk }, "jwt-secret-key", {
+      const vaitro = data[0].vaitro; 
+
+      const token = jwt.sign({ name, matk, vaitro }, "jwt-secret-key", {
         expiresIn: "1d",
       });
+
       res.cookie("token", token);
-      return res.json({ Status: "Success" });
+      return res.json({ 
+        Status: "Success", 
+        vaitro: vaitro 
+      });
     } else {
-      return res.json({ Status: "not Success" });
+      return res.json({ Status: "not Success", Error: "Sai tài khoản hoặc mật khẩu" });
     }
   });
 });
