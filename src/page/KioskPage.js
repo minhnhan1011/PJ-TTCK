@@ -42,7 +42,6 @@ export default function KioskPage() {
   return (
     <div className="kiosk-page">
       <div className="kiosk-overlay"></div>
-
       <div className="kiosk-card">
         {/* Header */}
         <div className="kiosk-header">
