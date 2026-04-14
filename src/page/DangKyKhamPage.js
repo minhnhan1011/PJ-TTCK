@@ -44,7 +44,6 @@ function TimKiemBenhNhan({ danhSachBN, mabn, tenbn, onChange, error, disabled })
   const [viTri,      setViTri]      = useState({ top: 0, left: 0, width: 0 });
   const inputRef = useRef(null);
 
-  // Đồng bộ lại khi tenbn thay đổi từ bên ngoài (vd: khi mở modal edit)
   useEffect(() => { setTuKhoa(tenbn || ""); }, [tenbn]);
 
   const tinhViTri = () => {
@@ -69,13 +68,12 @@ function TimKiemBenhNhan({ danhSachBN, mabn, tenbn, onChange, error, disabled })
   const handleChange = (e) => {
     setTuKhoa(e.target.value);
     setMoDropdown(true);
-    onChange({ mabn: "", tenbn: e.target.value }); // reset mabn khi gõ lại
+    onChange({ mabn: "", tenbn: e.target.value });
   };
 
   const handleBlur = () => {
     setTimeout(() => {
       setMoDropdown(false);
-      // Nếu chưa chọn hợp lệ (mabn rỗng) thì xóa text
       if (!mabn) { setTuKhoa(""); onChange({ mabn: "", tenbn: "" }); }
     }, 150);
   };
@@ -141,7 +139,6 @@ function ModalForm({ title, onSubmit, onClose, form, setForm, errors, danhSachBS
 
         <div className="modal-form-body">
 
-          {/* Bệnh nhân — khóa khi chỉnh sửa, tìm kiếm khi thêm mới */}
           <TimKiemBenhNhan
             danhSachBN={danhSachBN}
             mabn={form.mabn}
@@ -151,7 +148,6 @@ function ModalForm({ title, onSubmit, onClose, form, setForm, errors, danhSachBS
             disabled={isEdit}
           />
 
-          {/* Thông tin bệnh nhân sau khi chọn (chỉ hiện khi thêm mới) */}
           {!isEdit && benhNhanChon && (
             <div className="bn-info-box">
               <div><span>Họ tên:</span> {benhNhanChon.hoten}</div>
@@ -161,7 +157,6 @@ function ModalForm({ title, onSubmit, onClose, form, setForm, errors, danhSachBS
             </div>
           )}
 
-          {/* Lý do khám */}
           <div className="form-group">
             <label>Lý do khám <span className="required">*</span></label>
             <select
@@ -175,7 +170,6 @@ function ModalForm({ title, onSubmit, onClose, form, setForm, errors, danhSachBS
             {errors.lydokham && <div className="error-text">{errors.lydokham}</div>}
           </div>
 
-          {/* Bác sĩ — luôn cho sửa */}
           <div className="form-group">
             <label>Bác sĩ phụ trách <span className="required">*</span></label>
             <select
@@ -189,7 +183,6 @@ function ModalForm({ title, onSubmit, onClose, form, setForm, errors, danhSachBS
             {errors.manv && <div className="error-text">{errors.manv}</div>}
           </div>
 
-          {/* Trạng thái — chỉ hiện khi chỉnh sửa */}
           {isEdit && (
             <div className="form-group">
               <label>Trạng thái</label>
@@ -262,6 +255,18 @@ export default function DangKyKhamPage() {
       }
     };
     taiTatCa();
+
+    // ✅ Tự động reload khi user quay lại tab này
+    // (ví dụ: vừa cập nhật trạng thái bên trang Khám bệnh)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        taiDanhSach();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   // ── Validate ──────────────────────────────────────────────────────────────

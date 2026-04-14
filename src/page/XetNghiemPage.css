@@ -1,219 +1,32 @@
-/* XetNghiemPage specific styles */
-
-.xn-content {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.xn-left {
-  width: 33%;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.xn-right {
-  flex: 1;
-  background: #fff;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-}
-
-.xn-section-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
 .xn-card {
   background: #fff;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  border: 2px solid #e5e7eb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
   cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.xn-card:hover { border-color: #0284c7; box-shadow: 0 2px 8px #0284c720; }
+.xn-card-active { border-color: #0284c7; background: #e0f2fe; }
+
+.xn-card-name  { font-weight: 700; font-size: 0.97rem; color: #1e293b; }
+.xn-card-meta  { font-size: 0.83rem; color: #64748b; margin-top: 2px; }
+.xn-card-time  { font-size: 0.78rem; color: #94a3b8; margin-top: 4px; }
+
+.xn-form        { padding: 1.5rem; }
+.xn-form-title  { font-size: 1.1rem; font-weight: 700; color: #0284c7;
+                   margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.xn-info-box    { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+                   padding: 0.9rem 1rem; margin-bottom: 1.2rem;
+                   display: flex; flex-direction: column; gap: 0.4rem;
+                   font-size: 0.9rem; color: #374151; }
+.xn-form-footer { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
+
+.form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
+.form-group textarea {
+  width: 100%; border: 1.5px solid #d1d5db; border-radius: 8px;
+  padding: 0.7rem; font-size: 0.9rem; resize: vertical;
   transition: border-color 0.2s;
 }
-
-.xn-card:hover {
-  border-color: #14b8a6;
-}
-
-.xn-card.active {
-  border-color: #14b8a6;
-}
-
-.xn-card.done {
-  opacity: 0.6;
-}
-
-.xn-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.xn-time {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.xn-card-name {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.xn-card-sub {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
-}
-
-.xn-card-dv {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #0d9488;
-  background: #f0fdfa;
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.35rem;
-  margin-bottom: 0.35rem;
-}
-
-.xn-card-bs {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-/* Form */
-.xn-form-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 0.75rem 0.75rem 0 0;
-}
-
-.xn-form-header h2 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.xn-form-body {
-  padding: 1.5rem;
-  flex: 1;
-}
-
-.xn-form-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-  border-radius: 0 0 0.75rem 0.75rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.field-label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 0.35rem;
-}
-
-.field-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.9rem;
-  font-family: inherit;
-  resize: none;
-  outline: none;
-}
-
-.field-textarea:focus {
-  border-color: #14b8a6;
-  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
-}
-
-.upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.upload-area:hover {
-  background: #f9fafb;
-}
-
-.upload-area i {
-  font-size: 2rem;
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
-}
-
-.upload-title {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.upload-hint {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 0.25rem;
-}
-
-.upload-file {
-  font-size: 0.85rem;
-  color: #2563eb;
-  margin-top: 0.5rem;
-  font-weight: 500;
-}
-
-.upload-btn {
-  display: inline-block;
-  margin-top: 0.75rem;
-  padding: 0.4rem 1rem;
-  background: #e5e7eb;
-  color: #374151;
-  border-radius: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.upload-btn:hover {
-  background: #d1d5db;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .xn-content {
-    flex-direction: column;
-  }
-
-  .xn-left {
-    width: 100%;
-  }
-
-  .xn-right {
-    width: 100%;
-  }
-
-  .xn-form-header,
-  .xn-form-body,
-  .xn-form-footer {
-    padding: 1rem;
-  }
-}
+.form-group textarea:focus { outline: none; border-color: #0284c7; }

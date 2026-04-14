@@ -1,1 +1,108 @@
-/* KhamBenhPage - no extra styles needed, uses common.css */
+
+.kham-info-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kham-info-row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.kham-info-label {
+  color: #64748b;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.kham-info-value {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+/* Radio options chọn trạng thái */
+.trang-thai-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tt-option {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.tt-option input[type="radio"] {
+  display: none;
+}
+
+.tt-option i {
+  font-size: 1rem;
+  color: var(--tt-color);
+}
+
+.tt-option:hover {
+  border-color: var(--tt-color);
+  background: color-mix(in srgb, var(--tt-color) 8%, transparent);
+}
+
+.tt-option-active {
+  border-color: var(--tt-color) !important;
+  background: color-mix(in srgb, var(--tt-color) 10%, white) !important;
+  color: var(--tt-color) !important;
+}
+
+
+/* Nút xét nghiệm */
+.btn-flask {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: none;
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  margin-left: 0.4rem;
+  transition: background 0.2s;
+}
+.btn-flask:hover { background: #bae6fd; }
+
+/* Modal xác nhận */
+.modal-confirm .confirm-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.confirm-icon {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; color: #0284c7;
+}
+.confirm-question {
+  text-align: center;
+  font-size: 1rem;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+.btn-xetnghiem {
+  background: #0284c7 !important;
+}
+.btn-xetnghiem:hover { background: #0369a1 !important; }

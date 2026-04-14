@@ -64,24 +64,28 @@ app.get("/auth", verifyUser, (req, res) => {
 app.post("/login", (req, res) => {
   const sql = "SELECT * FROM taikhoan WHERE tendn=? AND matkhau=?";
   db.query(sql, [req.body.tendn, req.body.matkhau], (err, data) => {
-    if (err) return res.json({ Status: "Error", Error: "Lỗi truy vấn dữ liệu" });
+    if (err)
+      return res.json({ Status: "Error", Error: "Lỗi truy vấn dữ liệu" });
 
     if (data.length > 0) {
       const name = data[0].tendn;
       const matk = data[0].matk;
-      const vaitro = data[0].vaitro; 
+      const vaitro = data[0].vaitro;
 
       const token = jwt.sign({ name, matk, vaitro }, "jwt-secret-key", {
         expiresIn: "1d",
       });
 
       res.cookie("token", token);
-      return res.json({ 
-        Status: "Success", 
-        vaitro: vaitro 
+      return res.json({
+        Status: "Success",
+        vaitro: vaitro,
       });
     } else {
-      return res.json({ Status: "not Success", Error: "Sai tài khoản hoặc mật khẩu" });
+      return res.json({
+        Status: "not Success",
+        Error: "Sai tài khoản hoặc mật khẩu",
+      });
     }
   });
 });
@@ -132,6 +136,7 @@ app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
 app.get("/api/dang-ky-kham", (req, res) => {
   const sql = `
     SELECT dk.madk, dk.stt, dk.lydokham, dk.ngaydangky, dk.trangthai,
+    dk.manv, dk.mabn,
            bn.mabn, bn.hoten, bn.gioitinh, bn.ngaysinh, bn.sdt,
            nv.hoten AS tenbs
     FROM dangkykham dk
@@ -181,7 +186,7 @@ app.put("/api/dang-ky-kham/:madk", (req, res) => {
 
   const sql = `
     UPDATE dangkykham SET mabn=?, lydokham=?, manv=?, trangthai=? WHERE madk=?
-  `; // 👈 thêm trangthai=?
+  `;
   db.query(
     sql,
     [mabn, lydokham, manv, trangthai ?? "Cho kham", madk],
@@ -233,7 +238,8 @@ app.get("/api/loai-thuoc", verifyUser, (req, res) => {
 
 app.post("/api/loai-thuoc", verifyUser, (req, res) => {
   const { tenlt } = req.body;
-  if (!tenlt) return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
+  if (!tenlt)
+    return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
   db.query("INSERT INTO loaithuoc (tenlt) VALUES (?)", [tenlt], (err, r) => {
     if (err) return res.status(500).json({ message: err.message });
     res.json({ Status: "Success", malt: r.insertId });
@@ -242,22 +248,38 @@ app.post("/api/loai-thuoc", verifyUser, (req, res) => {
 
 app.put("/api/loai-thuoc/:id", verifyUser, (req, res) => {
   const { tenlt } = req.body;
-  if (!tenlt) return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
-  db.query("UPDATE loaithuoc SET tenlt=? WHERE malt=?", [tenlt, req.params.id], (err) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json({ Status: "Success" });
-  });
+  if (!tenlt)
+    return res.status(400).json({ message: "Tên loại thuốc là bắt buộc" });
+  db.query(
+    "UPDATE loaithuoc SET tenlt=? WHERE malt=?",
+    [tenlt, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ Status: "Success" });
+    },
+  );
 });
 
 app.delete("/api/loai-thuoc/:id", verifyUser, (req, res) => {
-  db.query("SELECT COUNT(*) AS cnt FROM thuoc WHERE malt=?", [req.params.id], (err, rows) => {
-    if (err) return res.status(500).json({ message: err.message });
-    if (rows[0].cnt > 0) return res.status(400).json({ message: "Không thể xóa — đang có thuốc thuộc loại này" });
-    db.query("DELETE FROM loaithuoc WHERE malt=?", [req.params.id], (err2) => {
-      if (err2) return res.status(500).json({ message: err2.message });
-      res.json({ Status: "Success" });
-    });
-  });
+  db.query(
+    "SELECT COUNT(*) AS cnt FROM thuoc WHERE malt=?",
+    [req.params.id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ message: err.message });
+      if (rows[0].cnt > 0)
+        return res
+          .status(400)
+          .json({ message: "Không thể xóa — đang có thuốc thuộc loại này" });
+      db.query(
+        "DELETE FROM loaithuoc WHERE malt=?",
+        [req.params.id],
+        (err2) => {
+          if (err2) return res.status(500).json({ message: err2.message });
+          res.json({ Status: "Success" });
+        },
+      );
+    },
+  );
 });
 
 // ===== ĐƠN THUỐC (CRUD + tính tiền) =====
@@ -282,30 +304,47 @@ app.post("/api/don-thuoc", verifyUser, (req, res) => {
   const { mapk, items } = req.body;
   // Batch insert: { mapk, items: [{ mat, soluong, lieudung }] }
   if (mapk && Array.isArray(items) && items.length > 0) {
-    const values = items.filter(i => i.mat && i.soluong > 0).map(i => [mapk, i.mat, i.soluong, i.lieudung || ""]);
-    if (values.length === 0) return res.status(400).json({ message: "Không có thuốc hợp lệ" });
-    db.query("INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES ?", [values], (err) => {
-      if (err) return res.status(500).json({ message: err.message });
-      res.json({ Status: "Success" });
-    });
+    const values = items
+      .filter((i) => i.mat && i.soluong > 0)
+      .map((i) => [mapk, i.mat, i.soluong, i.lieudung || ""]);
+    if (values.length === 0)
+      return res.status(400).json({ message: "Không có thuốc hợp lệ" });
+    db.query(
+      "INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES ?",
+      [values],
+      (err) => {
+        if (err) return res.status(500).json({ message: err.message });
+        res.json({ Status: "Success" });
+      },
+    );
     return;
   }
   // Single insert fallback
   const { mat, soluong, lieudung } = req.body;
-  if (!mapk || !mat || !soluong) return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
-  db.query("INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES (?,?,?,?)", [mapk, mat, soluong, lieudung], (err, r) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json({ Status: "Success", madt: r.insertId });
-  });
+  if (!mapk || !mat || !soluong)
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  db.query(
+    "INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES (?,?,?,?)",
+    [mapk, mat, soluong, lieudung],
+    (err, r) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ Status: "Success", madt: r.insertId });
+    },
+  );
 });
 
 app.put("/api/don-thuoc/:id", verifyUser, (req, res) => {
   const { mapk, mat, soluong, lieudung } = req.body;
-  if (!mapk || !mat || !soluong) return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
-  db.query("UPDATE donthuoc SET mapk=?,mat=?,soluong=?,lieudung=? WHERE madt=?", [mapk, mat, soluong, lieudung, req.params.id], (err) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json({ Status: "Success" });
-  });
+  if (!mapk || !mat || !soluong)
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  db.query(
+    "UPDATE donthuoc SET mapk=?,mat=?,soluong=?,lieudung=? WHERE madt=?",
+    [mapk, mat, soluong, lieudung, req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ Status: "Success" });
+    },
+  );
 });
 
 app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
@@ -318,10 +357,12 @@ app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
 app.get("/api/don-thuoc/tong-tien/:mapk", verifyUser, (req, res) => {
   db.query(
     "SELECT COALESCE(SUM(dt.soluong * t.dongia),0) AS tongtien FROM donthuoc dt LEFT JOIN thuoc t ON dt.mat=t.mat WHERE dt.mapk=?",
-    [req.params.mapk], (err, rows) => {
+    [req.params.mapk],
+    (err, rows) => {
       if (err) return res.status(500).json({ message: err.message });
       res.json({ tongtien: rows[0].tongtien });
-    });
+    },
+  );
 });
 
 app.get("/api/thuoc", verifyUser, (req, res) => {
