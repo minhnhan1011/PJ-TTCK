@@ -1,8 +1,11 @@
+// ===== FRONTEND: RegisterPage.jsx =====
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./RegisterPage.css";
 
 export default function RegisterPage() {
+  const navigate = useNavigate();
+
   const [values, setValues] = useState({
     hoten: "",
     tendn: "",
@@ -12,22 +15,63 @@ export default function RegisterPage() {
     sdt: "",
   });
 
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
+    setError("");
     setValues((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // TODO: Gọi API đăng ký
+    setError("");
+    setSuccess("");
+
+    // Validation phía client
+    if (values.matkhau !== values.xacnhanmatkhau) {
+      return setError("Mật khẩu xác nhận không khớp.");
+    }
+
+    if (values.matkhau.length < 6) {
+      return setError("Mật khẩu phải có ít nhất 6 ký tự.");
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:4000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+
+      const data = await res.json();
+
+      if (data.Status === "success") {
+        setSuccess("Đăng ký thành công! Đang chuyển đến trang đăng nhập...");
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        setError(data.Message || "Đăng ký thất bại.");
+      }
+    } catch (err) {
+      setError("Không thể kết nối đến server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="register-container">
       <div className="register-box">
         <h2>Đăng ký tài khoản</h2>
+
+        {error && <div className="alert alert-error">{error}</div>}
+        {success && <div className="alert alert-success">{success}</div>}
 
         <form onSubmit={handleRegister}>
           <input
@@ -54,7 +98,6 @@ export default function RegisterPage() {
             placeholder="Email"
             value={values.email}
             onChange={handleChange}
-            required
           />
 
           <input
@@ -83,7 +126,9 @@ export default function RegisterPage() {
             required
           />
 
-          <button type="submit">Đăng ký</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Đang xử lý..." : "Đăng ký"}
+          </button>
         </form>
 
         <p className="login-text">
