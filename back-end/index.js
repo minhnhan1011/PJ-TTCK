@@ -6,6 +6,8 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const app = express();
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const path = require("path");
 
 app.use(
   cors({
@@ -61,26 +63,35 @@ const verifyUser = (req, res, next) => {
 app.get("/auth", verifyUser, (req, res) => {
   return res.json({ Status: "Success", name: req.name, matk: req.matk });
 });
-app.get('/logout', function (req, res) {
-    res.clearCookie('token');
-    return res.json({ Status: "Success" });
-})
+app.get("/logout", function (req, res) {
+  res.clearCookie("token");
+  return res.json({ Status: "Success" });
+});
 app.post("/register", (req, res) => {
   const { hoten, tendn, matkhau, xacnhanmatkhau, email, sdt } = req.body;
- 
+
   // --- Validation cơ bản ---
   if (!hoten || !tendn || !matkhau || !xacnhanmatkhau) {
-    return res.json({ Status: "error", Message: "Vui lòng điền đầy đủ thông tin bắt buộc." });
+    return res.json({
+      Status: "error",
+      Message: "Vui lòng điền đầy đủ thông tin bắt buộc.",
+    });
   }
- 
+
   if (matkhau !== xacnhanmatkhau) {
-    return res.json({ Status: "error", Message: "Mật khẩu xác nhận không khớp." });
+    return res.json({
+      Status: "error",
+      Message: "Mật khẩu xác nhận không khớp.",
+    });
   }
- 
+
   if (matkhau.length < 6) {
-    return res.json({ Status: "error", Message: "Mật khẩu phải có ít nhất 6 ký tự." });
+    return res.json({
+      Status: "error",
+      Message: "Mật khẩu phải có ít nhất 6 ký tự.",
+    });
   }
- 
+
   // --- Kiểm tra tên đăng nhập đã tồn tại chưa ---
   const checkSql = "SELECT matk FROM taikhoan WHERE tendn = ?";
   db.query(checkSql, [tendn], (err, result) => {
@@ -88,44 +99,54 @@ app.post("/register", (req, res) => {
       console.error("Lỗi kiểm tra tên đăng nhập:", err);
       return res.json({ Status: "error", Message: "Lỗi server." });
     }
- 
+
     if (result.length > 0) {
-      return res.json({ Status: "error", Message: "Tên đăng nhập đã tồn tại." });
+      return res.json({
+        Status: "error",
+        Message: "Tên đăng nhập đã tồn tại.",
+      });
     }
- 
+
     // --- Hash mật khẩu trước khi lưu ---
     bcrypt.hash(matkhau, 10, (hashErr, hashedPassword) => {
       if (hashErr) {
         console.error("Lỗi hash mật khẩu:", hashErr);
         return res.json({ Status: "error", Message: "Lỗi server." });
       }
- 
+
       // --- Insert vào bảng taikhoan ---
       // vaitro mặc định = 'user' (hoặc để admin tự gán sau)
       const insertSql = `
         INSERT INTO taikhoan (tendn, matkhau, vaitro, hoten, email, sdt)
         VALUES (?, ?, ?, ?, ?, ?)
       `;
-      const values = [tendn, hashedPassword, "user", hoten, email || null, sdt || null];
- 
+      const values = [
+        tendn,
+        hashedPassword,
+        "user",
+        hoten,
+        email || null,
+        sdt || null,
+      ];
+
       db.query(insertSql, values, (insertErr, data) => {
         if (insertErr) {
           console.error("Lỗi đăng ký:", insertErr);
           return res.json({ Status: "error", Message: "Đăng ký thất bại." });
         }
- 
+
         return res.json({
           Status: "success",
           Message: "Đăng ký tài khoản thành công!",
-          matk: data.insertId
+          matk: data.insertId,
         });
       });
     });
   });
 });
- 
+
 app.post("/login", (req, res) => {
-  const sql = "SELECT * FROM taikhoan WHERE tendn=? AND matkhau=?";
+  const sql = "SELECT * FROM taikhoan WHERE tendn = ?";
   db.query(sql, [req.body.tendn, req.body.matkhau], (err, data) => {
     if (err)
       return res.json({ Status: "Error", Error: "Lỗi truy vấn dữ liệu" });
@@ -152,22 +173,22 @@ app.post("/login", (req, res) => {
     }
   });
 });
-// Lấy tất cả phiếu thu (JOIN với benhnhan và phieukhám nếu có)
-app.get('/phieuthu', (req, res) => {
+
+app.get("/phieuthu", (req, res) => {
   const sql = `
-    SELECT pt.*, bn.hoten 
+    SELECT pt.mapt, pt.mapk, pt.manv, pt.tongtien, pt.ngaythu, pt.trangthai, pt.ghichu, bn.hoten 
     FROM phieuthu pt
     LEFT JOIN benhnhan bn ON pt.mapk = bn.mabn
     ORDER BY pt.ngaythu DESC
   `;
   db.query(sql, (err, data) => {
-    if (err) return res.json(err);
+    if (err) return res.status(500).json(err);
     return res.json(data);
   });
 });
 
 // Lấy 1 phiếu thu theo mapt
-app.get('/phieuthu/:mapt', (req, res) => {
+app.get("/phieuthu/:mapt", (req, res) => {
   const sql = `
     SELECT pt.*, bn.hoten 
     FROM phieuthu pt
@@ -181,38 +202,49 @@ app.get('/phieuthu/:mapt', (req, res) => {
 });
 
 // Tạo phiếu thu mới
-app.post('/themphieuthu', (req, res) => {
+app.post("/themphieuthu", (req, res) => {
+  const { mapt, mapk, manv, tongtien, ghichu, trangthai } = req.body;
+
   const sql = `
-    INSERT INTO phieuthu (mapt, mapk, manv, tongtien, ngaythu, trangthai)
-    VALUES (?, ?, ?, ?, NOW(), ?)
+    INSERT INTO phieuthu (mapt, mapk, manv, tongtien, ngaythu, trangthai, ghichu)
+    VALUES (?, ?, ?, ?, NOW(), ?, ?)
   `;
   const values = [
-    req.body.mapt,
-    req.body.mapk,
-    req.body.manv,
-    req.body.tongtien,
-    req.body.trangthai || 'Da thanh toan'
+    mapt,
+    mapk,
+    manv,
+    tongtien,
+    trangthai || "Da thanh toan",
+    ghichu,
   ];
+
   db.query(sql, values, (err, data) => {
-    if (err) return res.json(err);
-    return res.json({ message: 'Tạo phiếu thu thành công', data });
+    if (err) {
+      console.error("Lỗi SQL:", err);
+      return res.status(500).json({ message: "Lỗi lưu database", error: err });
+    }
+    res.json({ message: "Thành công", data });
   });
 });
 
 // Cập nhật trạng thái phiếu thu
-app.post('/updatephieuthu/:mapt', (req, res) => {
+app.post("/updatephieuthu/:mapt", (req, res) => {
   const sql = `
-    UPDATE phieuthu SET trangthai=?, tongtien=? WHERE mapt=?
+    UPDATE phieuthu SET trangthai=?, tongtien=?, ghichu=? WHERE mapt=?
   `;
-  const values = [req.body.trangthai, req.body.tongtien, req.params.mapt];
+  const values = [
+    req.body.trangthai,
+    req.body.tongtien,
+    req.body.ghichu,
+    req.params.mapt,
+  ];
   db.query(sql, values, (err, data) => {
     if (err) return res.json(err);
     return res.json(data);
   });
 });
-
 // Hủy phiếu thu
-app.post('/huyphieuthu/:mapt', (req, res) => {
+app.post("/huyphieuthu/:mapt", (req, res) => {
   const sql = `UPDATE phieuthu SET trangthai='Da huy' WHERE mapt=?`;
   db.query(sql, [req.params.mapt], (err, data) => {
     if (err) return res.json(err);
@@ -221,7 +253,7 @@ app.post('/huyphieuthu/:mapt', (req, res) => {
 });
 
 // Xóa phiếu thu
-app.get('/xoaphieuthu/:mapt', (req, res) => {
+app.get("/xoaphieuthu/:mapt", (req, res) => {
   const sql = `DELETE FROM phieuthu WHERE mapt=?`;
   db.query(sql, [req.params.mapt], (err, data) => {
     if (err) return res.json(err);
@@ -230,7 +262,7 @@ app.get('/xoaphieuthu/:mapt', (req, res) => {
 });
 
 // Thống kê hôm nay
-app.get('/thongke/homay', (req, res) => {
+app.get("/thongke/homay", (req, res) => {
   const sql = `
     SELECT 
       COUNT(*) AS tongHoaDon,
@@ -245,9 +277,23 @@ app.get('/thongke/homay', (req, res) => {
     return res.json(data[0]);
   });
 });
-
-
-
+// Lấy danh sách phiếu khám để làm thanh toán
+app.get("/phieukham", (req, res) => {
+  // Đảm bảo lấy đúng mapk từ bảng phieukham
+  // Đảm bảo dùng INNER JOIN để loại bỏ các bản ghi chưa có phiếu khám thực sự
+  const sql = `
+    SELECT pk.mapk, bn.hoten 
+    FROM phieukham pk
+    INNER JOIN dangkykham dk ON pk.madk = dk.madk
+    INNER JOIN benhnhan bn ON dk.mabn = bn.mabn
+    WHERE pk.mapk NOT IN (SELECT mapk FROM phieuthu WHERE trangthai != 'Da huy')
+`;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    // Nếu data trả về có mapk rỗng, lỗi nằm ở dữ liệu bảng phieukham
+    res.json(data);
+  });
+});
 
 // show  benh nhan
 app.get("/benhnhan", (req, res) => {
@@ -280,25 +326,25 @@ app.post("/thembn", (req, res) => {
   });
 });
 // sua benh nhan
-app.post("/updatebn/:id",(req,res)=>{
-  const sql="UPDATE benhnhan set hoten=?,ngaysinh=?,gioitinh=?,diachi=?,sdt=? where mabn=?"
-  const id=[
+app.post("/updatebn/:id", (req, res) => {
+  const sql =
+    "UPDATE benhnhan set hoten=?,ngaysinh=?,gioitinh=?,diachi=?,sdt=? where mabn=?";
+  const id = [
     req.body.hoten,
     req.body.ngaysinh,
     req.body.gioitinh,
     req.body.diachi,
     req.body.sdt,
-    req.body.mabn
-  ]
-  db.query(sql,id,(err,data)=>{
-    if(err)
-    {
-      return res.json(err)
-    }else{
-      return res.json(data)
+    req.body.mabn,
+  ];
+  db.query(sql, id, (err, data) => {
+    if (err) {
+      return res.json(err);
+    } else {
+      return res.json(data);
     }
-  })
-})
+  });
+});
 
 app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
   db.query(
@@ -685,5 +731,76 @@ app.delete("/api/dich-vu/:madv", verifyUser, (req, res) => {
   db.query("DELETE FROM dichvu WHERE madv=?", [madv], (err) => {
     if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
     res.json({ message: "Xóa thành công" });
+  });
+});
+// Cấu hình lưu trữ hình ảnh xét nghiệm
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads"); // Đảm bảo bạn đã tạo thư mục này
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const upload = multer({ storage: storage });
+
+// API Hoàn thành xét nghiệm
+app.post("/api/hoan-thanh-xet-nghiem", upload.single("hinhanh"), (req, res) => {
+  const { madk, ketqua, ghichu } = req.body;
+  const hinhanh = req.file ? req.file.filename : null;
+
+  // 1. Cập nhật trạng thái trong bảng dangkykham thành 'Da xet nghiem'
+  // 2. Lưu kết quả vào bảng kết quả (giả sử là bảng ketquaxetnghiem)
+  const sqlUpdate =
+    "UPDATE dangkykham SET trangthai = 'Da xet nghiem' WHERE madk = ?";
+
+  db.query(sqlUpdate, [madk], (err, result) => {
+    if (err)
+      return res.status(500).json({ Status: "Error", Error: err.message });
+
+    // Trả về thông tin để Frontend in
+    return res.json({
+      Status: "Success",
+      hinhanh: hinhanh,
+    });
+  });
+});
+
+// Serve file tĩnh để hiển thị ảnh trên PDF
+app.use("/uploads", express.static("public/uploads"));
+
+// API để Bác sĩ lưu kết quả khám và tạo Phiếu Khám (phieukham)
+app.post("/api/hoan-thanh-kham", (req, res) => {
+  const { madk, manv, chuandoan } = req.body;
+
+  // 1. Tạo bản ghi trong bảng phieukham
+  const sqlPhieuKham = `
+    INSERT INTO phieukham (madk, manv, chuandoan, ngaykham) 
+    VALUES (?, ?, ?, NOW())
+  `;
+
+  db.query(sqlPhieuKham, [madk, manv, chuandoan], (err, result) => {
+    if (err)
+      return res
+        .status(500)
+        .json({ message: "Lỗi tạo phiếu khám", error: err });
+
+    const mapk = result.insertId; // Lấy mã phiếu khám vừa tạo tự động
+
+    // 2. Cập nhật trạng thái bên bảng dangkykham thành 'Hoan thanh'
+    const sqlUpdateDK =
+      "UPDATE dangkykham SET trangthai = 'Hoan thanh' WHERE madk = ?";
+    db.query(sqlUpdateDK, [madk], (err2) => {
+      if (err2)
+        return res
+          .status(500)
+          .json({ message: "Lỗi cập nhật trạng thái", error: err2 });
+
+      res.json({
+        Status: "Success",
+        message: "Đã tạo phiếu khám thành công",
+        mapk: mapk,
+      });
+    });
   });
 });

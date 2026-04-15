@@ -24,7 +24,7 @@ function Sidebar() {
   // Lấy role từ localStorage
   const userRole = localStorage.getItem("userRole") || "";
 
-  // DÒNG NÀY ĐỂ GIÀU KIỂM TRA: Mở F12 -> Console để xem nó hiện chữ gì
+
   console.log("Vai trò đang nhận trong Sidebar:", userRole);
 
   const filteredNavItems = navItems.filter((item) =>
