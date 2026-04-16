@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "../page/homePage";
 import LoginPage from "../page/LoginPage";
-import KioskPage from "../page/KioskPage";
 import BenhNhanPage from "../page/BenhNhanPage";
 import KhamBenhPage from "../page/KhamBenhPage";
 import DichVuPage from "../page/DichVuPage";
@@ -23,7 +22,6 @@ function AppRouter() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/kiosk" element={<KioskPage />} />
         <Route path="/benh-nhan" element={<BenhNhanPage />} />
         <Route path="/kham-benh" element={<KhamBenhPage />} />
         <Route path="/dich-vu" element={<DichVuPage />} />

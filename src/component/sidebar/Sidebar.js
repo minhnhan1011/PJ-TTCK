@@ -4,17 +4,16 @@ import "./Sidebar.css";
 
 const navItems = [
   { to: "/", icon: "fa-chart-pie", label: "Tổng quan", roles: ["admin"] },
-  { to: "/benh-nhan", icon: "fa-users", label: "Quản lý Bệnh nhân", roles: ["admin"] },
-  { to: "/nhan-vien", icon: "fa-user-md", label: "Quản lý Nhân sự", roles: ["admin"] },
-  { to: "/kiosk", icon: "fa-ticket-alt", label: "Kiosk lấy số", roles: ["admin"] },
+  { to: "/benh-nhan", icon: "fa-users", label: "Quản lý Bệnh nhân", roles: ["tieptan","admin"] },
+  { to: "/nhan-vien", icon: "fa-user-md", label: "Quản lý Nhân sự", roles: ["admin","tieptan"] },
   { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Quản lý Đăng ký", roles: ["tieptan"] },
   { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế", roles: ["admin", "tieptan"] },
-  { to: "/kham-benh", icon: "fa-stethoscope", label: "Quản lý Khám bệnh", roles: ["bacsi"] },
-  { to: "/loai-thuoc", icon: "fa-pills", label: "Quản lý Loại thuốc", roles: ["admin", "bacsi"] },
-  { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Quản lý Đơn thuốc", roles: ["bacsi","duocsi"] },
+  { to: "/kham-benh", icon: "fa-stethoscope", label: "Quản lý Khám bệnh", roles: ["bacsi","ktv"] },
+  { to: "/loai-thuoc", icon: "fa-pills", label: "Quản lý Loại thuốc", roles: ["admin", "duocsi"] },
+  { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Quản lý Đơn thuốc", roles: ["bacsi","duocsi","tieptan"] },
   { to: "/thuoc", icon: "fa-capsules", label: "Quản lý Thuốc", roles: ["admin", "duocsi"] },
   { to: "/xet-nghiem", icon: "fa-flask", label: "Phiếu Xét nghiệm", roles: ["bacsi", "ktv"] },
-  { to: "/thanh-toan", icon: "fa-credit-card", label: "Quản lý Thanh toán", roles: ["thungan"] },
+  { to: "/thanh-toan", icon: "fa-credit-card", label: "Quản lý Thanh toán", roles: ["tieptan","admin"] },
 ];
 
 function Sidebar() {
