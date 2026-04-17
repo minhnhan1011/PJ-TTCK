@@ -1,5 +1,42 @@
 /* DonThuocPage - uses common.css */
 
+/* === Master row (expandable) === */
+.dt-row-master:hover {
+  background: #f0f7ff;
+}
+.dt-row-active {
+  background: #eff6ff !important;
+}
+.dt-row-detail > td {
+  background: #f9fafb;
+}
+
+/* === Detail sub-table === */
+.dt-detail-wrapper {
+  padding: 0.5rem 1rem 0.75rem 2.5rem;
+}
+.dt-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.dt-detail-table thead th {
+  background: #e5e7eb;
+  padding: 0.4rem 0.6rem;
+  font-weight: 600;
+  color: #374151;
+  text-align: left;
+  border-bottom: 1px solid #d1d5db;
+}
+.dt-detail-table tbody td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+.dt-detail-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 .tinh-tien-bar {
   background: #fff;
   border: 1px solid #e5e7eb;

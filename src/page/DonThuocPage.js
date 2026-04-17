@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { message } from "antd";
 import Sidebar from "../component/sidebar/Sidebar";
@@ -25,6 +25,7 @@ export default function DonThuocPage() {
   const [submitting, setSubmitting] = useState(false);
   const [tongTienMapk, setTongTienMapk] = useState("");
   const [tongTien, setTongTien] = useState(null);
+  const [expandedDt, setExpandedDt] = useState(null);
 
   const loadData = () => {
     axios.get("http://localhost:4000/api/don-thuoc", { withCredentials: true })
@@ -44,6 +45,18 @@ export default function DonThuocPage() {
     const s = search.toLowerCase();
     return data.filter(i => String(i.mapk).includes(s) || (i.tenbn||"").toLowerCase().includes(s) || (i.tent||"").toLowerCase().includes(s) || (i.tenlt||"").toLowerCase().includes(s));
   }, [data, search]);
+
+  // Gom chi tiết theo mã đơn thuốc (madt)
+  const grouped = useMemo(() => {
+    const map = {};
+    filtered.forEach(item => {
+      if (!map[item.madt]) {
+        map[item.madt] = { madt: item.madt, mapk: item.mapk, tenbn: item.tenbn, items: [] };
+      }
+      map[item.madt].items.push(item);
+    });
+    return Object.values(map);
+  }, [filtered]);
 
   // Lọc thuốc theo loại thuốc đã chọn
   const getThuocByLoai = (malt) => {
@@ -172,51 +185,82 @@ export default function DonThuocPage() {
                 <i className="fas fa-search"></i>
                 <input placeholder="Tìm theo mã PK, tên BN, loại thuốc, tên thuốc..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng: <strong style={{ color: "#2563eb" }}>{filtered.length}</strong> dòng thuốc</div>
+              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng: <strong style={{ color: "#2563eb" }}>{grouped.length}</strong> đơn thuốc</div>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="data-table">
                 <thead>
                   <tr>
+                    <th style={{ width: "2.5rem" }}></th>
                     <th>Mã ĐT</th>
                     <th>Mã PK</th>
                     <th>Bệnh nhân</th>
-                    <th>Loại thuốc</th>
-                    <th>Tên thuốc</th>
-                    <th style={{ textAlign: "center" }}>Số lượng</th>
-                    <th>Liều dùng</th>
-                    <th style={{ textAlign: "right" }}>Đơn giá</th>
-                    <th style={{ textAlign: "right" }}>Thành tiền</th>
-                    {canEdit && <th style={{ textAlign: "right" }}>Thao tác</th>}
+                    <th style={{ textAlign: "center" }}>Số thuốc</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.length === 0 ? (
-                    <tr><td colSpan="10" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
-                  ) : filtered.map(item => (
-                    <tr key={item.mact}>
-                      <td className="code-cell">ĐT-{String(item.madt).padStart(3,"0")}</td>
-                      <td className="code-cell">PK-{String(item.mapk).padStart(3,"0")}</td>
-                      <td>{item.tenbn || "—"}</td>
-                      <td>{item.tenlt || "—"}</td>
-                      <td>{item.tent || "—"}</td>
-                      <td style={{ textAlign: "center" }}>{item.soluong}</td>
-                      <td>{item.lieudung || "—"}</td>
-                      <td style={{ textAlign: "right", color: "#059669", fontWeight: 600 }}>{item.dongia ? Number(item.dongia).toLocaleString() + " đ" : "—"}</td>
-                      <td style={{ textAlign: "right", fontWeight: 700, color: "#2563eb" }}>{item.dongia ? (item.soluong * item.dongia).toLocaleString() + " đ" : "—"}</td>
-                      {canEdit && <td>
-                        <div className="action-btns">
-                          <button className="btn-edit" title="Sửa" onClick={() => openEdit(item)}><i className="fas fa-pen"></i></button>
-                          <button className="btn-delete" title="Xóa" onClick={() => setShowConfirm(item)}><i className="fas fa-trash"></i></button>
-                        </div>
-                      </td>}
-                    </tr>
-                  ))}
+                  {grouped.length === 0 ? (
+                    <tr><td colSpan="5" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                  ) : grouped.map(g => {
+                    const isOpen = expandedDt === g.madt;
+                    return (
+                      <React.Fragment key={g.madt}>
+                        <tr className={`dt-row-master ${isOpen ? "dt-row-active" : ""}`} onClick={() => setExpandedDt(isOpen ? null : g.madt)} style={{ cursor: "pointer" }}>
+                          <td style={{ textAlign: "center", fontSize: "0.8rem", color: "#6b7280" }}>
+                            <i className={`fas fa-chevron-${isOpen ? "down" : "right"}`}></i>
+                          </td>
+                          <td className="code-cell">ĐT-{String(g.madt).padStart(3,"0")}</td>
+                          <td className="code-cell">PK-{String(g.mapk).padStart(3,"0")}</td>
+                          <td>{g.tenbn || "—"}</td>
+                          <td style={{ textAlign: "center", fontWeight: 600, color: "#2563eb" }}>{g.items.length}</td>
+                        </tr>
+                        {isOpen && (
+                          <tr className="dt-row-detail">
+                            <td colSpan="5" style={{ padding: 0 }}>
+                              <div className="dt-detail-wrapper">
+                                <table className="dt-detail-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Loại thuốc</th>
+                                      <th>Tên thuốc</th>
+                                      <th style={{ textAlign: "center" }}>Số lượng</th>
+                                      <th>Liều dùng</th>
+                                      <th style={{ textAlign: "right" }}>Đơn giá</th>
+                                      <th style={{ textAlign: "right" }}>Thành tiền</th>
+                                      {canEdit && <th style={{ textAlign: "right" }}>Thao tác</th>}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {g.items.map(item => (
+                                      <tr key={item.mact}>
+                                        <td>{item.tenlt || "—"}</td>
+                                        <td>{item.tent || "—"}</td>
+                                        <td style={{ textAlign: "center" }}>{item.soluong}</td>
+                                        <td>{item.lieudung || "—"}</td>
+                                        <td style={{ textAlign: "right", color: "#059669", fontWeight: 600 }}>{item.dongia ? Number(item.dongia).toLocaleString() + " đ" : "—"}</td>
+                                        <td style={{ textAlign: "right", fontWeight: 700, color: "#2563eb" }}>{item.dongia ? (item.soluong * item.dongia).toLocaleString() + " đ" : "—"}</td>
+                                        {canEdit && <td>
+                                          <div className="action-btns">
+                                            <button className="btn-edit" title="Sửa" onClick={(e) => { e.stopPropagation(); openEdit(item); }}><i className="fas fa-pen"></i></button>
+                                            <button className="btn-delete" title="Xóa" onClick={(e) => { e.stopPropagation(); setShowConfirm(item); }}><i className="fas fa-trash"></i></button>
+                                          </div>
+                                        </td>}
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>{filtered.length}</strong> dòng thuốc</div>
+              <div>Hiển thị <strong>{grouped.length}</strong> đơn thuốc</div>
             </div>
           </div>
         </div>
