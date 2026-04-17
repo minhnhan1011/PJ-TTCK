@@ -1,0 +1,133 @@
+1. UC: Đăng nhập/ Đăng xuất
+- Actor: Nhân viên / Admin
+- Use cases:
+	- Đăng nhập hệ thống
+		+ «extend» Quên mật khẩu
+	- Đăng xuất
+	- Đăng ký tài khoản
+
+
+2. UC: Quản lý Phiếu khám bệnh
+- Actor: Bác sĩ
+- Use cases:
+-Quản lý Phiếu khám bệnh
+	+«include» Tiếp nhận ca khám
+	+«include» Khám lâm sàng
+		. «extend» Xem lịch sử bệnh án
+		. «extend» Chỉ định cận lâm sàng
+			-«include» 
+		. «extend» Kê đơn thuốc
+	+«include» Hoàn tất khám
+		. «extend» In phiếu khám/Đơn thuốc
+- Actor: Kĩ thuật viên
+	+Quản lý phiếu xét nghiệm
+
+3. UC: Quản lý Bệnh nhân
+- Actor: Tiếp tân / Admin
+- Use cases:
+- Quản lý Bệnh nhân
+	+<<extend>> Tìm kiếm bệnh nhân
+	+«include» Xem danh sách bệnh nhân
+	+<<extend>> Thêm bệnh nhân mới
+	+<<extend>> Cập nhật thông tin
+	+<<extend>> Xóa bệnh nhân
+
+4. UC: Quản lý đăng ký khám bệnh
+- Actor: Tiếp tân
+- Use cases:
+- Quản lý đăng ký khám bệnh
+	+<<extend>> Hủy/Đổi lịch khám
+	+<<include>> Tìm kiếm bệnh nhân
+		. «extend» Thêm bệnh nhân mới
+	+<<include>> Lập phiếu khám
+		. «extend» Cấp/In số thứ tự
+
+5. UC: Quản lý Dịch vụ
+- Actors: Tiếp Tân
+	+ Xem danh sách dịch vụ
+		.<<extend>> Tìm kiếm dịch vụ
+- Actors: Admin
+- Quản lí dịch vụ
+	+<<include>> Xem danh sách dịch vụ
+		.<<extend>> Tìm kiếm dịch vụ
+	+ <<extend>> Thêm dịch vụ
+	+ <<extend>> Cập nhật dịch vụ
+	+ <<extend>> Xoá dịch vụ	
+
+
+6. UC: Quản lý Phiếu thu
+- Actor: Tiếp tân
+- Quản lý Phiếu thu
+	+<<include>> Tạo phiếu thu 
+		. «include» Xác nhận thanh toán
+			.. «extend» In hóa đơn
+		. «include» Tính tổng tiền	
+	+<<include>> Xem danh sách phiếu thu
+		.<<extend>>Huỷ phiếu thu
+		.<<extend>> Xem lịch sử thanh toán
+- Actor: Admin
+	+ Xem danh sách phiếu thu
+	+ Xem lịch sử thanh toán
+
+7. UC: Quản lý phiếu xét nghiệm
+- Actors: Kỹ thuật viên
+- Quản lý phiếu xét nghiệm
+	+«include» Xem danh sách chờ
+	+«include» Tiếp nhận và thực hiện
+	+«include» Nhập kết quả
+		. «extend» Đính kèm file/hình ảnh
+- Actors:  Bác sĩ
+	+ Duyệt và trả kết quả
+		. «extend» In kết quả
+
+8. UC: Quản lý Nhân viên
+- Actor: Admin
+- Quản lý Nhân viên
+	+<<include>> Xem danh sách nhân viên
+	+<<extend>> Thêm nhân viên mới
+	+<<extend>> Tìm kiếm nhân viên
+	+<<extend>> Cập nhật thông tin	
+	+<<extend>> Xóa nhân viên
+-Actor: Tiếp tân
+	+Xem danh sách nhân viên
+
+
+9. UC: Quản lý Đơn thuốc
+- Actor: Bác sĩ
+- Quản lý Đơn thuốc
+	+<<include>> Xem đơn thuốc (theo Mã PK)
+		.<<extend (Hỗ trợ xem trước tổng tiền>> Tính tiền thuốc 
+	+<<extend>> Kê đơn thuốc
+	+<<extend>> Cập nhật đơn thuốc
+	+<<extend>> Xóa thuốc khỏi đơn
+- Actor: Tiếp tân / Dược sĩ
+	+Xem đơn thuốc (theo Mã PK)
+		.<<extend (Hỗ trợ xem trước tổng tiền>> Tính tiền thuốc
+
+10. UC: Quản lý Danh mục Loại thuốc
+- Actor: Admin
+- Use cases:
+- Quản lý Danh mục Loại thuốc
+	+<<include>> Xem danh sách Loại thuốc
+	+<<extend>> Tìm kiếm loại thuốc
+	+<<extend>> Thêm Loại thuốc
+	+<<extend>> Cập nhật Loại thuốc
+	+<<extend>> Xóa Loại thuốc
+- Actor: Dược sĩ
+	+ Xem danh sách Loại thuốc
+	+ Tìm kiếm loại thuốc
+
+
+11. UC: Quản lý Thuốc
+- Actor: Admin
+- Quản lý Thuốc
+	+<<include>> Xem danh sách thuốc
+		.<<extend>> Kiểm tra hạn sử dụng
+		.<<extend>> Tìm kiếm (Tên/loại)
+		.<<extend>> Cảnh báo thuốc sắp hết
+	+<<extend>> Thêm thuốc mới
+	+<<extend>> Cập nhật thông tin thuốc
+	+<<extend>> Xoá thuốc
+- Actor: Dược sĩ
+	+ Xem danh sách thuốc
+

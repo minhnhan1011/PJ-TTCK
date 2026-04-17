@@ -589,6 +589,29 @@ app.get("/api/don-thuoc/tong-tien/:mapk", verifyUser, (req, res) => {
   });
 });
 
+// Tính tổng tiền phiếu khám (thuốc + dịch vụ xét nghiệm)
+app.get("/api/phieukham/tong-tien/:mapk", verifyUser, (req, res) => {
+  const mapk = req.params.mapk;
+  const sqlThuoc = `SELECT COALESCE(SUM(ct.soluong * t.dongia),0) AS tienthuoc
+    FROM chitiet_donthuoc ct
+    JOIN donthuoc dt ON ct.madt = dt.madt
+    LEFT JOIN thuoc t ON ct.mat = t.mat
+    WHERE dt.mapk = ?`;
+  const sqlDichVu = `SELECT COALESCE(SUM(dv.gia),0) AS tiendichvu
+    FROM phieuxetnghiem pxn
+    LEFT JOIN dichvu dv ON pxn.madv = dv.madv
+    WHERE pxn.mapk = ?`;
+  db.query(sqlThuoc, [mapk], (err1, r1) => {
+    if (err1) return res.status(500).json({ message: err1.message });
+    db.query(sqlDichVu, [mapk], (err2, r2) => {
+      if (err2) return res.status(500).json({ message: err2.message });
+      const tienthuoc = Number(r1[0].tienthuoc);
+      const tiendichvu = Number(r2[0].tiendichvu);
+      res.json({ tienthuoc, tiendichvu, tongtien: tienthuoc + tiendichvu });
+    });
+  });
+});
+
 // Lấy thuốc theo loại (phục vụ cascading select khi kê đơn)
 app.get("/api/thuoc-theo-loai/:malt", verifyUser, (req, res) => {
   db.query("SELECT * FROM thuoc WHERE malt=? AND trangthai='Con han' ORDER BY tent", [req.params.malt], (err, data) => {
