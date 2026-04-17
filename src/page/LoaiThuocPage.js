@@ -6,6 +6,9 @@ import Header from "../component/header/Header";
 import "./LoaiThuocPage.css";
 
 export default function LoaiThuocPage() {
+  const userRole = localStorage.getItem("userRole") || "";
+  const canEdit = userRole === "admin";
+
   const [data, setData] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -63,9 +66,9 @@ export default function LoaiThuocPage() {
               <h1>Danh mục Loại thuốc</h1>
               <p>Quản lý phân loại thuốc trong hệ thống phòng khám.</p>
             </div>
-            <button className="btn-primary" onClick={openAdd}>
+            {canEdit && <button className="btn-primary" onClick={openAdd}>
               <i className="fas fa-plus-circle"></i> Thêm Loại thuốc
-            </button>
+            </button>}
           </div>
 
           <div className="table-container">
@@ -82,22 +85,24 @@ export default function LoaiThuocPage() {
                   <tr>
                     <th style={{ width: "8rem" }}>Mã loại</th>
                     <th>Tên loại thuốc</th>
-                    <th style={{ textAlign: "right", width: "10rem" }}>Thao tác</th>
+                    <th style={{ textAlign: "center", width: "10rem" }}>Số lượng thuốc</th>
+                    {canEdit && <th style={{ textAlign: "right", width: "10rem" }}>Thao tác</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {filtered.length === 0 ? (
-                    <tr><td colSpan="3" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                    <tr><td colSpan="4" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                   ) : filtered.map(item => (
                     <tr key={item.malt}>
                       <td className="code-cell">LT-{String(item.malt).padStart(3,"0")}</td>
                       <td>{item.tenlt}</td>
-                      <td>
+                      <td style={{ textAlign: "center", fontWeight: 600, color: "#2563eb" }}>{item.so_thuoc ?? 0}</td>
+                      {canEdit && <td>
                         <div className="action-btns">
                           <button className="btn-edit" title="Sửa" onClick={() => openEdit(item)}><i className="fas fa-pen"></i></button>
                           <button className="btn-delete" title="Xóa" onClick={() => setShowConfirm(item)}><i className="fas fa-trash"></i></button>
                         </div>
-                      </td>
+                      </td>}
                     </tr>
                   ))}
                 </tbody>

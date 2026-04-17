@@ -455,7 +455,8 @@ app.get("/api/benh-nhan", (req, res) => {
 
 // ===== LOẠI THUỐC (CRUD) =====
 app.get("/api/loai-thuoc", verifyUser, (req, res) => {
-  db.query("SELECT * FROM loaithuoc ORDER BY malt DESC", (err, data) => {
+  const sql = `SELECT lt.*, COUNT(t.mat) AS so_thuoc FROM loaithuoc lt LEFT JOIN thuoc t ON lt.malt = t.malt GROUP BY lt.malt ORDER BY lt.malt DESC`;
+  db.query(sql, (err, data) => {
     if (err) return res.status(500).json({ message: err.message });
     res.json(data);
   });
@@ -507,18 +508,20 @@ app.delete("/api/loai-thuoc/:id", verifyUser, (req, res) => {
   );
 });
 
-// ===== ĐƠN THUỐC (CRUD + tính tiền) =====
+// ===== ĐƠN THUỐC (CRUD + tính tiền) — dùng bảng donthuoc + chitiet_donthuoc =====
 app.get("/api/don-thuoc", verifyUser, (req, res) => {
   const sql = `
-    SELECT dt.madt, dt.mapk, dt.mat, dt.soluong, dt.lieudung,
-           t.tent, t.dongia, t.donvi,
+    SELECT ct.mact, dt.madt, dt.mapk, ct.mat, ct.soluong, ct.lieudung,
+           t.tent, t.dongia, t.donvi, lt.malt, lt.tenlt,
            bn.hoten AS tenbn
-    FROM donthuoc dt
-    LEFT JOIN thuoc t ON dt.mat = t.mat
+    FROM chitiet_donthuoc ct
+    JOIN donthuoc dt ON ct.madt = dt.madt
+    LEFT JOIN thuoc t ON ct.mat = t.mat
+    LEFT JOIN loaithuoc lt ON t.malt = lt.malt
     LEFT JOIN phieukham pk ON dt.mapk = pk.mapk
     LEFT JOIN dangkykham dkk ON pk.madk = dkk.madk
     LEFT JOIN benhnhan bn ON dkk.mabn = bn.mabn
-    ORDER BY dt.madt DESC`;
+    ORDER BY dt.madt DESC, ct.mact ASC`;
   db.query(sql, (err, data) => {
     if (err) return res.status(500).json({ message: err.message });
     res.json(data);
@@ -527,44 +530,39 @@ app.get("/api/don-thuoc", verifyUser, (req, res) => {
 
 app.post("/api/don-thuoc", verifyUser, (req, res) => {
   const { mapk, items } = req.body;
-  // Batch insert: { mapk, items: [{ mat, soluong, lieudung }] }
-  if (mapk && Array.isArray(items) && items.length > 0) {
-    const values = items
-      .filter((i) => i.mat && i.soluong > 0)
-      .map((i) => [mapk, i.mat, i.soluong, i.lieudung || ""]);
-    if (values.length === 0)
-      return res.status(400).json({ message: "Không có thuốc hợp lệ" });
-    db.query(
-      "INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES ?",
-      [values],
-      (err) => {
-        if (err) return res.status(500).json({ message: err.message });
-        res.json({ Status: "Success" });
-      },
-    );
-    return;
-  }
-  // Single insert fallback
-  const { mat, soluong, lieudung } = req.body;
-  if (!mapk || !mat || !soluong)
+  if (!mapk || !Array.isArray(items) || items.length === 0)
     return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
-  db.query(
-    "INSERT INTO donthuoc (mapk,mat,soluong,lieudung) VALUES (?,?,?,?)",
-    [mapk, mat, soluong, lieudung],
-    (err, r) => {
-      if (err) return res.status(500).json({ message: err.message });
-      res.json({ Status: "Success", madt: r.insertId });
-    },
-  );
+  const validItems = items.filter((i) => i.mat && i.soluong > 0);
+  if (validItems.length === 0)
+    return res.status(400).json({ message: "Không có thuốc hợp lệ" });
+  // Kiểm tra đã có đơn thuốc cho PK này chưa
+  db.query("SELECT madt FROM donthuoc WHERE mapk=?", [mapk], (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    const insertDetails = (madt) => {
+      const values = validItems.map((i) => [madt, i.mat, i.soluong, i.lieudung || ""]);
+      db.query("INSERT INTO chitiet_donthuoc (madt, mat, soluong, lieudung) VALUES ?", [values], (err2) => {
+        if (err2) return res.status(500).json({ message: err2.message });
+        res.json({ Status: "Success" });
+      });
+    };
+    if (rows.length > 0) {
+      insertDetails(rows[0].madt);
+    } else {
+      db.query("INSERT INTO donthuoc (mapk) VALUES (?)", [mapk], (err2, r) => {
+        if (err2) return res.status(500).json({ message: err2.message });
+        insertDetails(r.insertId);
+      });
+    }
+  });
 });
 
 app.put("/api/don-thuoc/:id", verifyUser, (req, res) => {
-  const { mapk, mat, soluong, lieudung } = req.body;
-  if (!mapk || !mat || !soluong)
+  const { mat, soluong, lieudung } = req.body;
+  if (!mat || !soluong)
     return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
   db.query(
-    "UPDATE donthuoc SET mapk=?,mat=?,soluong=?,lieudung=? WHERE madt=?",
-    [mapk, mat, soluong, lieudung, req.params.id],
+    "UPDATE chitiet_donthuoc SET mat=?, soluong=?, lieudung=? WHERE mact=?",
+    [mat, soluong, lieudung, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ message: err.message });
       res.json({ Status: "Success" });
@@ -573,21 +571,30 @@ app.put("/api/don-thuoc/:id", verifyUser, (req, res) => {
 });
 
 app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
-  db.query("DELETE FROM donthuoc WHERE madt=?", [req.params.id], (err) => {
+  db.query("DELETE FROM chitiet_donthuoc WHERE mact=?", [req.params.id], (err) => {
     if (err) return res.status(500).json({ message: err.message });
     res.json({ Status: "Success" });
   });
 });
 
 app.get("/api/don-thuoc/tong-tien/:mapk", verifyUser, (req, res) => {
-  db.query(
-    "SELECT COALESCE(SUM(dt.soluong * t.dongia),0) AS tongtien FROM donthuoc dt LEFT JOIN thuoc t ON dt.mat=t.mat WHERE dt.mapk=?",
-    [req.params.mapk],
-    (err, rows) => {
-      if (err) return res.status(500).json({ message: err.message });
-      res.json({ tongtien: rows[0].tongtien });
-    },
-  );
+  const sql = `SELECT COALESCE(SUM(ct.soluong * t.dongia),0) AS tongtien
+    FROM chitiet_donthuoc ct
+    JOIN donthuoc dt ON ct.madt = dt.madt
+    LEFT JOIN thuoc t ON ct.mat = t.mat
+    WHERE dt.mapk = ?`;
+  db.query(sql, [req.params.mapk], (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ tongtien: rows[0].tongtien });
+  });
+});
+
+// Lấy thuốc theo loại (phục vụ cascading select khi kê đơn)
+app.get("/api/thuoc-theo-loai/:malt", verifyUser, (req, res) => {
+  db.query("SELECT * FROM thuoc WHERE malt=? AND trangthai='Con han' ORDER BY tent", [req.params.malt], (err, data) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json(data);
+  });
 });
 
 app.get("/api/thuoc", verifyUser, (req, res) => {
