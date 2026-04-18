@@ -26,71 +26,79 @@ async function apiFetch(path, options = {}) {
 }
 
 function ModalXacNhanXetNghiem({ item, onClose }) {
+  const [danhSachDV, setDanhSachDV] = useState([]); // State lưu dịch vụ
+  const [selectedDV, setSelectedDV] = useState(""); // Dịch vụ bác sĩ chọn
+
+  // Lấy danh sách dịch vụ từ Server khi mở Modal
+  useEffect(() => {
+    fetch("http://localhost:4000/api/dich-vu", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => setDanhSachDV(data))
+      .catch(err => console.error("Lỗi lấy dịch vụ:", err));
+  }, []);
+
   const handleXacNhan = () => {
-    // Lấy danh sách hiện tại từ localStorage
-    const existing = JSON.parse(
-      localStorage.getItem("xetnghiem_queue") || "[]",
-    );
-    // Tránh trùng
+    if (!selectedDV) {
+      message.warning("Vui lòng chọn một loại dịch vụ xét nghiệm!");
+      return;
+    }
+    
+    const existing = JSON.parse(localStorage.getItem("xetnghiem_queue") || "[]");
+    
+    // Tìm thông tin dịch vụ đã chọn để lưu vào queue
+    const dvInfo = danhSachDV.find(d => d.madv === parseInt(selectedDV));
+
     if (!existing.find((x) => x.madk === item.madk)) {
-      existing.push({ ...item, thoiGianGui: new Date().toISOString() });
+      existing.push({ 
+        ...item, 
+        madv: dvInfo.madv,
+        tendv: dvInfo.tendv, // Lưu tên dịch vụ để trang xét nghiệm hiển thị
+        thoiGianGui: new Date().toISOString() 
+      });
       localStorage.setItem("xetnghiem_queue", JSON.stringify(existing));
     }
-    message.success(`Đã gửi yêu cầu xét nghiệm cho ${item.hoten}!`);
+    message.success(`Đã gửi yêu cầu ${dvInfo.tendv} cho ${item.hoten}!`);
     onClose();
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div
-        className="modal-form modal-confirm"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal-form modal-confirm" onClick={(e) => e.stopPropagation()}>
         <div className="modal-form-header">
-          <h3>
-            <i
-              className="fas fa-flask"
-              style={{ marginRight: "0.5rem", color: "#0ea5e9" }}
-            />
-            Xác nhận yêu cầu xét nghiệm
-          </h3>
-          <button className="btn-close" onClick={onClose}>
-            <i className="fas fa-times" />
-          </button>
+          <h3><i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm</h3>
         </div>
 
         <div className="modal-form-body">
-          <div className="confirm-icon-wrap">
-            <div className="confirm-icon">
-              <i className="fas fa-flask" />
-            </div>
+          <p className="confirm-question">Chọn loại dịch vụ cần thực hiện:</p>
+          
+          {/* THÊM SELECT BOX Ở ĐÂY */}
+          <div className="form-group">
+            <select 
+              className="form-control" 
+              value={selectedDV} 
+              onChange={(e) => setSelectedDV(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+            >
+              <option value="">-- Chọn dịch vụ --</option>
+              {danhSachDV.map(dv => (
+                <option key={dv.madv} value={dv.madv}>
+                  {dv.tendv} ({dv.gia.toLocaleString()} VNĐ)
+                </option>
+              ))}
+            </select>
           </div>
-          <p className="confirm-question">
-            Bạn có chắc chắn muốn gửi yêu cầu xét nghiệm cho bệnh nhân này
-            không?
-          </p>
-          <div className="kham-info-box">
+
+          <div className="kham-info-box" style={{ marginTop: '15px' }}>
             <div className="kham-info-row">
               <span className="kham-info-label">Bệnh nhân:</span>
               <span className="kham-info-value">{item.hoten}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Mã phiếu:</span>
-              <span className="kham-info-value">{item.madk}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Lý do khám:</span>
-              <span className="kham-info-value">{item.lydokham}</span>
             </div>
           </div>
         </div>
 
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>
-            Không
-          </button>
+          <button className="btn-cancel" onClick={onClose}>Hủy</button>
           <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>
-            <i className="fas fa-flask" style={{ marginRight: "0.4rem" }} />
             Có, gửi yêu cầu
           </button>
         </div>

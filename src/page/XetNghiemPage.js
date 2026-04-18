@@ -164,7 +164,7 @@ export default function XetNghiemPage() {
                 >
                   <div className="xn-card-name">{item.hoten}</div>
                   <div className="xn-card-meta">Mã: {item.madk}</div>
-                  <div className="xn-card-meta">{item.lydokham}</div>
+                  <div className="xn-card-meta">{item.tendv}</div>
                 </div>
               ))
             )}

@@ -72,7 +72,9 @@ export default function DichVuPage() {
       } else {
         await axios.post("http://localhost:4000/api/dich-vu", form);
       }
-      message.success(editItem ? "Cập nhật thành công!" : "Thêm dịch vụ thành công!");
+      message.success(
+        editItem ? "Cập nhật thành công!" : "Thêm dịch vụ thành công!",
+      );
       setShowModal(false);
       fetchData();
     } catch (err) {
@@ -114,64 +116,64 @@ export default function DichVuPage() {
           </div>
 
           <Spin spinning={loading} tip="Đang tải...">
-          <div className="table-container">
-            <div className="table-toolbar">
-              <div className="search-box">
-                <i className="fas fa-search"></i>
-                <input
-                  placeholder="Tìm kiếm tên dịch vụ..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+            <div className="table-container">
+              <div className="table-toolbar">
+                <div className="search-box">
+                  <i className="fas fa-search"></i>
+                  <input
+                    placeholder="Tìm kiếm tên dịch vụ..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "100px" }}>Mã DV</th>
-                  <th>Tên Dịch vụ</th>
-                  <th style={{ textAlign: "right" }}>Giá Dịch vụ (VNĐ)</th>
-                  <th style={{ textAlign: "center" }}>Trạng thái</th>
-                  <th style={{ textAlign: "right" }}>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.map((item, index) => (
-                  <tr key={item.madv}>
-                    {/* index bắt đầu từ 0, nên +1 sẽ ra 1, 2, 3... theo đúng thứ tự hàng */}
-                    <td>DV{index + 1}</td>
-                    <td>
-                      <strong>{item.tendv}</strong>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      {Number(item.gia).toLocaleString()} đ
-                    </td>
-                    <td style={{ textAlign: "center" }}>
-                      <span
-                        className={`status-badge ${item.trangthai === "Hoạt động" ? "active" : "inactive"}`}
-                      >
-                        {item.trangthai}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      <button
-                        className="btn-icon edit"
-                        onClick={() => openEdit(item)}
-                      >
-                        <i className="fas fa-edit"></i>
-                      </button>
-                      <button
-                        className="btn-icon delete"
-                        onClick={() => setShowConfirm(item.madv)}
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
-                    </td>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: "100px" }}>Mã DV</th>
+                    <th>Tên Dịch vụ</th>
+                    <th style={{ textAlign: "right" }}>Giá Dịch vụ (VNĐ)</th>
+                    <th style={{ textAlign: "center" }}>Trạng thái</th>
+                    <th style={{ textAlign: "right" }}>Thao tác</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filteredData.map((item, index) => (
+                    <tr key={item.madv}>
+                      {/* index bắt đầu từ 0, nên +1 sẽ ra 1, 2, 3... theo đúng thứ tự hàng */}
+                      <td>DV{index + 1}</td>
+                      <td>
+                        <strong>{item.tendv}</strong>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        {Number(item.gia).toLocaleString()} đ
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <span
+                          className={`status-badge ${item.trangthai === "Hoạt động" ? "active" : "inactive"}`}
+                        >
+                          {item.trangthai}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "right" }}>
+                        <button
+                          className="btn-icon edit"
+                          onClick={() => openEdit(item)}
+                        >
+                          <i className="fas fa-edit"></i>
+                        </button>
+                        <button
+                          className="btn-icon delete"
+                          onClick={() => setShowConfirm(item.madv)}
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </Spin>
         </div>
       </div>
@@ -249,8 +251,13 @@ export default function DichVuPage() {
               >
                 Hủy
               </button>
-              <button className="btn-luu-new" onClick={handleSave} disabled={submitting}>
-                <i className="fas fa-save"></i> {submitting ? "Đang lưu..." : (editItem ? "Cập nhật" : "Lưu")}
+              <button
+                className="btn-luu-new"
+                onClick={handleSave}
+                disabled={submitting}
+              >
+                <i className="fas fa-save"></i>{" "}
+                {submitting ? "Đang lưu..." : editItem ? "Cập nhật" : "Lưu"}
               </button>
             </div>
           </div>

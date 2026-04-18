@@ -612,6 +612,20 @@ app.get("/api/phieukham/tong-tien/:mapk", verifyUser, (req, res) => {
   });
 });
 
+// Danh sách phiếu khám (cho combobox kê đơn thuốc)
+app.get("/api/phieukham/list", verifyUser, (req, res) => {
+  const sql = `
+    SELECT pk.mapk, bn.mabn, bn.hoten AS tenbn, dk.lydokham
+    FROM phieukham pk
+    JOIN dangkykham dk ON pk.madk = dk.madk
+    JOIN benhnhan bn ON dk.mabn = bn.mabn
+    ORDER BY pk.mapk DESC`;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json(data);
+  });
+});
+
 // Lấy thuốc theo loại (phục vụ cascading select khi kê đơn)
 app.get("/api/thuoc-theo-loai/:malt", verifyUser, (req, res) => {
   db.query("SELECT * FROM thuoc WHERE malt=? AND trangthai='Con han' ORDER BY tent", [req.params.malt], (err, data) => {
@@ -719,6 +733,7 @@ app.listen(4000, () => {
   console.log("Server running on port 4000");
 });
 // GET - Lấy danh sách dịch vụ
+
 app.get("/api/dich-vu", verifyUser, (req, res) => {
   const sql = "SELECT * FROM dichvu ORDER BY madv DESC";
   db.query(sql, (err, data) => {
@@ -780,7 +795,6 @@ app.post("/api/hoan-thanh-xet-nghiem", upload.single("hinhanh"), (req, res) => {
   const hinhanh = req.file ? req.file.filename : null;
 
   // 1. Cập nhật trạng thái trong bảng dangkykham thành 'Da xet nghiem'
-  // 2. Lưu kết quả vào bảng kết quả (giả sử là bảng ketquaxetnghiem)
   const sqlUpdate =
     "UPDATE dangkykham SET trangthai = 'Da xet nghiem' WHERE madk = ?";
 
@@ -795,7 +809,6 @@ app.post("/api/hoan-thanh-xet-nghiem", upload.single("hinhanh"), (req, res) => {
     });
   });
 });
-
 // Serve file tĩnh để hiển thị ảnh trên PDF
 app.use("/uploads", express.static("public/uploads"));
 
