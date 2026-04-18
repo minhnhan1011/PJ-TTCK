@@ -405,7 +405,7 @@ app.post("/api/dang-ky-kham", (req, res) => {
 // PUT cập nhật phiếu
 app.put("/api/dang-ky-kham/:madk", (req, res) => {
   const { madk } = req.params;
-  const { mabn, lydokham, manv, trangthai } = req.body; // 👈 thêm trangthai
+  const { mabn, lydokham, manv, trangthai, chuandoan } = req.body;
   if (!mabn || !lydokham || !manv)
     return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
 
@@ -417,7 +417,24 @@ app.put("/api/dang-ky-kham/:madk", (req, res) => {
     [mabn, lydokham, manv, trangthai ?? "Cho kham", madk],
     (err) => {
       if (err) return res.status(500).json({ message: err.message });
-      res.json({ message: "Cập nhật thành công" });
+
+      // Khi chuyển sang "Dang kham" hoặc "Hoan thanh", tự động tạo phiếu khám nếu chưa có
+      if (trangthai === "Dang kham" || trangthai === "Hoan thanh") {
+        db.query("SELECT mapk FROM phieukham WHERE madk=?", [madk], (err2, rows) => {
+          if (err2) return res.json({ message: "Cập nhật thành công (lỗi tạo PK)" });
+          if (rows.length > 0) return res.json({ message: "Cập nhật thành công", mapk: rows[0].mapk });
+          db.query(
+            "INSERT INTO phieukham (madk, manv, chuandoan, ngaykham) VALUES (?, ?, ?, NOW())",
+            [madk, manv, chuandoan || null],
+            (err3, result) => {
+              if (err3) return res.json({ message: "Cập nhật thành công (lỗi tạo PK)" });
+              res.json({ message: "Cập nhật thành công", mapk: result.insertId });
+            }
+          );
+        });
+      } else {
+        res.json({ message: "Cập nhật thành công" });
+      }
     },
   );
 });
