@@ -14,6 +14,7 @@ export default function DonThuocPage() {
   const [data, setData] = useState([]);
   const [thuocList, setThuocList] = useState([]);
   const [loaiThuocList, setLoaiThuocList] = useState([]);
+  const [phieuKhamList, setPhieuKhamList] = useState([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -37,6 +38,9 @@ export default function DonThuocPage() {
     axios.get("http://localhost:4000/api/loai-thuoc", { withCredentials: true })
       .then(res => setLoaiThuocList(Array.isArray(res.data) ? res.data : []))
       .catch(() => message.error("Lỗi tải danh sách loại thuốc!"));
+    axios.get("http://localhost:4000/api/phieukham/list", { withCredentials: true })
+      .then(res => setPhieuKhamList(Array.isArray(res.data) ? res.data : []))
+      .catch(() => message.error("Lỗi tải danh sách phiếu khám!"));
   };
   useEffect(() => { loadData(); }, []);
 
@@ -169,7 +173,14 @@ export default function DonThuocPage() {
           {/* Tính tiền thuốc theo mã PK */}
           <div className="tinh-tien-bar">
             <div className="tinh-tien-group">
-              <input type="number" placeholder="Nhập mã PK..." value={tongTienMapk} onChange={e => setTongTienMapk(e.target.value)} />
+              <select value={tongTienMapk} onChange={e => setTongTienMapk(e.target.value)} style={{ minWidth: "280px" }}>
+                <option value="">-- Chọn phiếu khám --</option>
+                {phieuKhamList.map(pk => (
+                  <option key={pk.mapk} value={pk.mapk}>
+                    PK-{String(pk.mapk).padStart(3,"0")} | BN-{String(pk.mabn).padStart(3,"0")} | {pk.tenbn} | {pk.lydokham}
+                  </option>
+                ))}
+              </select>
               <button className="btn-green" onClick={handleTinhTien}><i className="fas fa-calculator"></i> Tính tiền thuốc</button>
             </div>
             {tongTien !== null && (
@@ -277,8 +288,15 @@ export default function DonThuocPage() {
               {/* Mã PK - chỉ hiển thị khi thêm mới */}
               {!editItem && (
                 <div className="form-group">
-                  <label>Mã Phiếu khám <span className="required">*</span></label>
-                  <input type="number" placeholder="VD: 1" value={formMapk} onChange={(e) => setFormMapk(e.target.value)} className={formErrors.mapk ? "input-error" : ""} />
+                  <label>Phiếu khám <span className="required">*</span></label>
+                  <select value={formMapk} onChange={(e) => setFormMapk(e.target.value)} className={formErrors.mapk ? "input-error" : ""}>
+                    <option value="">-- Chọn phiếu khám --</option>
+                    {phieuKhamList.map(pk => (
+                      <option key={pk.mapk} value={pk.mapk}>
+                        PK-{String(pk.mapk).padStart(3,"0")} | BN-{String(pk.mabn).padStart(3,"0")} | {pk.tenbn} | {pk.lydokham}
+                      </option>
+                    ))}
+                  </select>
                   {formErrors.mapk && <div className="error-text">{formErrors.mapk}</div>}
                 </div>
               )}
