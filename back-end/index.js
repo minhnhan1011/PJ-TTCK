@@ -361,12 +361,14 @@ app.get("/api/nhan-vien/bac-si", verifyUser, (req, res) => {
 app.get("/api/dang-ky-kham", (req, res) => {
   const sql = `
     SELECT dk.madk, dk.stt, dk.lydokham, dk.ngaydangky, dk.trangthai,
-    dk.manv, dk.mabn,
+           dk.manv, dk.mabn,
            bn.mabn, bn.hoten, bn.gioitinh, bn.ngaysinh, bn.sdt,
-           nv.hoten AS tenbs
+           nv.hoten AS tenbs,
+           pk.mapk
     FROM dangkykham dk
     LEFT JOIN benhnhan bn ON dk.mabn = bn.mabn
     LEFT JOIN nhanvien nv ON dk.manv = nv.manv
+    LEFT JOIN phieukham pk ON dk.madk = pk.madk
     ORDER BY dk.ngaydangky DESC
   `;
   db.query(sql, (err, rows) => {
@@ -795,34 +797,32 @@ app.delete("/api/dich-vu/:madv", verifyUser, (req, res) => {
     res.json({ message: "Xóa thành công" });
   });
 });
-// Cấu hình lưu trữ hình ảnh xét nghiệm
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/uploads"); // Đảm bảo bạn đã tạo thư mục này
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-const upload = multer({ storage: storage });
 
 // API Hoàn thành xét nghiệm
-app.post("/api/hoan-thanh-xet-nghiem", upload.single("hinhanh"), (req, res) => {
-  const { madk, ketqua, ghichu } = req.body;
-  const hinhanh = req.file ? req.file.filename : null;
+app.post("/api/hoan-thanh-xet-nghiem", (req, res) => {
+  const { madk, ketqua, ghichu, madv, mapk } = req.body;
 
-  // 1. Cập nhật trạng thái trong bảng dangkykham thành 'Da xet nghiem'
-  const sqlUpdate =
-    "UPDATE dangkykham SET trangthai = 'Da xet nghiem' WHERE madk = ?";
+  const sqlInsertPXN = `
+  INSERT INTO phieuxetnghiem (mapk, madv, ketqua, trangthai, ngaythuchien)
+  VALUES (?, ?, ?, 'Da xong', NOW())
+`;
 
-  db.query(sqlUpdate, [madk], (err, result) => {
-    if (err)
+  db.query(sqlInsertPXN, [mapk, madv, ketqua], (err) => {
+    if (err) {
+      console.error("SQL ERROR:", err);
       return res.status(500).json({ Status: "Error", Error: err.message });
+    }
 
-    // Trả về thông tin để Frontend in
-    return res.json({
-      Status: "Success",
-      hinhanh: hinhanh,
+    const sqlUpdate =
+      "UPDATE dangkykham SET trangthai = 'Da xet nghiem' WHERE madk = ?";
+
+    db.query(sqlUpdate, [madk], (err2) => {
+      if (err2) {
+        console.error("UPDATE ERROR:", err2);
+        return res.status(500).json({ Status: "Error", Error: err2.message });
+      }
+
+      return res.json({ Status: "Success" });
     });
   });
 });
@@ -863,4 +863,39 @@ app.post("/api/hoan-thanh-kham", (req, res) => {
       });
     });
   });
+});
+app.get("/api/chi-phi-kham/:madk", (req, res) => {
+    const madk = req.params.madk;
+    
+    // Câu lệnh lấy cả tiền thuốc và tiền dịch vụ dựa trên mã đăng ký (madk)
+    const sql = `
+        SELECT 'Thuoc' as loai, t.tent as ten, ct.soluong, t.dongia as gia, (ct.soluong * t.dongia) as thanh_tien
+        FROM chitiet_donthuoc ct 
+        JOIN donthuoc dt ON ct.madt = dt.madt
+        JOIN phieukham pk ON dt.mapk = pk.mapk
+        JOIN thuoc t ON ct.mat = t.mat
+        WHERE pk.madk = ?
+        
+        UNION ALL
+        
+        /* Chỉ lấy những dịch vụ đã được thực hiện (có trong danh sách queue và đã lưu kết quả) */
+        SELECT 'Dich vu' as loai, dv.tendv as ten, 1 as soluong, dv.gia, dv.gia as thanh_tien
+        FROM phieukham pk
+        JOIN phieuxetnghiem pxn ON pk.mapk = pxn.mapk
+        JOIN dichvu dv ON pxn.madv = dv.madv
+        WHERE pk.madk = ?
+    `;
+
+    db.query(sql, [madk, madk], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: "Lỗi lấy chi phí hệ thống" });
+        }
+        
+        const tongTien = results.reduce((sum, item) => sum + (Number(item.thanh_tien) || 0), 0);
+        res.json({
+            chiTiet: results,
+            tongTien: tongTien
+        });
+    });
 });

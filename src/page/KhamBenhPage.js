@@ -10,6 +10,7 @@ const TRANG_THAI_LABEL = {
   "Cho kham": { text: "Chờ khám", className: "badge-orange" },
   "Dang kham": { text: "Đang khám", className: "badge-green" },
   "Hoan thanh": { text: "Hoàn thành", className: "badge-purple" },
+  "Da xet nghiem": { text: "Đã xét nghiệm", className: "badge-blue" }, // Thêm để đồng bộ với ảnh bạn gửi
 };
 
 async function apiFetch(path, options = {}) {
@@ -25,16 +26,86 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
-function ModalXacNhanXetNghiem({ item, onClose }) {
-  const [danhSachDV, setDanhSachDV] = useState([]); // State lưu dịch vụ
-  const [selectedDV, setSelectedDV] = useState(""); // Dịch vụ bác sĩ chọn
+// --- MODAL CHI TIẾT THANH TOÁN ---
+function ModalChiTietChiPhi({ data, onClose }) {
+  // SỬA: Đảm bảo data.chiTiet là mảng trước khi filter để không bị crash
+  const chiTiet = Array.isArray(data?.chiTiet) ? data.chiTiet : [];
+  const danhSachThuoc = chiTiet.filter(item => item.loai === 'Thuoc');
+  const danhSachDV = chiTiet.filter(item => item.loai === 'Dich vu');
 
-  // Lấy danh sách dịch vụ từ Server khi mở Modal
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-form" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
+        <div className="modal-form-header">
+          <h3>Chi tiết chi phí: {data.hoten}</h3>
+          <button className="btn-close" onClick={onClose}>×</button>
+        </div>
+        <div className="modal-form-body">
+          
+          <h4 style={{ color: '#7c3aed' }}>Dịch vụ kỹ thuật</h4>
+          <table className="data-table">
+            <thead>
+              <tr><th>Tên dịch vụ</th><th style={{ textAlign: 'right' }}>Thành tiền</th></tr>
+            </thead>
+            <tbody>
+              {danhSachDV.length === 0 ? (
+                <tr><td colSpan="2" style={{ textAlign: 'center' }}>Chưa có dịch vụ.</td></tr>
+              ) : (
+                danhSachDV.map((ct, idx) => (
+                  <tr key={idx}>
+                    <td>{ct.ten}</td>
+                    <td style={{ textAlign: 'right' }}>{(ct.gia || 0).toLocaleString()} đ</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          <h4 style={{ marginTop: '20px', color: '#059669' }}>Đơn thuốc</h4>
+          <table className="data-table">
+            <thead>
+              <tr><th>Tên thuốc</th><th>SL</th><th style={{ textAlign: 'right' }}>Thành tiền</th></tr>
+            </thead>
+            <tbody>
+              {danhSachThuoc.length === 0 ? (
+                <tr><td colSpan="3" style={{ textAlign: 'center' }}>Chưa có thuốc.</td></tr>
+              ) : (
+                danhSachThuoc.map((ct, idx) => (
+                  <tr key={idx}>
+                    <td>{ct.ten}</td>
+                    <td>{ct.soluong}</td>
+                    <td style={{ textAlign: 'right' }}>{(ct.thanh_tien || 0).toLocaleString()} đ</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+
+          <div style={{ marginTop: '20px', textAlign: 'right', fontSize: '1.4rem', fontWeight: 'bold', color: '#dc2626' }}>
+            TỔNG CỘNG: {(data.tongTien || 0).toLocaleString()} VNĐ
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- MODAL XÁC NHẬN XÉT NGHIỆM ---
+function ModalXacNhanXetNghiem({ item, onClose }) {
+  const [danhSachDV, setDanhSachDV] = useState([]);
+  const [selectedDV, setSelectedDV] = useState("");
+
   useEffect(() => {
     fetch("http://localhost:4000/api/dich-vu", { credentials: "include" })
       .then(res => res.json())
-      .then(data => setDanhSachDV(data))
-      .catch(err => console.error("Lỗi lấy dịch vụ:", err));
+      .then(data => {
+        // SỬA: Kiểm tra nếu data là mảng thì mới set, không thì set mảng rỗng
+        setDanhSachDV(Array.isArray(data) ? data : []);
+      })
+      .catch(err => {
+        console.error("Lỗi lấy dịch vụ:", err);
+        setDanhSachDV([]);
+      });
   }, []);
 
   const handleXacNhan = () => {
@@ -42,17 +113,20 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
       message.warning("Vui lòng chọn một loại dịch vụ xét nghiệm!");
       return;
     }
-    
     const existing = JSON.parse(localStorage.getItem("xetnghiem_queue") || "[]");
-    
-    // Tìm thông tin dịch vụ đã chọn để lưu vào queue
     const dvInfo = danhSachDV.find(d => d.madv === parseInt(selectedDV));
+
+    if (!dvInfo) {
+        message.error("Không tìm thấy thông tin dịch vụ!");
+        return;
+    }
 
     if (!existing.find((x) => x.madk === item.madk)) {
       existing.push({ 
         ...item, 
         madv: dvInfo.madv,
-        tendv: dvInfo.tendv, // Lưu tên dịch vụ để trang xét nghiệm hiển thị
+        tendv: dvInfo.tendv,
+        mapk: item.mapk,
         thoiGianGui: new Date().toISOString() 
       });
       localStorage.setItem("xetnghiem_queue", JSON.stringify(existing));
@@ -67,11 +141,8 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
         <div className="modal-form-header">
           <h3><i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm</h3>
         </div>
-
         <div className="modal-form-body">
           <p className="confirm-question">Chọn loại dịch vụ cần thực hiện:</p>
-          
-          {/* THÊM SELECT BOX Ở ĐÂY */}
           <div className="form-group">
             <select 
               className="form-control" 
@@ -80,14 +151,14 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
               style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
             >
               <option value="">-- Chọn dịch vụ --</option>
-              {danhSachDV.map(dv => (
+              {/* SỬA: Thêm Optional Chaining ?. để an toàn */}
+              {danhSachDV?.map(dv => (
                 <option key={dv.madv} value={dv.madv}>
-                  {dv.tendv} ({dv.gia.toLocaleString()} VNĐ)
+                  {dv.tendv} ({(dv.gia || 0).toLocaleString()} VNĐ)
                 </option>
               ))}
             </select>
           </div>
-
           <div className="kham-info-box" style={{ marginTop: '15px' }}>
             <div className="kham-info-row">
               <span className="kham-info-label">Bệnh nhân:</span>
@@ -95,21 +166,20 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
             </div>
           </div>
         </div>
-
         <div className="modal-form-footer">
           <button className="btn-cancel" onClick={onClose}>Hủy</button>
-          <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>
-            Có, gửi yêu cầu
-          </button>
+          <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>Có, gửi yêu cầu</button>
         </div>
       </div>
     </div>
   );
 }
 
+// --- MODAL CẬP NHẬT TRẠNG THÁI ---
 function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
   const [trangthai, setTrangthai] = useState(item.trangthai ?? "Cho kham");
   const [submitting, setSubmitting] = useState(false);
+  
   const handleLuu = async () => {
     setSubmitting(true);
     try {
@@ -136,98 +206,34 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-form" onClick={(e) => e.stopPropagation()}>
         <div className="modal-form-header">
-          <h3>
-            <i
-              className="fas fa-stethoscope"
-              style={{ marginRight: "0.5rem", color: "#2563eb" }}
-            />
-            Cập nhật trạng thái khám
-          </h3>
-          <button className="btn-close" onClick={onClose}>
-            <i className="fas fa-times" />
-          </button>
+          <h3><i className="fas fa-stethoscope" style={{ marginRight: "0.5rem", color: "#2563eb" }}/>Cập nhật trạng thái khám</h3>
+          <button className="btn-close" onClick={onClose}><i className="fas fa-times" /></button>
         </div>
-
         <div className="modal-form-body">
-          {/* Thông tin chỉ đọc */}
           <div className="kham-info-box">
-            <div className="kham-info-row">
-              <span className="kham-info-label">Mã phiếu:</span>
-              <span className="kham-info-value">{item.madk}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Bệnh nhân:</span>
-              <span className="kham-info-value">{item.hoten}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Bác sĩ:</span>
-              <span className="kham-info-value">{item.tenbs ?? "—"}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Lý do khám:</span>
-              <span className="kham-info-value">{item.lydokham}</span>
-            </div>
-            <div className="kham-info-row">
-              <span className="kham-info-label">Ngày đăng ký:</span>
-              <span className="kham-info-value">
-                {new Date(item.ngaydangky).toLocaleDateString("vi-VN")}
-              </span>
-            </div>
+            <div className="kham-info-row"><span className="kham-info-label">Mã phiếu:</span><span className="kham-info-value">{item.madk}</span></div>
+            <div className="kham-info-row"><span className="kham-info-label">Bệnh nhân:</span><span className="kham-info-value">{item.hoten}</span></div>
+            <div className="kham-info-row"><span className="kham-info-label">Lý do khám:</span><span className="kham-info-value">{item.lydokham}</span></div>
           </div>
-
-          {/* Trạng thái — phần duy nhất được chỉnh sửa */}
           <div className="form-group" style={{ marginTop: "1rem" }}>
             <label style={{ fontWeight: 600 }}>Trạng thái khám</label>
             <div className="trang-thai-options">
               {[
-                {
-                  value: "Cho kham",
-                  label: "Chờ khám",
-                  icon: "fa-clock",
-                  color: "#f97316",
-                },
-                {
-                  value: "Dang kham",
-                  label: "Đang khám",
-                  icon: "fa-user-md",
-                  color: "#22c55e",
-                },
-                {
-                  value: "Hoan thanh",
-                  label: "Hoàn thành",
-                  icon: "fa-check-circle",
-                  color: "#8b5cf6",
-                },
+                { value: "Cho kham", label: "Chờ khám", icon: "fa-clock", color: "#f97316" },
+                { value: "Dang kham", label: "Đang khám", icon: "fa-user-md", color: "#22c55e" },
+                { value: "Hoan thanh", label: "Hoàn thành", icon: "fa-check-circle", color: "#8b5cf6" },
               ].map(({ value, label, icon, color }) => (
-                <label
-                  key={value}
-                  className={`tt-option ${trangthai === value ? "tt-option-active" : ""}`}
-                  style={{ "--tt-color": color }}
-                >
-                  <input
-                    type="radio"
-                    name="trangthai"
-                    value={value}
-                    checked={trangthai === value}
-                    onChange={() => setTrangthai(value)}
-                  />
-                  <i className={`fas ${icon}`} />
-                  {label}
+                <label key={value} className={`tt-option ${trangthai === value ? "tt-option-active" : ""}`} style={{ "--tt-color": color }}>
+                  <input type="radio" name="trangthai" value={value} checked={trangthai === value} onChange={() => setTrangthai(value)} />
+                  <i className={`fas ${icon}`} /> {label}
                 </label>
               ))}
             </div>
           </div>
         </div>
-
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>
-            Hủy
-          </button>
-          <button
-            className="btn-save"
-            onClick={handleLuu}
-            disabled={submitting}
-          >
+          <button className="btn-cancel" onClick={onClose}>Hủy</button>
+          <button className="btn-save" onClick={handleLuu} disabled={submitting}>
             <i className="fas fa-save" style={{ marginRight: "0.4rem" }} />
             {submitting ? "Đang lưu..." : "Lưu trạng thái"}
           </button>
@@ -237,8 +243,6 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
   );
 }
 
-// ─── Trang chính ───────────────────────────────────────────────────────────
-
 export default function KhamBenhPage() {
   const [danhSach, setDanhSach] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -246,7 +250,7 @@ export default function KhamBenhPage() {
   const [filterTT, setFilterTT] = useState("");
   const [editItem, setEditItem] = useState(null);
   const [xetNghiemItem, setXetNghiemItem] = useState(null);
-  // ── Tải dữ liệu ──────────────────────────────────────────────────────────
+  const [chiTietPhi, setChiTietPhi] = useState(null);
 
   const taiDanhSach = async () => {
     setLoading(true);
@@ -261,24 +265,21 @@ export default function KhamBenhPage() {
     }
   };
 
-  useEffect(() => {
-    taiDanhSach();
-  }, []);
+  useEffect(() => { taiDanhSach(); }, []);
 
-  // ── Thống kê ──────────────────────────────────────────────────────────────
-
-  const thongKe = {
-    homNay: danhSach.filter((d) => {
-      const ngay = new Date(d.ngaydangky);
-      const hom = new Date();
-      return ngay.toDateString() === hom.toDateString();
-    }).length,
-    hoanThanh: danhSach.filter((d) => d.trangthai === "Hoan thanh").length,
-    dangCho: danhSach.filter((d) => d.trangthai === "Cho kham").length,
-    dangKham: danhSach.filter((d) => d.trangthai === "Dang kham").length,
+  const xemChiPhi = async (item) => {
+    try {
+      const data = await apiFetch(`/chi-phi-kham/${item.madk}`);
+      // SỬA: Đảm bảo nếu data.chiTiet không tồn tại thì gán mảng rỗng ngay từ đây
+      setChiTietPhi({ 
+        ...data, 
+        hoten: item.hoten, 
+        chiTiet: Array.isArray(data.chiTiet) ? data.chiTiet : [] 
+      });
+    } catch (err) {
+      message.info("Chưa có thông tin thuốc hoặc dịch vụ cho bệnh nhân này.");
+    }
   };
-
-  // ── Lọc danh sách ────────────────────────────────────────────────────────
 
   const danhSachLoc = danhSach.filter((d) => {
     const khopSearch = [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some(
@@ -287,8 +288,6 @@ export default function KhamBenhPage() {
     const khopTT = filterTT ? d.trangthai === filterTT : true;
     return khopSearch && khopTT;
   });
-
-  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="page-layout">
@@ -299,50 +298,18 @@ export default function KhamBenhPage() {
           <div className="page-topbar">
             <div>
               <h1>Quản lý Khám bệnh</h1>
-              <p>
-                Theo dõi và cập nhật trạng thái các buổi khám bệnh của bệnh
-                nhân.
-              </p>
+              <p>Theo dõi và cập nhật trạng thái các buổi khám bệnh.</p>
             </div>
           </div>
 
-          {/* Thống kê */}
-          <div className="stat-cards">
-            <div className="stat-card blue">
-              <div className="stat-label">Lịch khám hôm nay</div>
-              <div className="stat-number">{thongKe.homNay}</div>
-            </div>
-            <div className="stat-card green">
-              <div className="stat-label">Đã hoàn thành</div>
-              <div className="stat-number">{thongKe.hoanThanh}</div>
-            </div>
-            <div className="stat-card orange">
-              <div className="stat-label">Đang chờ</div>
-              <div className="stat-number">{thongKe.dangCho}</div>
-            </div>
-            <div className="stat-card purple">
-              <div className="stat-label">Đang khám</div>
-              <div className="stat-number">{thongKe.dangKham}</div>
-            </div>
-          </div>
-
-          {/* Bảng danh sách */}
           <Spin spinning={loading} tip="Đang tải dữ liệu...">
             <div className="table-container">
               <div className="table-toolbar">
                 <div className="search-box">
                   <i className="fas fa-search" />
-                  <input
-                    placeholder="Tìm theo tên BN, mã phiếu, bác sĩ..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
+                  <input placeholder="Tìm theo tên BN..." value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
-                <select
-                  className="filter-select"
-                  value={filterTT}
-                  onChange={(e) => setFilterTT(e.target.value)}
-                >
+                <select className="filter-select" value={filterTT} onChange={(e) => setFilterTT(e.target.value)}>
                   <option value="">Tất cả trạng thái</option>
                   <option value="Cho kham">Chờ khám</option>
                   <option value="Dang kham">Đang khám</option>
@@ -358,7 +325,6 @@ export default function KhamBenhPage() {
                       <th>STT</th>
                       <th>Bệnh nhân</th>
                       <th>Bác sĩ</th>
-                      <th>Lý do khám</th>
                       <th>Ngày đăng ký</th>
                       <th>Trạng thái</th>
                       <th style={{ textAlign: "right" }}>Thao tác</th>
@@ -366,11 +332,7 @@ export default function KhamBenhPage() {
                   </thead>
                   <tbody>
                     {danhSachLoc.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="empty-state">
-                          <p>Chưa có dữ liệu</p>
-                        </td>
-                      </tr>
+                      <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
                     ) : (
                       danhSachLoc.map((item) => {
                         const tt = TRANG_THAI_LABEL[item.trangthai];
@@ -380,30 +342,16 @@ export default function KhamBenhPage() {
                             <td>{item.stt ?? "—"}</td>
                             <td>{item.hoten}</td>
                             <td>{item.tenbs ?? "—"}</td>
-                            <td>{item.lydokham}</td>
-                            <td>
-                              {new Date(item.ngaydangky).toLocaleDateString(
-                                "vi-VN",
-                              )}
-                            </td>
-                            <td>
-                              <span className={`badge ${tt?.className ?? ""}`}>
-                                {tt?.text ?? item.trangthai}
-                              </span>
-                            </td>
+                            <td>{new Date(item.ngaydangky).toLocaleDateString("vi-VN")}</td>
+                            <td><span className={`badge ${tt?.className ?? ""}`}>{tt?.text ?? item.trangthai}</span></td>
                             <td style={{ textAlign: "right" }}>
-                              <button
-                                className="btn-icon btn-edit"
-                                onClick={() => setEditItem(item)}
-                                title="Cập nhật trạng thái"
-                              >
+                              <button className="btn-icon btn-view" onClick={() => xemChiPhi(item)} title="Xem chi phí" style={{color: '#059669', marginRight: '8px'}}>
+                                <i className="fas fa-file-invoice-dollar" />
+                              </button>
+                              <button className="btn-icon btn-edit" onClick={() => setEditItem(item)} title="Cập nhật trạng thái">
                                 <i className="fas fa-stethoscope" />
                               </button>
-                              <button
-                                className="btn-icon btn-flask"
-                                onClick={() => setXetNghiemItem(item)}
-                                title="Yêu cầu xét nghiệm"
-                              >
+                              <button className="btn-icon btn-flask" onClick={() => setXetNghiemItem(item)} title="Yêu cầu xét nghiệm" style={{marginLeft: '8px'}}>
                                 <i className="fas fa-flask" />
                               </button>
                             </td>
@@ -414,32 +362,14 @@ export default function KhamBenhPage() {
                   </tbody>
                 </table>
               </div>
-
-              <div className="table-pagination">
-                <div>
-                  Hiển thị <strong>{danhSachLoc.length}</strong> phiếu khám
-                </div>
-              </div>
             </div>
           </Spin>
         </div>
       </div>
 
-      {/* Modal cập nhật trạng thái */}
-      {editItem && (
-        <ModalCapNhatTrangThai
-          item={editItem}
-          onClose={() => setEditItem(null)}
-          onSaved={taiDanhSach}
-        />
-      )}
-
-      {xetNghiemItem && (
-        <ModalXacNhanXetNghiem
-          item={xetNghiemItem}
-          onClose={() => setXetNghiemItem(null)}
-        />
-      )}
+      {editItem && <ModalCapNhatTrangThai item={editItem} onClose={() => setEditItem(null)} onSaved={taiDanhSach} />}
+      {xetNghiemItem && <ModalXacNhanXetNghiem item={xetNghiemItem} onClose={() => setXetNghiemItem(null)} />}
+      {chiTietPhi && <ModalChiTietChiPhi data={chiTietPhi} onClose={() => setChiTietPhi(null)} />}
     </div>
   );
 }

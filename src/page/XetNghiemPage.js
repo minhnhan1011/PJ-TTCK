@@ -10,7 +10,6 @@ export default function XetNghiemPage() {
   const [selected, setSelected] = useState(null);
   const [ketqua, setKetqua] = useState("");
   const [ghichu, setGhichu] = useState("");
-  const [file, setFile] = useState(null); // State lưu file hình ảnh
 
   // 1. Load danh sách chờ từ LocalStorage
   const loadQueue = () => {
@@ -28,7 +27,6 @@ export default function XetNghiemPage() {
     setSelected(item);
     setKetqua("");
     setGhichu("");
-    setFile(null);
   };
 
   // 2. Hàm xử lý IN kết quả (Xuất file PDF qua trình duyệt)
@@ -101,21 +99,28 @@ export default function XetNghiemPage() {
     }
 
     const formData = new FormData();
+    console.log("SELECTED:", selected);
     formData.append("madk", selected.madk);
     formData.append("ketqua", ketqua);
     formData.append("ghichu", ghichu);
-    if (file) formData.append("hinhanh", file);
+    formData.append("madv", selected.madv); 
+    formData.append("mapk", selected.mapk);
 
     try {
       // Gọi API lưu vào Database
       const res = await axios.post(
-        "http://localhost:4000/api/hoan-thanh-xet-nghiem",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        },
-      );
+  "http://localhost:4000/api/hoan-thanh-xet-nghiem",
+  {
+    madk: selected.madk,
+    ketqua,
+    ghichu,
+    madv: selected.madv,
+    mapk: selected.mapk,
+  },
+  {
+    withCredentials: true,
+  }
+);
 
       if (res.data.Status === "Success") {
         // Thực hiện lệnh IN ngay khi lưu thành công
@@ -125,7 +130,7 @@ export default function XetNghiemPage() {
           ketqua: ketqua,
           ghichu: ghichu,
           tenbs: selected.tenbs,
-          img: res.data.hinhanh, // Tên file ảnh từ server trả về
+          img: res.data.hinhanh, 
         });
 
         // Cập nhật LocalStorage: Xoá bệnh nhân đã làm xong khỏi hàng đợi
@@ -137,10 +142,11 @@ export default function XetNghiemPage() {
         message.success("Đã lưu vào hệ thống và đang xuất file in!");
       }
     } catch (error) {
-      console.error("Lỗi:", error);
-      message.error("Lỗi khi kết nối đến máy chủ!");
-    }
-  };
+  console.error("FULL ERROR:", error);
+  console.error("RESPONSE:", error.response?.data);
+  message.error(error.response?.data?.Error || "Server lỗi!");
+}
+  }
 
   return (
     <div className="page-layout">
