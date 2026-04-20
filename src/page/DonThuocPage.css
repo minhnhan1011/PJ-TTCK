@@ -252,4 +252,9 @@
   .tong-tien-value {
     font-size: 1rem;
   }
+
+  .dt-detail-wrapper {
+    padding-left: 0.5rem;
+    overflow-x: auto;
+  }
 }

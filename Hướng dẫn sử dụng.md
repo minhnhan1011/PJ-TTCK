@@ -1,692 +1,651 @@
-# 📋 Hướng Dẫn Sử Dụng Hệ Thống Quản Lý Phòng Khám
+# 📋 Hướng Dẫn Sử Dụng Hệ Thống Quản Lý Phòng Khám — ClinicFlow
 
-**Phiên bản:** 1.0  
-**Cập nhật:** April 2026  
-**Hệ thống:** PJ-TTCK (Phòng Khám Tư Nhân)
+**Phiên bản:** 2.0  
+**Cập nhật:** 20/04/2026  
+**Hệ thống:** PJ-TTCK — ClinicFlow (Quản lý Phòng khám)  
+**Nền tảng:** React + Express.js + MySQL  
+**Cổng truy cập:** Frontend `:3000` | Backend `:4000`
 
 ---
 
 ## 📑 Mục Lục
 
-1. [Tổng Quan Hệ Thống](#tổng-quan-hệ-thống)
-2. [Đăng Nhập & Tài Khoản](#đăng-nhập--tài-khoản)
-3. [Hướng Dẫn Theo Vai Trò](#hướng-dẫn-theo-vai-trò)
-4. [Các Chức Năng Chính](#các-chức-năng-chính)
-5. [Lỗi Thường Gặp & Giải Pháp](#lỗi-thường-gặp--giải-pháp)
+1. [Tổng Quan Hệ Thống](#1-tổng-quan-hệ-thống)
+2. [Đăng Nhập & Tài Khoản](#2-đăng-nhập--tài-khoản)
+3. [Hướng Dẫn Theo Vai Trò](#3-hướng-dẫn-theo-vai-trò)
+   - 3.1. [Quản Trị Viên (Admin)](#31-vai-trò-quản-trị-viên-admin)
+   - 3.2. [Lễ Tân (Tiếp Nhận)](#32-vai-trò-lễ-tân-tiếp-nhận)
+   - 3.3. [Bác Sĩ (Khám Bệnh)](#33-vai-trò-bác-sĩ-khám-bệnh)
+   - 3.4. [Kỹ Thuật Viên (Xét Nghiệm)](#34-vai-trò-kỹ-thuật-viên-xét-nghiệm)
+   - 3.5. [Dược Sĩ (Quản Lý Thuốc)](#35-vai-trò-dược-sĩ-quản-lý-thuốc)
+   - 3.6. [Thu Ngân (Thanh Toán)](#36-vai-trò-thu-ngân-thanh-toán)
+4. [Bảng Phân Quyền Tổng Hợp](#4-bảng-phân-quyền-tổng-hợp)
+5. [Danh Sách Trang & Đường Dẫn](#5-danh-sách-trang--đường-dẫn)
+6. [Lỗi Thường Gặp & Giải Pháp](#6-lỗi-thường-gặp--giải-pháp)
+7. [Checklist Hàng Ngày & Mẹo](#7-checklist-hàng-ngày--mẹo)
 
 ---
 
-## 🏥 Tổng Quan Hệ Thống
+## 1. Tổng Quan Hệ Thống
 
 ### Mục Đích
-Hệ thống Quản lý Phòng khám (PJ-TTCK) được thiết kế để tin học hóa toàn bộ quy trình từ:
-- ✅ Tiếp nhận bệnh nhân
-- ✅ Khám bệnh
-- ✅ Xét nghiệm & Cận lâm sàng
-- ✅ Kê đơn thuốc
-- ✅ Thanh toán hóa đơn
+Hệ thống ClinicFlow được thiết kế để tin học hóa toàn bộ quy trình phòng khám:
+- ✅ Tiếp nhận & quản lý hồ sơ bệnh nhân
+- ✅ Đăng ký khám & phân luồng bác sĩ
+- ✅ Khám bệnh & chẩn đoán
+- ✅ Chỉ định xét nghiệm & cận lâm sàng
+- ✅ Kê đơn thuốc (hỗ trợ chọn theo loại thuốc)
+- ✅ Quản lý kho thuốc & cảnh báo hạn sử dụng
+- ✅ Thanh toán & in hóa đơn
 
 ### Cấu Trúc Giao Diện
 
+**Trên Desktop (≥ 768px):**
 ```
-┌─────────────────────────────────────────┐
-│  📱 THANH TIÊU ĐỀ (Header)              │
-│  [Logo] Tên Hệ Thống  [Tài khoản] [❌]  │
-├──────────────┬───────────────────────────┤
-│              │                           │
-│  SIDEBAR     │   NỘI DUNG CHÍNH         │
-│  (Menu)      │   (Main Content Area)    │
-│              │                           │
-│ 📌 Bệnh nhân │   - Danh sách            │
-│ 📋 Khám bệnh │   - Biểu mẫu             │
-│ 🧪 Xét nghiệm│   - Dữ liệu chi tiết     │
-│ 💊 Thuốc     │                           │
-│ 💰 Thanh toán│                           │
-│ 👥 Nhân viên │                           │
-│              │                           │
-└──────────────┴───────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  HEADER (64px) — Tên người dùng, Đăng xuất   │
+├───────────────┬──────────────────────────────┤
+│               │                              │
+│   SIDEBAR     │    NỘI DUNG CHÍNH            │
+│   (16rem)     │    (Cuộn được)               │
+│               │                              │
+│ 🏠 Dashboard  │  ┌─ Thẻ thống kê ──────┐    │
+│ 👤 Bệnh nhân  │  │ 📊 4 ô thống kê     │    │
+│ 📋 Đăng ký    │  └─────────────────────┘    │
+│ 🩺 Khám bệnh  │  ┌─ Thanh tìm kiếm ───┐    │
+│ 🧪 Xét nghiệm │  │ 🔍 + Bộ lọc        │    │
+│ 💊 Thuốc      │  └─────────────────────┘    │
+│ 📦 Loại thuốc  │  ┌─ Bảng dữ liệu ────┐    │
+│ 💉 Đơn thuốc  │  │ Danh sách + CRUD   │    │
+│ 🏥 Dịch vụ    │  └─────────────────────┘    │
+│ 💰 Thanh toán │                              │
+│ 👥 Nhân viên  │                              │
+│               │                              │
+│ 🚪 Đăng xuất  │                              │
+└───────────────┴──────────────────────────────┘
 ```
+
+**Trên Mobile (< 768px):**
+```
+┌──────────────────────────┐
+│ ☰  HEADER (56px)   👤    │
+├──────────────────────────┤
+│                          │
+│   NỘI DUNG CHÍNH        │
+│   (Toàn màn hình)       │
+│                          │
+│  Thẻ thống kê (2 cột)   │
+│  Thanh tìm kiếm         │
+│  Bảng cuộn ngang ←→     │
+│                          │
+└──────────────────────────┘
+
+  Nhấn ☰ → Sidebar trượt vào từ trái
+  Nhấn overlay → Đóng sidebar
+```
+
+> **Lưu ý:** Sidebar trên mobile là dạng drawer (trượt), có nút ☰ hamburger ở góc trái Header.
 
 ---
 
-## 🔐 Đăng Nhập & Tài Khoản
+## 2. Đăng Nhập & Tài Khoản
 
-### 1️⃣ Đăng Nhập
+### 2.1. Đăng Nhập (`/login`)
 
-**Bước 1:** Mở ứng dụng, bạn sẽ thấy trang Đăng nhập
+**Giao diện:** Thẻ đăng nhập nằm giữa màn hình (350px, mobile thu nhỏ 90vw)
 
-**Bước 2:** Nhập thông tin
-- **Tên đăng nhập:** Tên do quản trị viên cấp
-- **Mật khẩu:** Mật khẩu bảo mật
+**Bước 1:** Truy cập hệ thống → trang Login hiển thị
 
-**Bước 3:** Nhấn nút **[Đăng Nhập]**
+**Bước 2:** Nhập thông tin:
+- **Tên đăng nhập** (`tendn`) — do quản trị viên cấp
+- **Mật khẩu** (`matkhau`)
 
-> ⚠️ **Lưu ý:** Bảo mật tài khoản là trách nhiệm của bạn. Không chia sẻ mật khẩu với người khác.
+**Bước 3:** Nhấn **[Đăng Nhập]** → hệ thống xác thực qua JWT cookie → chuyển đến trang chủ
 
-**Tài khoản mẫu hiện có:**
-| Vai Trò | Username | Mật khẩu | Chức năng |
-|---------|----------|----------|----------|
-| Quản trị viên | admin | 123 | Quản lý toàn hệ thống |
-| Bác sĩ | bacsi | 123 | Khám bệnh, kê đơn |
-| Lễ tân | tieptan | 123 | Quản lý bệnh nhân, đăng ký khám |
-| Dược sĩ | duocsi | 123 | Quản lý kho thuốc |
-| Thu ngân | thungan | 123 | Xử lý thanh toán |
-| Kỹ thuật viên | ktv | 123 | Xét nghiệm, cận lâm sàng |
+> ⚠️ Khi đang xử lý, nút Đăng nhập sẽ hiển thị vòng tròn loading (Ant Design Spin).
 
-### 2️⃣ Đăng Ký Tài Khoản Mới
+**Tài khoản có sẵn trong hệ thống:**
+| Vai Trò | Username | Chức năng chính |
+|---------|----------|----------------|
+| Quản trị viên | `admin` | Dashboard, Bệnh nhân, Nhân viên, Dịch vụ, Loại thuốc, Thuốc, Thanh toán |
+| Lễ tân | `tieptan` | Bệnh nhân, Nhân viên, Đăng ký khám, Dịch vụ, Đơn thuốc, Thanh toán |
+| Bác sĩ | `bacsi` | Khám bệnh, Đơn thuốc, Xét nghiệm |
+| Dược sĩ | `duocsi` | Loại thuốc, Thuốc, Đơn thuốc |
+| Thu ngân | `thungan` | Thanh toán |
+| Kỹ thuật viên | `ktv` | Khám bệnh, Xét nghiệm |
 
-**Bước 1:** Ở trang Đăng nhập, nhấn **[Đăng Ký]**
+### 2.2. Đăng Ký (`/register`)
 
-**Bước 2:** Điền đầy đủ thông tin:
-- Họ tên (*)
-- Email (*)
-- Số điện thoại (*)
-- Tên đăng nhập (*)
-- Mật khẩu (*)
-- Xác nhận mật khẩu (*)
+**Giao diện:** Thẻ đăng ký nằm giữa (400px, mobile thu nhỏ 90vw)
 
-(*) = Trường bắt buộc
-
-**Bước 3:** Nhấn **[Tạo Tài Khoản]**
-
-> ℹ️ Tài khoản mới sẽ cần được quản trị viên phê duyệt trước khi sử dụng.
-
-### 3️⃣ Quên Mật Khẩu
-
-**Bước 1:** Tại trang Đăng nhập, nhấn **[Quên Mật Khẩu?]**
-
-**Bước 2:** Nhập email hoặc số điện thoại của bạn
-
-**Bước 3:** Nhấn **[Gửi Hướng Dẫn Khôi Phục]**
-
-**Bước 4:** Kiểm tra email/SMS, làm theo hướng dẫn đặt lại mật khẩu
-
----
-
-## 👤 Hướng Dẫn Theo Vai Trò
-
-### 🏛️ VAI TRÒ: LỄ TÂN (Tiếp Nhận)
-
-#### Chức Năng Chính
-Lề tân chịu trách nhiệm tiếp nhận bệnh nhân và tạo hồ sơ ban đầu.
-
-#### 1. Quản Lý Bệnh Nhân (BenhNhanPage)
-
-**📌 Mục đích:** Lưu trữ thông tin hành chính của bệnh nhân
-
-**Xem Danh Sách Bệnh Nhân**
-```
-Sidebar → Bệnh Nhân
-```
-- Hiển thị tất cả bệnh nhân đã đăng ký
-- Có thể tìm kiếm, sắp xếp theo tên hoặc mã BN
-
-**Thêm Bệnh Nhân Mới**
-```
-[+ Thêm Bệnh Nhân] → Điền form → [Lưu]
-```
-
-| Trường | Bắt buộc | Ghi chú |
-|--------|----------|---------|
-| Họ tên | ✅ | VD: Nguyễn Văn A |
-| Ngày sinh | ✅ | Định dạng: DD/MM/YYYY |
-| Giới tính | ✅ | Nam / Nữ |
-| Số điện thoại | ✅ | VD: 0912345678 |
-| Địa chỉ | ✅ | Địa chỉ liên lạc đầy đủ |
-
-**Tìm Kiếm Bệnh Nhân**
-```
-[🔍 Tìm kiếm] → Nhập tên hoặc mã BN → Enter
-```
-
-**Cập Nhật Thông Tin**
-```
-Chọn bệnh nhân → [✏️ Sửa] → Thay đổi thông tin → [Lưu]
-```
-
-**Xóa Bệnh Nhân**
-```
-Chọn bệnh nhân → [🗑️ Xóa] → Xác nhận xóa
-```
-
-> ⚠️ **Cảnh báo:** Xóa bệnh nhân sẽ xóa tất cả hồ sơ liên quan. Hãy thận trọng!
-
-#### 2. Đăng Ký Khám (DangKyKhamPage)
-
-**📌 Mục đích:** Tạo phiếu khám để bệnh nhân được phân luồng tới bác sĩ
-
-**Quy Trình Đăng Ký**
-```
-[Thêm Đăng Ký] → Chọn Bệnh Nhân → Chọn Bác Sĩ → Nhập Lý Do Khám → [Lưu]
-```
-
-**Điền Form Đăng Ký**
-| Trường | Bắt buộc | Mô tả |
-|--------|----------|-------|
-| Bệnh nhân | ✅ | Chọn từ danh sách |
-| Bác sĩ | ✅ | Phân phòng khám |
-| Lý do khám | ✅ | VD: "Sốt cao", "Đau bụng" |
-| Ghi chú | ❌ | Thông tin bổ sung |
-
-**Theo Dõi Trạng Thái**
-- 📋 **Chờ khám:** Chưa đến gặp bác sĩ
-- ✅ **Đang khám:** Đang được bác sĩ khám
-- 🏥 **Hoàn thành:** Khám xong, chờ thanh toán
-
----
-
-### 🏥 VAI TRÒ: BÁC SĨ (Khám Bệnh)
-
-#### Chức Năng Chính
-Bác sĩ chịu trách nhiệm khám bệnh, chẩn đoán và kê đơn thuốc.
-
-#### 1. Khám Bệnh (KhamBenhPage)
-
-**📌 Mục đích:** Ghi nhận triệu chứng và đưa ra chẩn đoán
-
-**Bước 1: Chọn Bệnh Nhân**
-```
-Sidebar → Khám Bệnh → Chọn từ danh sách "Chờ Khám"
-```
-
-**Bước 2: Nhập Thông Tin Khám**
-| Trường | Yêu cầu | Ghi chú |
-|--------|---------|---------|
-| Triệu chứng | ✅ | Chi tiết triệu chứng: Sốt cao, ho, đau đầu... |
-| Nhịp tim | ✅ | Số lần/phút. VD: 72 |
-| Huyết áp | ✅ | Định dạng: 120/80 |
-| Chẩn đoán | ✅ | Tên bệnh hoặc sơ bộ chẩn đoán |
-
-**Bước 3: Chỉ Định (Tùy Chọn)**
-- ✅ **Xét nghiệm:** Chọn nếu cần làm xét nghiệm
-- ✅ **Dịch vụ khác:** Siêu âm, X-Quang...
-- ✅ **Kê đơn thuốc:** Chuyển sang bước sau
-
-**Bước 4: Lưu Phiếu Khám**
-```
-[Lưu Phiếu Khám] → Xác nhận → Hoàn tất
-```
-
-#### 2. Xét Nghiệm & Cận Lâm Sàng (XetNghiemPage)
-
-**📌 Mục đích:** Xem và phê duyệt kết quả xét nghiệm
-
-**Xem Kết Quả**
-```
-Sidebar → Xét Nghiệm → Chọn phiếu xét nghiệm
-```
-
-**Kiểm Tra Thông Tin**
-- 🔬 **Loại xét nghiệm:** Xét nghiệm máu, nước tiểu...
-- 📊 **Kết quả:** Giá trị số
-- ✅ **Trạng thái:** Bình thường / Bất thường
-- 📄 **File kết quả:** Hình ảnh hoặc PDF nếu có
-
-**Phê Duyệt Kết Quả**
-```
-[Phê Duyệt] → Lưu → Kết quả được lưu vào hồ sơ bệnh nhân
-```
-
-#### 3. Kê Đơn Thuốc (DonThuocPage)
-
-**📌 Mục đích:** Lập đơn thuốc dựa trên chẩn đoán
-
-**Quy Trình Kê Đơn**
-```
-[+ Thêm Thuốc] → Chọn Thuốc → Nhập Số Lượng → Ghi Chú Liều Dùng → [Lưu]
-```
-
-**Điền Chi Tiết Thuốc**
-| Trường | Bắt buộc | Ví dụ |
-|--------|----------|-------|
-| Tên thuốc | ✅ | Paracetamol, Amoxicillin |
-| Số lượng | ✅ | 10 (viên/hộp) |
-| Liều dùng | ✅ | Sáng 1 viên, trưa 1 viên, chiều 1 viên |
-| Ghi chú | ❌ | Uống sau khi ăn |
-
-**Ví Dụ Kê Đơn**
-```
-Bệnh: Cảm cúm
-───────────────────────────────
-1. Paracetamol 500mg
-   - Số lượng: 10 viên
-   - Liều dùng: Sáng 1, chiều 1, tối 1
-   - Ghi chú: Uống sau khi ăn
-
-2. Amoxicillin 500mg
-   - Số lượng: 20 viên
-   - Liều dùng: Sáng 1, trưa 1, tối 1
-   - Ghi chú: Uống với nước ấm
-
-Tổng tiền: 150.000 VNĐ
-───────────────────────────────
-```
-
----
-
-### 💊 VAI TRÒ: DƯỢC SĨ (Quản Lý Thuốc)
-
-#### Chức Năng Chính
-Dược sĩ quản lý kho thuốc, phân loại và cập nhật tình trạng kho.
-
-#### 1. Quản Lý Loại Thuốc (LoaiThuocPage)
-
-**📌 Mục đích:** Tạo và quản lý các danh mục thuốc
-
-**Xem Danh Sách Loại Thuốc**
-```
-Sidebar → Loại Thuốc
-```
-
-**Thêm Loại Thuốc Mới**
-```
-[+ Thêm Loại] → Nhập Tên Loại → [Lưu]
-```
-
-**Danh Sách Loại Thuốc Tiêu Chuẩn**
-- 🔴 Kháng sinh (Antibiotics)
-- 🟠 Giảm đau (Painkillers)
-- 🟡 Hạ sốt (Antifebrile)
-- 🟢 Tiêu hóa (Digestive)
-- 🔵 Hô hấp (Respiratory)
-- 🟣 Khác (Others)
-
-#### 2. Quản Lý Thuốc (ThuocPage)
-
-**📌 Mục đích:** Quản lý kho thuốc, giá cả, hạn sử dụng
-
-**Xem Danh Sách Thuốc**
-```
-Sidebar → Thuốc
-```
-
-**Thêm Thuốc Mới**
-```
-[+ Thêm Thuốc] → Điền Form → [Lưu]
-```
-
-**Form Thêm Thuốc**
-| Trường | Bắt buộc | Ghi chú |
-|--------|----------|---------|
-| Tên thuốc | ✅ | VD: Paracetamol |
-| Loại thuốc | ✅ | Chọn từ danh sách |
-| Đơn vị tính | ✅ | Viên / Hộp / Vỉ |
-| Đơn giá | ✅ | Giá tiền VNĐ |
-| Số lượng | ✅ | Số lượng trong kho |
-| Ngày sản xuất | ✅ | DD/MM/YYYY |
-| Hạn sử dụng | ✅ | DD/MM/YYYY |
-
-**Cập Nhật Tình Trạng Kho**
-```
-Chọn thuốc → [✏️ Sửa] → Cập nhật số lượng → [Lưu]
-```
-
-**Kiểm Tra Hạn Sử Dụng**
-- ✅ **Con hạn:** Còn thời hạn sử dụng
-- ⚠️ **Sắp hết hạn:** < 3 tháng
-- ❌ **Hết hạn:** Không được sử dụng
-
-> ℹ️ Hệ thống sẽ báo động nếu thuốc sắp hết hạn hoặc hết số lượng.
-
-#### 3. Xuất Kho Thuốc
-
-Khi bệnh nhân lấy thuốc:
-```
-[Xuất Kho] → Chọn Đơn Thuốc → Xác nhận → Số lượng tự động giảm
-```
-
----
-
-### 💰 VAI TRÒ: THU NGÂN (Thanh Toán)
-
-#### Chức Năng Chính
-Thu ngân xử lý thanh toán cho bệnh nhân.
-
-#### 1. Xử Lý Thanh Toán (ThanhToanPage)
-
-**📌 Mục đích:** Lập hóa đơn tổng hợp chi phí bệnh nhân
-
-**Quy Trình Thanh Toán**
-```
-[+ Thanh Toán] → Chọn Bệnh Nhân → Xem Chi Tiết → Nhập Thanh Toán → [In Hóa Đơn]
-```
-
-**Bước 1: Chọn Bệnh Nhân**
-```
-Sidebar → Thanh Toán → [Chọn Bệnh Nhân]
-```
-
-**Bước 2: Xem Chi Tiết Hóa Đơn**
-```
-┌─────────────────────────────────────┐
-│     HÓA ĐƠN THANH TOÁN              │
-├─────────────────────────────────────┤
-│ Bệnh nhân: Nguyễn Văn A             │
-│ Ngày: 19/04/2026                    │
-├─────────────────────────────────────┤
-│ Chi Tiết:                           │
-│ 1. Phí khám bệnh      200.000 VNĐ   │
-│ 2. Xét nghiệm         150.000 VNĐ   │
-│ 3. Thuốc              120.000 VNĐ   │
-├─────────────────────────────────────┤
-│ Tổng tiền:            470.000 VNĐ   │
-│ Đã thanh toán:        470.000 VNĐ   │
-│ Còn lại:                0 VNĐ       │
-└─────────────────────────────────────┘
-```
-
-**Bước 3: Nhập Số Tiền Thanh Toán**
-| Trường | Bắt buộc | Ghi chú |
-|--------|----------|---------|
-| Số tiền thanh toán | ✅ | Có thể = hoặc < tổng tiền |
-| Hình thức thanh toán | ✅ | Tiền mặt / Chuyển khoản |
-| Ghi chú | ❌ | VD: "Thanh toán tạm 50%" |
-
-**Bước 4: Hoàn Tất & In Hóa Đơn**
-```
-[Thanh Toán] → [In Hóa Đơn] → In ra hoặc lưu PDF
-```
-
-**Hóa Đơn In Ra**
-```
-┌──────────────────────────────────────┐
-│        PHÒNG KHÁM TƯ NHÂN PJ-TTCK    │
-│  Địa chỉ: ... | ĐT: ... | MST: ...  │
-├──────────────────────────────────────┤
-│ HÓA ĐƠN SỐ: PT202604050001          │
-│ Ngày: 19/04/2026 14:30               │
-│ Bệnh nhân: Nguyễn Văn A              │
-│ SĐT: 0912345678                      │
-├──────────────────────────────────────┤
-│ STT │ Nội Dung      │ Số Lượng │ Tiền │
-├─────┼───────────────┼──────────┼──────┤
-│ 1   │ Khám bệnh     │ 1        │ 200k │
-│ 2   │ Xét nghiệm    │ 1        │ 150k │
-│ 3   │ Thuốc         │ -        │ 120k │
-├──────────────────────────────────────┤
-│ TỔNG CỘNG:                  470.000  │
-│ HÌNH THỨC: Tiền mặt                  │
-│ Người thanh toán: Thu Ngân E         │
-│ ─────────────────────────────────────│
-│ Cảm ơn quý khách! Vui lòng giữ gìn  │
-│ hóa đơn này để đối chiếu sau này.    │
-└──────────────────────────────────────┘
-```
-
-**Tra Cứu Hóa Đơn Cũ**
-```
-[🔍 Tìm Kiếm] → Nhập Số Hóa Đơn / Tên Bệnh Nhân → Xem Chi Tiết
-```
-
----
-
-### 👨‍💼 VAI TRÒ: QUẢN TRỊ VIÊN (Admin)
-
-#### Chức Năng Chính
-Quản trị viên quản lý toàn bộ hệ thống, nhân viên và cấu hình.
-
-#### 1. Quản Lý Nhân Viên (NhanVienPage)
-
-**📌 Mục đích:** Quản lý danh sách bác sĩ, y tá, lễ tân...
-
-**Xem Danh Sách Nhân Viên**
-```
-Sidebar → Nhân Viên
-```
-
-**Thêm Nhân Viên Mới**
-```
-[+ Thêm Nhân Viên] → Điền Form → [Lưu]
-```
-
-**Form Thêm Nhân Viên**
-| Trường | Bắt buộc | Ghi chú |
-|--------|----------|---------|
-| Họ tên | ✅ | |
-| Chức vụ | ✅ | Bác sĩ / Lễ tân / Dược sĩ... |
+**Các trường cần điền:**
+| Trường | Bắt buộc | Validation |
+|--------|:--------:|-----------|
+| Họ tên | ✅ | Không để trống |
+| Tên đăng nhập | ✅ | Trùng → báo lỗi |
+| Email | ✅ | Định dạng email |
 | Số điện thoại | ✅ | |
-| Địa chỉ | ✅ | |
-| Trạng thái | ✅ | Hoạt động / Tạm ngừng |
+| Mật khẩu | ✅ | Tối thiểu 6 ký tự |
+| Xác nhận mật khẩu | ✅ | Phải trùng mật khẩu |
 
-**Chức Vụ Tiêu Chuẩn**
-- 👨‍⚕️ **Bác sĩ:** Khám bệnh, kê đơn
-- 👩‍⚕️ **Y tá:** Hỗ trợ bác sĩ, chăm sóc bệnh nhân
-- 👨‍💼 **Lễ tân:** Tiếp nhận bệnh nhân
-- 💊 **Dược sĩ:** Quản lý thuốc
-- 👨‍💰 **Kế toán / Thu ngân:** Thanh toán
-- 🧪 **Kỹ thuật viên:** Xét nghiệm, cận lâm sàng
+Sau khi đăng ký thành công → tự động chuyển về trang Login sau 2 giây.
 
-**Cập Nhật Thông Tin Nhân Viên**
+### 2.3. Quên Mật Khẩu (`/forgot-password`)
+
+**Giao diện:** Thẻ khôi phục (380px, mobile thu nhỏ 90vw)
+
+Nhập email đã đăng ký → Nhấn **[Gửi]** → Chờ hướng dẫn qua email.
+
+> ℹ️ Tính năng này hiện đang phát triển. Nếu cần đặt lại mật khẩu, liên hệ quản trị viên.
+
+---
+
+## 3. Hướng Dẫn Theo Vai Trò
+
+---
+
+### 3.1. VAI TRÒ: QUẢN TRỊ VIÊN (Admin)
+
+**Menu hiển thị:** Dashboard, Bệnh nhân, Nhân viên, Dịch vụ, Loại thuốc, Thuốc, Thanh toán
+
+#### A. Trang chủ — Dashboard (`/`)
+
+Hiển thị "Bảng điều khiển Giám đốc" gồm:
+- **4 thẻ thống kê:** Bệnh nhân hôm nay, Đang chờ khám, Đã khám xong, Doanh thu hôm nay
+- **Bảng hàng đợi khám:** Danh sách bệnh nhân chờ khám với cột: STT, Tên BN, Bác sĩ, Trạng thái
+- **Nút "Đăng ký khám mới":** Chuyển đến trang Đăng ký khám
+
+#### B. Quản Lý Nhân Viên (`/nhan-vien`)
+
+**📌 Mục đích:** Quản lý danh sách nhân sự phòng khám
+
+**Giao diện:** Sử dụng Ant Design — bảng có phân trang, tìm kiếm tức thì
+
+**Thêm Nhân Viên:**
 ```
-Chọn nhân viên → [✏️ Sửa] → Cập nhật → [Lưu]
+[+ Thêm nhân viên] → Modal form hiện lên → Điền → [Lưu]
 ```
 
-**Khóa / Mở Tài Khoản**
-```
-Chọn nhân viên → [Trạng thái: Tạm ngừng] → [Lưu]
-→ Khi đó nhân viên không thể đăng nhập
-```
+| Trường | Bắt buộc | Ghi chú |
+|--------|:--------:|---------|
+| Họ tên | ✅ | |
+| Chức vụ | ✅ | Chọn: Bác sĩ / Y tá / Kế toán / Kỹ thuật viên |
+| Số điện thoại | ✅ | Đúng 10 số |
+| Địa chỉ | ❌ | |
 
-#### 2. Quản Lý Dịch Vụ (DichVuPage)
+**Sửa/Xóa:** Nhấn nút hành động trên từng dòng → Modal sửa hoặc xác nhận xóa
 
-**📌 Mục đích:** Quản lý các dịch vụ cận lâm sàng và giá cả
+#### C. Quản Lý Dịch Vụ (`/dich-vu`)
 
-**Xem Danh Sách Dịch Vụ**
-```
-Sidebar → Dịch Vụ
-```
+**📌 Mục đích:** CRUD dịch vụ cận lâm sàng (Siêu âm, X-Quang, Xét nghiệm máu...)
 
-**Thêm Dịch Vụ Mới**
-```
-[+ Thêm Dịch Vụ] → Nhập Thông Tin → [Lưu]
-```
+**Bảng hiển thị:** Mã DV (tự tạo: DV1, DV2...), Tên DV, Giá (định dạng tiền tệ VNĐ), Trạng thái (badge màu), Hành động
 
-**Form Thêm Dịch Vụ**
+**Thêm/Sửa Dịch vụ** qua modal riêng:
 | Trường | Bắt buộc | Ví dụ |
-|--------|----------|-------|
-| Tên dịch vụ | ✅ | Xét nghiệm máu, Siêu âm |
-| Giá | ✅ | 200000 VNĐ |
-| Trạng thái | ✅ | Hoạt động / Tạm ngừng |
+|--------|:--------:|-------|
+| Tên dịch vụ | ✅ | Xét nghiệm máu |
+| Giá | ✅ | 200000 |
+| Trạng thái | ✅ | Hoạt động / Ngừng hoạt động |
 
-**Danh Sách Dịch Vụ Tiêu Chuẩn**
-- 🩸 **Xét nghiệm máu:** 200.000 VNĐ
-- 🫀 **Siêu âm:** 300.000 VNĐ
-- 🫁 **X-Quang:** 250.000 VNĐ
-- 🧬 **Xét nghiệm nước tiểu:** 150.000 VNĐ
-- 📋 **ECG:** 200.000 VNĐ
+**Xóa:** Nhấn nút 🗑️ → hộp thoại xác nhận → nhấn Đồng ý
 
-#### 3. Báo Cáo & Thống Kê
+#### D. Quản Lý Loại Thuốc (`/loai-thuoc`)
 
-**📊 Xem Báo Cáo**
-```
-Sidebar → Báo Cáo (nếu có)
-```
+**📌 Mục đích:** Tạo và quản lý danh mục phân loại thuốc
 
-Có thể xem:
-- 📈 Số bệnh nhân khám/tháng
-- 💰 Doanh thu
-- 📋 Tình trạng kho thuốc
-- 👥 Hiệu suất nhân viên
+**Bảng:** Mã loại (LT-001, LT-002...), Tên loại, Số lượng thuốc thuộc loại này
+
+> ⚠️ **Chỉ Admin** mới có quyền thêm/sửa/xóa loại thuốc. Vai trò khác chỉ xem.
+> ❌ Không thể xóa loại thuốc nếu còn thuốc thuộc loại đó.
+
+#### E. Quản Lý Thuốc (`/thuoc`)
+
+**📌 Mục đích:** Quản lý kho thuốc, theo dõi hạn sử dụng, số lượng tồn
+
+**Giao diện:** Sử dụng Ant Design — 4 badge thống kê phía trên + bảng + bộ lọc
+
+**4 Badge thống kê:**
+- 📦 Tổng thuốc
+- ⚠️ Sắp hết hàng (tồn kho ≤ 5)
+- 🟡 Sắp hết hạn (< 6 tháng)
+- 🔴 Đã hết hạn
+
+**Bộ lọc:** Tìm kiếm theo tên + dropdown: Tất cả / Sắp hết hàng / Sắp hết hạn / Đã hết hạn
+
+**Form Thêm/Sửa thuốc:**
+| Trường | Bắt buộc | Ghi chú |
+|--------|:--------:|---------|
+| Tên thuốc | ✅ | VD: Paracetamol |
+| Loại thuốc | ✅ | Chọn từ danh sách loại thuốc |
+| Đơn giá | ✅ | VNĐ |
+| Số lượng | ✅ | Số nguyên |
+| Đơn vị tính | ✅ | Viên / Hộp / Lọ |
+| Ngày sản xuất | ✅ | |
+| Hạn sử dụng | ✅ | |
+
+**Mã màu trạng thái:**
+- 🟢 **Xanh:** Còn hạn, đủ số lượng
+- 🟠 **Cam:** Sắp hết hạn (< 6 tháng)
+- 🔴 **Đỏ:** Đã hết hạn
+
+#### F. Thanh Toán (`/thanh-toan`)
+
+*(Xem chi tiết tại mục 3.6 — Thu Ngân)*
 
 ---
 
-## 🔧 Các Chức Năng Chính
+### 3.2. VAI TRÒ: LỄ TÂN (Tiếp Nhận)
 
-### Bảng So Sánh Quyền Hạn Theo Vai Trò
+**Menu hiển thị:** Bệnh nhân, Nhân viên, Đăng ký khám, Dịch vụ, Đơn thuốc, Thanh toán
 
-| Chức Năng | Lễ Tân | Bác Sĩ | Dược Sĩ | Thu Ngân | Admin |
-|-----------|:------:|:------:|:-------:|:--------:|:-----:|
-| Quản lý bệnh nhân | ✅ | 🔍 | ❌ | 🔍 | ✅ |
-| Đăng ký khám | ✅ | 🔍 | ❌ | ❌ | ✅ |
-| Khám bệnh | ❌ | ✅ | ❌ | ❌ | ✅ |
-| Xét nghiệm | 🔍 | ✅ | ❌ | 🔍 | ✅ |
-| Kê đơn thuốc | ❌ | ✅ | 🔍 | ❌ | ✅ |
-| Quản lý thuốc | ❌ | ❌ | ✅ | ❌ | ✅ |
-| Thanh toán | 🔍 | ❌ | ❌ | ✅ | ✅ |
-| Quản lý nhân viên | ❌ | ❌ | ❌ | ❌ | ✅ |
+#### A. Quản Lý Bệnh Nhân (`/benh-nhan`)
 
-*Chú thích:* ✅ = Đầy đủ quyền | 🔍 = Chỉ xem | ❌ = Không có quyền
+**📌 Mục đích:** CRUD hồ sơ bệnh nhân
+
+**Giao diện riêng:** Layout tùy chỉnh (không dùng Ant Design) — 4 thẻ thống kê + tìm kiếm + bảng + modal
+
+**4 Thẻ thống kê:**
+- 👥 Tổng bệnh nhân
+- 🏥 Đang điều trị
+- 🆕 Mới hôm nay
+- 🔄 Tái khám
+
+**Bảng hiển thị:** Mã BN, Họ tên, Giới tính, Ngày sinh, SĐT, Địa chỉ (rút gọn nếu dài), Sửa/Xóa
+
+**Thêm Bệnh Nhân:**
+```
+[+ Thêm Bệnh Nhân] → Modal → Điền form → [Lưu]
+```
+
+| Trường | Bắt buộc | Ghi chú |
+|--------|:--------:|---------|
+| Mã BN | ✅ | Tự sinh hoặc nhập tay |
+| Họ tên | ✅ | |
+| Ngày sinh | ✅ | Chọn ngày |
+| Giới tính | ✅ | Nam / Nữ |
+| SĐT | ✅ | |
+| Địa chỉ | ✅ | |
+
+**Sửa:** Nhấn ✏️ → Modal sửa (Mã BN chỉ đọc) → [Lưu]
+
+**Xóa:** Nhấn 🗑️ → Xác nhận → Xóa
+
+> ⚠️ Xóa bệnh nhân sẽ ảnh hưởng đến phiếu đăng ký khám liên quan.
+
+#### B. Đăng Ký Khám (`/dang-ky-kham`)
+
+**📌 Mục đích:** Tạo phiếu đăng ký khám, phân luồng bệnh nhân tới bác sĩ
+
+**4 Thẻ thống kê:** Tổng đăng ký, Chờ khám, Đang khám, Hoàn thành
+
+**Tính năng đặc biệt:**
+- **Tìm kiếm bệnh nhân thông minh:** Gõ tên → dropdown hiện danh sách BN khớp → chọn → hiện hộp thông tin BN (họ tên, ngày sinh, SĐT, địa chỉ)
+- **Lý do khám có sẵn:** Dropdown chọn nhanh — Khám tổng quát, Sốt/Cảm cúm, Đau bụng, Đau đầu, Tai mũi họng, Da liễu, Khác
+- **Tự động cập nhật:** Khi chuyển tab rồi quay lại, danh sách tự refresh
+
+**Form Đăng Ký:**
+| Trường | Bắt buộc | Mô tả |
+|--------|:--------:|-------|
+| Bệnh nhân | ✅ | Tìm kiếm và chọn |
+| Bác sĩ | ✅ | Chọn từ danh sách bác sĩ |
+| Lý do khám | ✅ | Chọn hoặc nhập tay |
+
+**Sửa đăng ký:** Nhấn ✏️ → Cập nhật lý do, bác sĩ, trạng thái
+
+**Trạng thái (badge màu):**
+- 🟠 **Chờ khám** (Cho kham)
+- 🟢 **Đang khám** (Dang kham)
+- 🟣 **Hoàn thành** (Hoan thanh)
+
+> ℹ️ Khi trạng thái chuyển sang "Đang khám", hệ thống **tự động tạo phiếu khám** cho bác sĩ.
+
+#### C. Đơn Thuốc (`/don-thuoc`) — Chỉ Xem
+
+Lễ tân có quyền xem danh sách đơn thuốc nhưng **không thể** thêm/sửa/xóa.
+
+#### D. Thanh Toán (`/thanh-toan`) — Xem
+
+Lễ tân có thể xem danh sách thanh toán.
 
 ---
 
-## ⚠️ Lỗi Thường Gặp & Giải Pháp
+### 3.3. VAI TRÒ: BÁC SĨ (Khám Bệnh)
 
-### 1. Không Thể Đăng Nhập
+**Menu hiển thị:** Khám bệnh, Đơn thuốc, Xét nghiệm
+
+#### A. Khám Bệnh (`/kham-benh`)
+
+**📌 Mục đích:** Quản lý phiếu khám — cập nhật trạng thái, chỉ định xét nghiệm, xem chi phí
+
+**Giao diện:** Thanh tìm kiếm + dropdown lọc trạng thái + bảng
+
+**Bảng hiển thị:** Mã phiếu, STT, Bệnh nhân, Bác sĩ, Ngày đăng ký, Trạng thái, Hành động
+
+**3 nút hành động trên mỗi dòng:**
+
+1. **💰 Xem chi phí** → Modal hiện bảng chi phí:
+   - Dịch vụ cận lâm sàng đã chỉ định + giá
+   - Thuốc đã kê + giá
+   - **Tổng cộng**
+
+2. **✏️ Cập nhật trạng thái** → Modal với radio buttons:
+   - ⚪ Chờ khám
+   - 🟢 Đang khám
+   - ✅ Hoàn thành
+
+3. **🧪 Chỉ định xét nghiệm** → Modal:
+   - Chọn dịch vụ xét nghiệm từ dropdown (danh sách dịch vụ)
+   - Nhấn **[Xác nhận]** → Phiếu xét nghiệm được đẩy vào hàng đợi cho Kỹ thuật viên
+
+> ℹ️ Hàng đợi xét nghiệm được lưu qua `localStorage` — chỉ hoạt động trên cùng trình duyệt.
+
+#### B. Kê Đơn Thuốc (`/don-thuoc`)
+
+**📌 Mục đích:** Lập đơn thuốc cho bệnh nhân sau khi chẩn đoán
+
+**Giao diện đặc biệt:**
+- **Thanh tính tiền:** Chọn phiếu khám → Nhấn **[Tính tiền]** → Hiển thị tổng tiền thuốc
+- **Bảng nhóm:** Đơn thuốc được nhóm theo mã đơn (mở rộng/thu gọn bằng chevron ▶)
+  - **Dòng cha:** Mã ĐT, Mã PK, Tên BN, Số thuốc
+  - **Dòng con:** Loại thuốc, Tên thuốc, Số lượng, Liều dùng, Đơn giá, Thành tiền, Sửa/Xóa
+
+**Thêm đơn thuốc:**
+```
+[+ Thêm đơn thuốc] → Modal rộng (700px) hiện lên
+```
+
+| Trường | Bắt buộc | Ghi chú |
+|--------|:--------:|---------|
+| Phiếu khám | ✅ | Chọn từ dropdown (hiển thị mã PK + tên BN) |
+| Loại thuốc | ✅ | **Cascading select** — chọn loại → lọc thuốc |
+| Tên thuốc | ✅ | Tự động lọc theo loại đã chọn |
+| Số lượng | ✅ | Số nguyên |
+| Liều dùng | ✅ | VD: "Sáng 1, trưa 1, tối 1 — sau ăn" |
+
+**Có thể thêm nhiều dòng thuốc** trong cùng 1 đơn → Nhấn **[+ Thêm thuốc]** bên trong modal
+
+> ⚠️ Vai trò `tieptan` và `duocsi` chỉ có quyền **xem** đơn thuốc, không sửa/xóa.
+
+#### C. Xét Nghiệm (`/xet-nghiem`) — Xem
+
+Bác sĩ có thể xem danh sách xét nghiệm, phê duyệt kết quả.
+
+---
+
+### 3.4. VAI TRÒ: KỸ THUẬT VIÊN (Xét Nghiệm)
+
+**Menu hiển thị:** Khám bệnh, Xét nghiệm
+
+#### A. Xét Nghiệm (`/xet-nghiem`)
+
+**📌 Mục đích:** Nhận phiếu xét nghiệm từ bác sĩ, nhập kết quả, in phiếu kết quả
+
+**Giao diện 2 cột:**
+
+| Cột trái (Hàng đợi) | Cột phải (Form nhập kết quả) |
+|---------------------|------------------------------|
+| Các thẻ bệnh nhân chờ xét nghiệm | Textarea nhập kết quả (bắt buộc) |
+| Hiển thị: Tên BN, Mã, Dịch vụ XN | Textarea ghi chú (tùy chọn) |
+| Click vào thẻ → chọn (viền xanh) | Nút [Hoàn thành & In kết quả] |
+
+**Quy trình:**
+1. Xem danh sách phiếu chờ ở cột trái
+2. Click vào phiếu cần xử lý
+3. Nhập kết quả xét nghiệm ở cột phải
+4. Nhấn **[Hoàn thành & In kết quả]**
+5. → Hệ thống lưu kết quả vào DB + Cập nhật trạng thái = "Đã xét nghiệm"
+6. → Mở cửa sổ mới in phiếu kết quả (PDF format)
+7. → Phiếu tự động xóa khỏi hàng đợi
+
+**Phiếu kết quả in ra bao gồm:**
+- Thông tin phòng khám
+- Tên bệnh nhân, mã phiếu
+- Tên dịch vụ xét nghiệm
+- Kết quả chi tiết
+- Ghi chú
+- Ngày giờ thực hiện
+
+---
+
+### 3.5. VAI TRÒ: DƯỢC SĨ (Quản Lý Thuốc)
+
+**Menu hiển thị:** Loại thuốc, Thuốc, Đơn thuốc
+
+#### A. Loại Thuốc (`/loai-thuoc`) — Chỉ Xem
+
+Dược sĩ xem danh sách loại thuốc nhưng **không có quyền thêm/sửa/xóa** (chỉ Admin có).
+
+#### B. Quản Lý Thuốc (`/thuoc`)
+
+*(Xem chi tiết tại mục 3.1.E — Admin)*
+
+Dược sĩ có đầy đủ quyền CRUD thuốc:
+- Thêm thuốc mới vào kho
+- Cập nhật số lượng, giá, hạn sử dụng
+- Theo dõi cảnh báo hết hàng / hết hạn
+
+#### C. Đơn Thuốc (`/don-thuoc`) — Chỉ Xem
+
+Dược sĩ xem đơn thuốc để cấp phát, nhưng **không thể sửa/xóa**.
+
+---
+
+### 3.6. VAI TRÒ: THU NGÂN (Thanh Toán)
+
+**Menu hiển thị:** Thanh toán
+
+#### A. Thanh Toán (`/thanh-toan`)
+
+**📌 Mục đích:** Lập hóa đơn, thu tiền, in phiếu thu
+
+**Giao diện 2 phần:**
+
+**Phần trên — 4 Thẻ Thống Kê Hôm Nay:**
+- 📝 Số hóa đơn hôm nay
+- 💰 Tổng doanh thu hôm nay
+- ⏳ Chờ thanh toán
+- ✅ Đã thanh toán
+
+**Phần dưới — 2 cột:**
+
+| Cột trái: Form tạo phiếu thu | Cột phải: Xem trước hóa đơn |
+|-------------------------------|------------------------------|
+| Chọn phiếu khám (dropdown) | Tự động render hóa đơn |
+| Tổng tiền (tự tính) | Hiển thị chi tiết: dịch vụ + thuốc |
+| Phương thức: Tiền mặt | Bệnh nhân, mã phiếu, ngày |
+| Ghi chú (tùy chọn) | Tổng tiền |
+| [Tạo phiếu thu] [In hóa đơn] | |
+
+**Mã phiếu thu tự sinh:** `PT{YYYYMMDD}{4 số cuối}` — VD: `PT202604200001`
+
+**Bảng lịch sử phiếu thu:** Mã PT, Phiếu khám, NV thu, Tổng tiền, Ngày, Trạng thái, Hành động
+
+**Hủy phiếu thu:** Nhấn nút hủy → Trạng thái chuyển sang "Đã hủy"
+
+**In hóa đơn:** Mở cửa sổ mới → HTML hóa đơn format chuẩn → Ctrl+P để in
+
+---
+
+## 4. Bảng Phân Quyền Tổng Hợp
+
+| Trang | Đường dẫn | Admin | Lễ Tân | Bác Sĩ | Dược Sĩ | Thu Ngân | KTV |
+|-------|-----------|:-----:|:------:|:------:|:-------:|:--------:|:---:|
+| Dashboard | `/` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Bệnh nhân | `/benh-nhan` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Đăng ký khám | `/dang-ky-kham` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Khám bệnh | `/kham-benh` | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Xét nghiệm | `/xet-nghiem` | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
+| Dịch vụ | `/dich-vu` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Loại thuốc | `/loai-thuoc` | ✅ CRUD | ❌ | ❌ | 🔍 Xem | ❌ | ❌ |
+| Thuốc | `/thuoc` | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| Đơn thuốc | `/don-thuoc` | ❌ | 🔍 Xem | ✅ CRUD | 🔍 Xem | ❌ | ❌ |
+| Thanh toán | `/thanh-toan` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Nhân viên | `/nhan-vien` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+*Chú thích:* ✅ = Đầy đủ quyền | 🔍 = Chỉ xem | ❌ = Không hiện trên sidebar
+
+> ⚠️ Phân quyền hiện tại **chỉ ẩn menu trên sidebar** (client-side). Các đường dẫn URL vẫn có thể truy cập trực tiếp.
+
+---
+
+## 5. Danh Sách Trang & Đường Dẫn
+
+| # | Trang | Đường dẫn | Mô tả ngắn |
+|---|-------|-----------|-------------|
+| 1 | Dashboard | `/` | Trang chủ, thống kê, hàng đợi khám |
+| 2 | Đăng nhập | `/login` | Xác thực người dùng (JWT) |
+| 3 | Đăng ký | `/register` | Tạo tài khoản mới |
+| 4 | Quên mật khẩu | `/forgot-password` | Khôi phục mật khẩu qua email |
+| 5 | Bệnh nhân | `/benh-nhan` | CRUD hồ sơ bệnh nhân |
+| 6 | Đăng ký khám | `/dang-ky-kham` | Tạo phiếu khám, phân bác sĩ |
+| 7 | Khám bệnh | `/kham-benh` | Quản lý phiếu khám, chỉ định XN |
+| 8 | Xét nghiệm | `/xet-nghiem` | Nhập kết quả, in phiếu XN |
+| 9 | Dịch vụ | `/dich-vu` | CRUD dịch vụ cận lâm sàng |
+| 10 | Loại thuốc | `/loai-thuoc` | CRUD danh mục loại thuốc |
+| 11 | Thuốc | `/thuoc` | CRUD kho thuốc + cảnh báo |
+| 12 | Đơn thuốc | `/don-thuoc` | Kê đơn, tính tiền thuốc |
+| 13 | Thanh toán | `/thanh-toan` | Lập hóa đơn, in phiếu thu |
+| 14 | Nhân viên | `/nhan-vien` | CRUD nhân viên phòng khám |
+
+---
+
+## 6. Lỗi Thường Gặp & Giải Pháp
+
+### 6.1. Không Thể Đăng Nhập
 
 **❌ Vấn đề:** "Sai tên đăng nhập hoặc mật khẩu"
 
 **✅ Giải pháp:**
-- Kiểm tra chính tả tên đăng nhập (có phân biệt chữ hoa/thường)
-- Kiểm tra Caps Lock có bật không
-- Nhấn [Quên Mật Khẩu] để đặt lại
-- Liên hệ quản trị viên để kiểm tra tài khoản
+- Kiểm tra chính tả tên đăng nhập
+- Kiểm tra Caps Lock
+- Xóa cookie trình duyệt rồi thử lại
+- Liên hệ quản trị viên
 
----
+### 6.2. Trang Trắng / Không Có Dữ Liệu
 
-### 2. Trang Trắng Không Có Nội Dung
-
-**❌ Vấn đề:** "Trang không hiển thị dữ liệu"
+**❌ Vấn đề:** Vào trang nhưng không hiển thị gì
 
 **✅ Giải pháp:**
-- Nhấn **F5** để tải lại trang (Refresh)
-- Xóa cache trình duyệt: Ctrl+Shift+Delete
-- Kiểm tra kết nối Internet
-- Đóng trình duyệt và mở lại
+- Nhấn **F5** hoặc **Ctrl+F5** để tải lại
+- Kiểm tra backend đang chạy (port 4000)
+- Kiểm tra MySQL đang chạy
+- Xóa cache: **Ctrl+Shift+Delete**
 
----
+### 6.3. Không Thể Lưu Dữ Liệu
 
-### 3. Không Thể Lưu Dữ Liệu
-
-**❌ Vấn đề:** "Nhấn Lưu nhưng không có phản hồi"
+**❌ Vấn đề:** Nhấn Lưu nhưng không có phản hồi
 
 **✅ Giải pháp:**
-- Kiểm tra tất cả trường bắt buộc (*) đã điền đủ chưa
-- Chọn mục từ dropdown (không được để trống)
-- Kiểm tra định dạng dữ liệu:
-  - Ngày tháng: DD/MM/YYYY
+- Kiểm tra tất cả trường bắt buộc đã điền đủ
+- Kiểm tra định dạng:
   - Số điện thoại: 10 số
-  - Email: format@domain.com
-- Đợi 2-3 giây, thường sẽ có thông báo kết quả
+  - Mật khẩu: ≥ 6 ký tự
+  - Email: định dạng hợp lệ
+- Mở Developer Tools (F12) → tab Console xem lỗi cụ thể
 
----
+### 6.4. Xét Nghiệm Không Thấy Phiếu Chờ
 
-### 4. Lỗi Kết Nối Database
-
-**❌ Vấn đề:** "Lỗi kết nối cơ sở dữ liệu"
-
-**✅ Giải pháp:**
-- Đảm bảo server MySQL đang chạy
-- Kiểm tra kết nối Internet
-- Đăng xuất rồi đăng nhập lại
-- Liên hệ IT để khởi động lại server
-
----
-
-### 5. Nút Không Hoạt Động
-
-**❌ Vấn đề:** "Nút [Lưu] hoặc [Xóa] không có tác dụng"
+**❌ Vấn đề:** Kỹ thuật viên vào trang Xét nghiệm nhưng hàng đợi trống
 
 **✅ Giải pháp:**
-- Làm mới trang (F5)
-- Kiểm tra quyền hạn của tài khoản (bạn có phép không?)
-- Thử dùng trình duyệt khác (Chrome, Firefox...)
-- Xóa cache: Ctrl+Shift+Delete
+- Phiếu xét nghiệm được lưu qua **localStorage** của trình duyệt
+- Đảm bảo bác sĩ đã chỉ định xét nghiệm **trên cùng trình duyệt/máy tính**
+- Nếu dùng máy khác, phiếu sẽ không hiện → cần chỉ định lại
 
----
+### 6.5. Không Thể Xóa Dữ Liệu
 
-### 6. Dữ Liệu Cũ Không Cập Nhật
-
-**❌ Vấn đề:** "Vừa lưu nhưng khi xem lại vẫn là dữ liệu cũ"
+**❌ Vấn đề:** Xóa báo lỗi
 
 **✅ Giải pháp:**
-- Làm mới trang bằng **F5** hoặc **Ctrl+F5**
-- Xóa cache trình duyệt
-- Đăng xuất và đăng nhập lại
-- Chọn lại dữ liệu từ danh sách
-
----
-
-### 7. Không Thể Xóa Dữ Liệu
-
-**❌ Vấn đề:** "Khi xóa xuất hiện lỗi"
-
-**✅ Giải pháp:**
-- Dữ liệu có thể đang được sử dụng ở chỗ khác
-  - Xóa phiếu khám trước khi xóa bệnh nhân
+- Dữ liệu đang được tham chiếu bởi bảng khác:
+  - Xóa phiếu khám/đăng ký khám trước khi xóa bệnh nhân
   - Xóa đơn thuốc trước khi xóa thuốc
-- Kiểm tra quyền hạn
-- Liên hệ quản trị viên nếu cần xóa dữ liệu quan trọng
+  - Xóa thuốc thuộc loại trước khi xóa loại thuốc
+- Kiểm tra quyền hạn vai trò
+
+### 6.6. Modal Bị Che Bởi Sidebar (Mobile)
+
+**❌ Vấn đề:** Trên điện thoại, mở modal nhưng sidebar đè lên
+
+**✅ Giải pháp:**
+- Đóng sidebar trước khi thao tác trên modal
+- Nhấn overlay (vùng tối) để đóng sidebar
+- Nếu vẫn bị che → tải lại trang
+
+### 6.7. Bảng Dữ Liệu Tràn Ngang (Mobile)
+
+**❌ Vấn đề:** Bảng hiển thị quá rộng trên điện thoại, bị cắt
+
+**✅ Giải pháp:**
+- Vuốt ngang trên bảng để xem các cột ẩn
+- Xoay ngang điện thoại (landscape)
+- Sử dụng tablet hoặc máy tính cho thao tác phức tạp
 
 ---
 
-## 📞 Hỗ Trợ & Liên Hệ
+## 7. Checklist Hàng Ngày & Mẹo
 
-| Vấn Đề | Liên Hệ |
-|--------|---------|
-| Lỗi kỹ thuật, mất kết nối | **Bộ phận IT** |
-| Quên mật khẩu | **Quản trị viên** |
-| Về chức năng hệ thống | **Quản trị viên hoặc BQL** |
-| Báo cáo lỗi | **IT Support** |
+### 📋 Checklist theo vai trò
 
-**Cách báo cáo lỗi hiệu quả:**
-1. Mô tả chi tiết vấn đề xảy ra
-2. Cho biết vai trò của bạn
-3. Cung cấp ảnh chụp (screenshot) lỗi
-4. Nêu thời điểm xảy ra lỗi
-
----
-
-## 📋 Danh Sách Kiểm Tra Hàng Ngày
-
-### 👤 Lễ Tân
+**👤 Lễ Tân:**
 - [ ] Kiểm tra bệnh nhân mới cần đăng ký
-- [ ] Đảm bảo tất cả thông tin bệnh nhân đúng
-- [ ] Đăng ký khám cho các bệnh nhân chờ
+- [ ] Đăng ký khám cho bệnh nhân chờ
+- [ ] Phân luồng bệnh nhân đến đúng bác sĩ
 
-### 👨‍⚕️ Bác Sĩ
+**👨‍⚕️ Bác Sĩ:**
 - [ ] Kiểm tra danh sách bệnh nhân chờ khám
-- [ ] Khám bệnh và kê đơn thuốc đầy đủ
-- [ ] Phê duyệt kết quả xét nghiệm
+- [ ] Cập nhật trạng thái phiếu khám
+- [ ] Chỉ định xét nghiệm nếu cần
+- [ ] Kê đơn thuốc cho bệnh nhân đã khám
 
-### 💊 Dược Sĩ
-- [ ] Kiểm tra tình trạng kho thuốc
-- [ ] Cảnh báo thuốc sắp hết hạn
+**🧪 Kỹ Thuật Viên:**
+- [ ] Kiểm tra hàng đợi xét nghiệm
+- [ ] Nhập kết quả và in phiếu kết quả
+- [ ] Đảm bảo tất cả phiếu đã hoàn thành
+
+**💊 Dược Sĩ:**
+- [ ] Kiểm tra cảnh báo thuốc sắp hết hạn
+- [ ] Kiểm tra thuốc sắp hết tồn kho (≤ 5)
 - [ ] Cập nhật số lượng sau mỗi lần xuất kho
 
-### 💰 Thu Ngân
-- [ ] Xử lý thanh toán cho bệnh nhân
-- [ ] In hóa đơn và gửi cho bệnh nhân
-- [ ] Kiểm tra tổng doanh thu
+**💰 Thu Ngân:**
+- [ ] Xử lý thanh toán cho bệnh nhân đã khám xong
+- [ ] In hóa đơn cho bệnh nhân
+- [ ] Kiểm tra tổng doanh thu cuối ngày
 
-### 👨‍💼 Admin
-- [ ] Kiểm tra báo cáo hoạt động hằng ngày
-- [ ] Cập nhật danh sách dịch vụ nếu cần
+**👨‍💼 Admin:**
+- [ ] Xem dashboard thống kê
+- [ ] Kiểm tra nhân sự và dịch vụ
 - [ ] Backup dữ liệu định kỳ
 
----
+### ⌨️ Phím Tắt Hữu Ích
 
-## 🎓 Mẹo & Thủ Thuật
-
-### ⌨️ Phím Tắt
 | Phím | Chức Năng |
 |------|-----------|
 | **F5** | Tải lại trang |
-| **Ctrl+F5** | Tải lại toàn bộ (xóa cache) |
+| **Ctrl+F5** | Tải lại + xóa cache |
 | **Ctrl+P** | In trang / hóa đơn |
 | **Ctrl+F** | Tìm kiếm trên trang |
-| **Escape** | Đóng form hoặc modal |
-
-### 💾 Sao Lưu Dữ Liệu
-- Hệ thống tự động lưu định kỳ
-- Dữ liệu được lưu trên server MySQL
-- Liên hệ IT để yêu cầu backup toàn bộ
+| **Escape** | Đóng modal / popup |
+| **F12** | Mở Developer Tools (xem lỗi) |
 
 ### 🔒 Bảo Mật
-- ✅ Đăng xuất sau khi sử dụng
+
+- ✅ Đăng xuất sau khi sử dụng (nút Đăng xuất ở sidebar hoặc header)
 - ✅ Không chia sẻ mật khẩu
-- ✅ Cập nhật mật khẩu định kỳ (6 tháng/lần)
 - ✅ Không lưu mật khẩu trên máy tính dùng chung
+- ✅ Báo quản trị viên nếu nghi ngờ tài khoản bị xâm nhập
+
+### 📞 Hỗ Trợ
+
+| Vấn đề | Liên hệ |
+|--------|---------|
+| Lỗi kỹ thuật / mất kết nối | Bộ phận IT |
+| Quên mật khẩu | Quản trị viên |
+| Phân quyền / tài khoản | Quản trị viên |
+| Báo cáo bug | IT Support — kèm ảnh chụp lỗi |
 
 ---
 
-**Cảm ơn bạn đã sử dụng hệ thống Quản Lý Phòng Khám PJ-TTCK!** 🎉
+**Cảm ơn bạn đã sử dụng hệ thống ClinicFlow — Quản Lý Phòng Khám PJ-TTCK!** 🎉

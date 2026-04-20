@@ -91,6 +91,46 @@
 }
 .confirm-icon {
   width: 64px; height: 64px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .kham-info-row {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .kham-info-label {
+    min-width: auto;
+  }
+  .tt-option {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 44px;
+  }
+  .btn-flask {
+    padding: 0.5rem 0.75rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .kham-info-box {
+    padding: 0.6rem 0.75rem;
+  }
+  .kham-info-row {
+    font-size: 0.8rem;
+  }
+}
+
+/* workaround for browsers without color-mix support */
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .tt-option:hover {
+    background: #f0f7ff;
+  }
+  .tt-option-active {
+    background: #e0f2fe !important;
+  }
   border-radius: 50%;
   background: #e0f2fe;
   display: flex; align-items: center; justify-content: center;
