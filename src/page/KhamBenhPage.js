@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import { message, Spin } from "antd";
@@ -10,7 +11,7 @@ const TRANG_THAI_LABEL = {
   "Cho kham": { text: "Chờ khám", className: "badge-orange" },
   "Dang kham": { text: "Đang khám", className: "badge-green" },
   "Hoan thanh": { text: "Hoàn thành", className: "badge-purple" },
-  "Da xet nghiem": { text: "Đã xét nghiệm", className: "badge-blue" }, // Thêm để đồng bộ với ảnh bạn gửi
+  "Da xet nghiem": { text: "Đã xét nghiệm", className: "badge-blue" },
 };
 
 async function apiFetch(path, options = {}) {
@@ -28,62 +29,129 @@ async function apiFetch(path, options = {}) {
 
 // --- MODAL CHI TIẾT THANH TOÁN ---
 function ModalChiTietChiPhi({ data, onClose }) {
-  // SỬA: Đảm bảo data.chiTiet là mảng trước khi filter để không bị crash
+  const navigate = useNavigate();
+
   const chiTiet = Array.isArray(data?.chiTiet) ? data.chiTiet : [];
-  const danhSachThuoc = chiTiet.filter(item => item.loai === 'Thuoc');
-  const danhSachDV = chiTiet.filter(item => item.loai === 'Dich vu');
+  const danhSachThuoc = chiTiet.filter((item) => item.loai === "Thuoc");
+  const danhSachDV = chiTiet.filter((item) => item.loai === "Dich vu");
+
+  const handleChuyenThanhToan = () => {
+    // Lưu dữ liệu prefill vào localStorage để ThanhToanPage đọc
+    localStorage.setItem(
+      "thanhtoan_prefill",
+      JSON.stringify({
+        mapk: data.mapk,
+        madk: data.madk,
+        hoten: data.hoten,
+        tongTien: data.tongTien,
+      })
+    );
+    onClose();
+    navigate("/thanh-toan"); // ← sửa lại đúng route trong dự án của bạn
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-form" style={{ maxWidth: '800px' }} onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-form"
+        style={{ maxWidth: "800px" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-form-header">
           <h3>Chi tiết chi phí: {data.hoten}</h3>
-          <button className="btn-close" onClick={onClose}>×</button>
+          <button className="btn-close" onClick={onClose}>
+            ×
+          </button>
         </div>
+
         <div className="modal-form-body">
-          
-          <h4 style={{ color: '#7c3aed' }}>Dịch vụ kỹ thuật</h4>
+          <h4 style={{ color: "#7c3aed" }}>Dịch vụ kỹ thuật</h4>
           <table className="data-table">
             <thead>
-              <tr><th>Tên dịch vụ</th><th style={{ textAlign: 'right' }}>Thành tiền</th></tr>
+              <tr>
+                <th>Tên dịch vụ</th>
+                <th style={{ textAlign: "right" }}>Thành tiền</th>
+              </tr>
             </thead>
             <tbody>
               {danhSachDV.length === 0 ? (
-                <tr><td colSpan="2" style={{ textAlign: 'center' }}>Chưa có dịch vụ.</td></tr>
+                <tr>
+                  <td colSpan="2" style={{ textAlign: "center" }}>
+                    Chưa có dịch vụ.
+                  </td>
+                </tr>
               ) : (
                 danhSachDV.map((ct, idx) => (
                   <tr key={idx}>
                     <td>{ct.ten}</td>
-                    <td style={{ textAlign: 'right' }}>{(ct.gia || 0).toLocaleString()} đ</td>
+                    <td style={{ textAlign: "right" }}>
+                      {(ct.gia || 0).toLocaleString()} đ
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
 
-          <h4 style={{ marginTop: '20px', color: '#059669' }}>Đơn thuốc</h4>
+          <h4 style={{ marginTop: "20px", color: "#059669" }}>Đơn thuốc</h4>
           <table className="data-table">
             <thead>
-              <tr><th>Tên thuốc</th><th>SL</th><th style={{ textAlign: 'right' }}>Thành tiền</th></tr>
+              <tr>
+                <th>Tên thuốc</th>
+                <th>SL</th>
+                <th style={{ textAlign: "right" }}>Thành tiền</th>
+              </tr>
             </thead>
             <tbody>
               {danhSachThuoc.length === 0 ? (
-                <tr><td colSpan="3" style={{ textAlign: 'center' }}>Chưa có thuốc.</td></tr>
+                <tr>
+                  <td colSpan="3" style={{ textAlign: "center" }}>
+                    Chưa có thuốc.
+                  </td>
+                </tr>
               ) : (
                 danhSachThuoc.map((ct, idx) => (
                   <tr key={idx}>
                     <td>{ct.ten}</td>
                     <td>{ct.soluong}</td>
-                    <td style={{ textAlign: 'right' }}>{(ct.thanh_tien || 0).toLocaleString()} đ</td>
+                    <td style={{ textAlign: "right" }}>
+                      {(ct.thanh_tien || 0).toLocaleString()} đ
+                    </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
 
-          <div style={{ marginTop: '20px', textAlign: 'right', fontSize: '1.4rem', fontWeight: 'bold', color: '#dc2626' }}>
+          <div
+            style={{
+              marginTop: "20px",
+              textAlign: "right",
+              fontSize: "1.4rem",
+              fontWeight: "bold",
+              color: "#dc2626",
+            }}
+          >
             TỔNG CỘNG: {(data.tongTien || 0).toLocaleString()} VNĐ
           </div>
+        </div>
+
+        {/* FOOTER: nút Đóng + nút Thanh toán ngay */}
+        <div className="modal-form-footer">
+          <button className="btn-cancel" onClick={onClose}>
+            Đóng
+          </button>
+          <button
+            className="btn-save"
+            style={{ background: "#16a34a", borderColor: "#16a34a" }}
+            onClick={handleChuyenThanhToan}
+          >
+            <i
+              className="fas fa-credit-card"
+              style={{ marginRight: "0.4rem" }}
+            />
+            Thanh toán ngay
+          </button>
         </div>
       </div>
     </div>
@@ -97,12 +165,11 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
 
   useEffect(() => {
     fetch("http://localhost:4000/api/dich-vu", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-        // SỬA: Kiểm tra nếu data là mảng thì mới set, không thì set mảng rỗng
+      .then((res) => res.json())
+      .then((data) => {
         setDanhSachDV(Array.isArray(data) ? data : []);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Lỗi lấy dịch vụ:", err);
         setDanhSachDV([]);
       });
@@ -113,21 +180,23 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
       message.warning("Vui lòng chọn một loại dịch vụ xét nghiệm!");
       return;
     }
-    const existing = JSON.parse(localStorage.getItem("xetnghiem_queue") || "[]");
-    const dvInfo = danhSachDV.find(d => d.madv === parseInt(selectedDV));
+    const existing = JSON.parse(
+      localStorage.getItem("xetnghiem_queue") || "[]"
+    );
+    const dvInfo = danhSachDV.find((d) => d.madv === parseInt(selectedDV));
 
     if (!dvInfo) {
-        message.error("Không tìm thấy thông tin dịch vụ!");
-        return;
+      message.error("Không tìm thấy thông tin dịch vụ!");
+      return;
     }
 
     if (!existing.find((x) => x.madk === item.madk)) {
-      existing.push({ 
-        ...item, 
+      existing.push({
+        ...item,
         madv: dvInfo.madv,
         tendv: dvInfo.tendv,
         mapk: item.mapk,
-        thoiGianGui: new Date().toISOString() 
+        thoiGianGui: new Date().toISOString(),
       });
       localStorage.setItem("xetnghiem_queue", JSON.stringify(existing));
     }
@@ -137,29 +206,38 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-form modal-confirm" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-form modal-confirm"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-form-header">
-          <h3><i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm</h3>
+          <h3>
+            <i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm
+          </h3>
         </div>
         <div className="modal-form-body">
           <p className="confirm-question">Chọn loại dịch vụ cần thực hiện:</p>
           <div className="form-group">
-            <select 
-              className="form-control" 
-              value={selectedDV} 
+            <select
+              className="form-control"
+              value={selectedDV}
               onChange={(e) => setSelectedDV(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "5px",
+                border: "1px solid #ddd",
+              }}
             >
               <option value="">-- Chọn dịch vụ --</option>
-              {/* SỬA: Thêm Optional Chaining ?. để an toàn */}
-              {danhSachDV?.map(dv => (
+              {danhSachDV?.map((dv) => (
                 <option key={dv.madv} value={dv.madv}>
                   {dv.tendv} ({(dv.gia || 0).toLocaleString()} VNĐ)
                 </option>
               ))}
             </select>
           </div>
-          <div className="kham-info-box" style={{ marginTop: '15px' }}>
+          <div className="kham-info-box" style={{ marginTop: "15px" }}>
             <div className="kham-info-row">
               <span className="kham-info-label">Bệnh nhân:</span>
               <span className="kham-info-value">{item.hoten}</span>
@@ -167,8 +245,12 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
           </div>
         </div>
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy</button>
-          <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>Có, gửi yêu cầu</button>
+          <button className="btn-cancel" onClick={onClose}>
+            Hủy
+          </button>
+          <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>
+            Có, gửi yêu cầu
+          </button>
         </div>
       </div>
     </div>
@@ -179,7 +261,7 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
 function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
   const [trangthai, setTrangthai] = useState(item.trangthai ?? "Cho kham");
   const [submitting, setSubmitting] = useState(false);
-  
+
   const handleLuu = async () => {
     setSubmitting(true);
     try {
@@ -206,25 +288,69 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-form" onClick={(e) => e.stopPropagation()}>
         <div className="modal-form-header">
-          <h3><i className="fas fa-stethoscope" style={{ marginRight: "0.5rem", color: "#2563eb" }}/>Cập nhật trạng thái khám</h3>
-          <button className="btn-close" onClick={onClose}><i className="fas fa-times" /></button>
+          <h3>
+            <i
+              className="fas fa-stethoscope"
+              style={{ marginRight: "0.5rem", color: "#2563eb" }}
+            />
+            Cập nhật trạng thái khám
+          </h3>
+          <button className="btn-close" onClick={onClose}>
+            <i className="fas fa-times" />
+          </button>
         </div>
         <div className="modal-form-body">
           <div className="kham-info-box">
-            <div className="kham-info-row"><span className="kham-info-label">Mã phiếu:</span><span className="kham-info-value">{item.madk}</span></div>
-            <div className="kham-info-row"><span className="kham-info-label">Bệnh nhân:</span><span className="kham-info-value">{item.hoten}</span></div>
-            <div className="kham-info-row"><span className="kham-info-label">Lý do khám:</span><span className="kham-info-value">{item.lydokham}</span></div>
+            <div className="kham-info-row">
+              <span className="kham-info-label">Mã phiếu:</span>
+              <span className="kham-info-value">{item.madk}</span>
+            </div>
+            <div className="kham-info-row">
+              <span className="kham-info-label">Bệnh nhân:</span>
+              <span className="kham-info-value">{item.hoten}</span>
+            </div>
+            <div className="kham-info-row">
+              <span className="kham-info-label">Lý do khám:</span>
+              <span className="kham-info-value">{item.lydokham}</span>
+            </div>
           </div>
           <div className="form-group" style={{ marginTop: "1rem" }}>
             <label style={{ fontWeight: 600 }}>Trạng thái khám</label>
             <div className="trang-thai-options">
               {[
-                { value: "Cho kham", label: "Chờ khám", icon: "fa-clock", color: "#f97316" },
-                { value: "Dang kham", label: "Đang khám", icon: "fa-user-md", color: "#22c55e" },
-                { value: "Hoan thanh", label: "Hoàn thành", icon: "fa-check-circle", color: "#8b5cf6" },
+                {
+                  value: "Cho kham",
+                  label: "Chờ khám",
+                  icon: "fa-clock",
+                  color: "#f97316",
+                },
+                {
+                  value: "Dang kham",
+                  label: "Đang khám",
+                  icon: "fa-user-md",
+                  color: "#22c55e",
+                },
+                {
+                  value: "Hoan thanh",
+                  label: "Hoàn thành",
+                  icon: "fa-check-circle",
+                  color: "#8b5cf6",
+                },
               ].map(({ value, label, icon, color }) => (
-                <label key={value} className={`tt-option ${trangthai === value ? "tt-option-active" : ""}`} style={{ "--tt-color": color }}>
-                  <input type="radio" name="trangthai" value={value} checked={trangthai === value} onChange={() => setTrangthai(value)} />
+                <label
+                  key={value}
+                  className={`tt-option ${
+                    trangthai === value ? "tt-option-active" : ""
+                  }`}
+                  style={{ "--tt-color": color }}
+                >
+                  <input
+                    type="radio"
+                    name="trangthai"
+                    value={value}
+                    checked={trangthai === value}
+                    onChange={() => setTrangthai(value)}
+                  />
                   <i className={`fas ${icon}`} /> {label}
                 </label>
               ))}
@@ -232,8 +358,14 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
           </div>
         </div>
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy</button>
-          <button className="btn-save" onClick={handleLuu} disabled={submitting}>
+          <button className="btn-cancel" onClick={onClose}>
+            Hủy
+          </button>
+          <button
+            className="btn-save"
+            onClick={handleLuu}
+            disabled={submitting}
+          >
             <i className="fas fa-save" style={{ marginRight: "0.4rem" }} />
             {submitting ? "Đang lưu..." : "Lưu trạng thái"}
           </button>
@@ -243,6 +375,7 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
   );
 }
 
+// --- TRANG CHÍNH ---
 export default function KhamBenhPage() {
   const [danhSach, setDanhSach] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -265,26 +398,33 @@ export default function KhamBenhPage() {
     }
   };
 
-  useEffect(() => { taiDanhSach(); }, []);
+  useEffect(() => {
+    taiDanhSach();
+  }, []);
 
   const xemChiPhi = async (item) => {
     try {
       const data = await apiFetch(`/chi-phi-kham/${item.madk}`);
-      // SỬA: Đảm bảo nếu data.chiTiet không tồn tại thì gán mảng rỗng ngay từ đây
-      setChiTietPhi({ 
-        ...data, 
-        hoten: item.hoten, 
-        chiTiet: Array.isArray(data.chiTiet) ? data.chiTiet : [] 
+      setChiTietPhi({
+        ...data,
+        hoten: item.hoten,
+        mapk: item.mapk,   // truyền mapk để ThanhToanPage dùng
+        madk: item.madk,   // truyền madk để tham chiếu
+        chiTiet: Array.isArray(data.chiTiet) ? data.chiTiet : [],
       });
     } catch (err) {
-      message.info("Chưa có thông tin thuốc hoặc dịch vụ cho bệnh nhân này.");
+      message.info(
+        "Chưa có thông tin thuốc hoặc dịch vụ cho bệnh nhân này."
+      );
     }
   };
 
   const danhSachLoc = danhSach.filter((d) => {
-    const khopSearch = [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some(
-      (f) => f.toLowerCase().includes(search.toLowerCase()),
-    );
+    const khopSearch = [
+      String(d.madk),
+      d.hoten ?? "",
+      d.tenbs ?? "",
+    ].some((f) => f.toLowerCase().includes(search.toLowerCase()));
     const khopTT = filterTT ? d.trangthai === filterTT : true;
     return khopSearch && khopTT;
   });
@@ -307,9 +447,17 @@ export default function KhamBenhPage() {
               <div className="table-toolbar">
                 <div className="search-box">
                   <i className="fas fa-search" />
-                  <input placeholder="Tìm theo tên BN..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <input
+                    placeholder="Tìm theo tên BN..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
                 </div>
-                <select className="filter-select" value={filterTT} onChange={(e) => setFilterTT(e.target.value)}>
+                <select
+                  className="filter-select"
+                  value={filterTT}
+                  onChange={(e) => setFilterTT(e.target.value)}
+                >
                   <option value="">Tất cả trạng thái</option>
                   <option value="Cho kham">Chờ khám</option>
                   <option value="Dang kham">Đang khám</option>
@@ -332,7 +480,11 @@ export default function KhamBenhPage() {
                   </thead>
                   <tbody>
                     {danhSachLoc.length === 0 ? (
-                      <tr><td colSpan="7" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                      <tr>
+                        <td colSpan="7" className="empty-state">
+                          <p>Chưa có dữ liệu</p>
+                        </td>
+                      </tr>
                     ) : (
                       danhSachLoc.map((item) => {
                         const tt = TRANG_THAI_LABEL[item.trangthai];
@@ -342,16 +494,43 @@ export default function KhamBenhPage() {
                             <td>{item.stt ?? "—"}</td>
                             <td>{item.hoten}</td>
                             <td>{item.tenbs ?? "—"}</td>
-                            <td>{new Date(item.ngaydangky).toLocaleDateString("vi-VN")}</td>
-                            <td><span className={`badge ${tt?.className ?? ""}`}>{tt?.text ?? item.trangthai}</span></td>
+                            <td>
+                              {new Date(item.ngaydangky).toLocaleDateString(
+                                "vi-VN"
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                className={`badge ${tt?.className ?? ""}`}
+                              >
+                                {tt?.text ?? item.trangthai}
+                              </span>
+                            </td>
                             <td style={{ textAlign: "right" }}>
-                              <button className="btn-icon btn-view" onClick={() => xemChiPhi(item)} title="Xem chi phí" style={{color: '#059669', marginRight: '8px'}}>
+                              <button
+                                className="btn-icon btn-view"
+                                onClick={() => xemChiPhi(item)}
+                                title="Xem chi phí"
+                                style={{
+                                  color: "#059669",
+                                  marginRight: "8px",
+                                }}
+                              >
                                 <i className="fas fa-file-invoice-dollar" />
                               </button>
-                              <button className="btn-icon btn-edit" onClick={() => setEditItem(item)} title="Cập nhật trạng thái">
+                              <button
+                                className="btn-icon btn-edit"
+                                onClick={() => setEditItem(item)}
+                                title="Cập nhật trạng thái"
+                              >
                                 <i className="fas fa-stethoscope" />
                               </button>
-                              <button className="btn-icon btn-flask" onClick={() => setXetNghiemItem(item)} title="Yêu cầu xét nghiệm" style={{marginLeft: '8px'}}>
+                              <button
+                                className="btn-icon btn-flask"
+                                onClick={() => setXetNghiemItem(item)}
+                                title="Yêu cầu xét nghiệm"
+                                style={{ marginLeft: "8px" }}
+                              >
                                 <i className="fas fa-flask" />
                               </button>
                             </td>
@@ -367,9 +546,25 @@ export default function KhamBenhPage() {
         </div>
       </div>
 
-      {editItem && <ModalCapNhatTrangThai item={editItem} onClose={() => setEditItem(null)} onSaved={taiDanhSach} />}
-      {xetNghiemItem && <ModalXacNhanXetNghiem item={xetNghiemItem} onClose={() => setXetNghiemItem(null)} />}
-      {chiTietPhi && <ModalChiTietChiPhi data={chiTietPhi} onClose={() => setChiTietPhi(null)} />}
+      {editItem && (
+        <ModalCapNhatTrangThai
+          item={editItem}
+          onClose={() => setEditItem(null)}
+          onSaved={taiDanhSach}
+        />
+      )}
+      {xetNghiemItem && (
+        <ModalXacNhanXetNghiem
+          item={xetNghiemItem}
+          onClose={() => setXetNghiemItem(null)}
+        />
+      )}
+      {chiTietPhi && (
+        <ModalChiTietChiPhi
+          data={chiTietPhi}
+          onClose={() => setChiTietPhi(null)}
+        />
+      )}
     </div>
   );
 }
