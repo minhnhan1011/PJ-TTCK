@@ -45,11 +45,42 @@ export default function ThanhToanPage() {
     fetchBenhnhan();
   }, []);
 
+  // ===== ĐỌC DỮ LIỆU PREFILL TỪ KHAMBENHPAGE =====
+  // Chạy sau khi benhnhan đã được load để đảm bảo dropdown hiển thị đúng
+  useEffect(() => {
+    if (benhnhan.length === 0) return; // Chờ danh sách bệnh nhân load xong
+
+    const raw = localStorage.getItem("thanhtoan_prefill");
+    if (!raw) return;
+
+    try {
+      const prefill = JSON.parse(raw);
+
+      // Tự động mở modal tạo hóa đơn nếu có prefill
+      setForm((prev) => ({
+        ...prev,
+        mapt: generateMaPT(),
+        mapk: prefill.mapk ? String(prefill.mapk) : "",
+        hoten: prefill.hoten ?? "",
+        tongtien: prefill.tongTien ?? "",
+        ghichu: "",
+      }));
+
+      // Mở modal để người dùng xác nhận trước khi thanh toán
+      setShowModal(true);
+    } catch (e) {
+      console.error("Lỗi đọc prefill:", e);
+    }
+
+    // Xóa sau khi đọc để tránh tự động điền lại lần sau
+    localStorage.removeItem("thanhtoan_prefill");
+  }, [benhnhan]);
+  // ===================================================
+
   const fetchPhieuthu = () => {
     axios
       .get("http://localhost:4000/phieuthu")
       .then((res) => {
-        // Logic này sẽ giúp tránh lỗi nếu res.data không phải là mảng
         const data = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setPhieuthu(data);
       })
@@ -63,12 +94,11 @@ export default function ThanhToanPage() {
       .catch((err) => console.log(err));
   };
 
-  // Trong useEffect gọi fetchBenhnhan()
   const fetchBenhnhan = () => {
     axios
-      .get("http://localhost:4000/phieukham") // Gọi API mới tạo ở trên
+      .get("http://localhost:4000/phieukham")
       .then((res) => {
-        setBenhnhan(res.data); // Bây giờ benhnhan sẽ chứa danh sách phiếu khám
+        setBenhnhan(res.data);
       })
       .catch((err) => console.log("Lỗi fetch:", err));
   };
@@ -76,13 +106,13 @@ export default function ThanhToanPage() {
   const handleInput = (e) => {
     const { name, value } = e.target;
     if (name === "mapk") {
-      // Ép kiểu cả 2 về Number để so sánh chính xác
-      const selectedPK = benhnhan.find((p) => Number(p.mapk) === Number(value));
-
+      const selectedPK = benhnhan.find(
+        (p) => Number(p.mapk) === Number(value)
+      );
       setForm((prev) => ({
         ...prev,
-        mapk: value, // Lưu mã phiếu vào form
-        hoten: selectedPK ? selectedPK.hoten : "", // Gán tên tương ứng vào form
+        mapk: value,
+        hoten: selectedPK ? selectedPK.hoten : "",
       }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -93,23 +123,19 @@ export default function ThanhToanPage() {
   const handleThanhToan = (e) => {
     e.preventDefault();
 
-    // 1. Kiểm tra dữ liệu bắt buộc
     if (!form.mapk || !form.tongtien) {
       alert("Vui lòng nhập đầy đủ thông tin bệnh nhân và tổng tiền!");
       return;
     }
 
-    // 2. Xử lý dữ liệu trước khi gửi đi
-    // Loại bỏ 'hoten' vì bảng phieuthu không có cột này
     const { hoten, ...dataToSubmit } = form;
 
-    // Định dạng lại ngaythu thành YYYY-MM-DD để tránh lỗi SQL
     const finalData = {
       ...dataToSubmit,
       ngaythu: new Date().toISOString().split("T")[0],
     };
 
-    console.log("Dữ liệu gửi lên server:", finalData); // Thêm dòng này để debug
+    console.log("Dữ liệu gửi lên server:", finalData);
 
     axios
       .post("http://localhost:4000/themphieuthu", finalData)
@@ -117,11 +143,10 @@ export default function ThanhToanPage() {
         alert("Thanh toán thành công!");
         setShowModal(false);
 
-        // 3. Reset form về trạng thái ban đầu và tạo mã mới
         setForm({
           mapt: generateMaPT(),
           mapk: "",
-          manv: 1, // Bạn có thể thay bằng ID nhân viên đang đăng nhập
+          manv: 1,
           tongtien: "",
           trangthai: "Da thanh toan",
           ghichu: "",
@@ -129,14 +154,13 @@ export default function ThanhToanPage() {
           ngaythu: new Date().toLocaleDateString("vi-VN"),
         });
 
-        // 4. Cập nhật lại danh sách hiển thị
         fetchPhieuthu();
         fetchThongke();
       })
       .catch((err) => {
         console.error("Chi tiết lỗi:", err.response?.data || err.message);
         alert(
-          "Có lỗi xảy ra khi lưu vào database! Hãy kiểm tra mã phiếu khám.",
+          "Có lỗi xảy ra khi lưu vào database! Hãy kiểm tra mã phiếu khám."
         );
       });
   };
@@ -193,7 +217,7 @@ export default function ThanhToanPage() {
     (pt) =>
       (pt.mapt &&
         String(pt.mapt).toLowerCase().includes(search.toLowerCase())) ||
-      (pt.hoten && pt.hoten.toLowerCase().includes(search.toLowerCase())),
+      (pt.hoten && pt.hoten.toLowerCase().includes(search.toLowerCase()))
   );
 
   // Màu trạng thái
@@ -239,7 +263,6 @@ export default function ThanhToanPage() {
             <button
               className="btn-green"
               onClick={() => {
-                // Reset form và tạo mã mới mỗi khi nhấn nút tạo mới
                 setForm({
                   mapt: generateMaPT(),
                   mapk: "",
@@ -298,8 +321,7 @@ export default function ThanhToanPage() {
                       -- Chọn bệnh nhân cần thanh toán --
                     </option>
                     {benhnhan.map((item) => (
-                      <option key={item.mapk} value={item.mapk}>
-                        {/* Hiển thị rõ Mã và Tên để kiểm tra */}
+                      <option key={item.mapk} value={String(item.mapk)}>
                         Mã PK: {item.mapk} - {item.hoten}
                       </option>
                     ))}
@@ -376,7 +398,9 @@ export default function ThanhToanPage() {
                 <div className="invoice-meta">
                   <div className="meta-row">
                     <span>Mã hóa đơn:</span>
-                    <span style={{ fontWeight: 500 }}>{form.mapt || "--"}</span>
+                    <span style={{ fontWeight: 500 }}>
+                      {form.mapt || "--"}
+                    </span>
                   </div>
                   <div className="meta-row">
                     <span>Ngày:</span>
@@ -547,7 +571,7 @@ export default function ThanhToanPage() {
         </div>
       </div>
 
-      {/* Modal Tạo hóa đơn mới (dùng form bên trái, mở popup) */}
+      {/* Modal Tạo hóa đơn mới */}
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div
@@ -563,15 +587,14 @@ export default function ThanhToanPage() {
                 ></i>
                 Tạo Hóa đơn mới
               </h3>
-              <button className="btn-close" onClick={() => setShowModal(false)}>
+              <button
+                className="btn-close"
+                onClick={() => setShowModal(false)}
+              >
                 <i className="fas fa-times"></i>
               </button>
             </div>
-            <form
-              onSubmit={(e) => {
-                handleThanhToan(e);
-              }}
-            >
+            <form onSubmit={handleThanhToan}>
               <div className="modal-form-body">
                 <div className="form-group">
                   <label>Mã phiếu thu</label>
@@ -583,26 +606,52 @@ export default function ThanhToanPage() {
                     style={{ background: "#f3f4f6", cursor: "not-allowed" }}
                   />
                 </div>
+
                 <div className="form-group">
                   <label>
                     Bệnh nhân <span style={{ color: "red" }}>*</span>
                   </label>
                   <select
                     className="field-input"
-                    name="mapk" // Sửa từ mabn thành mapk
+                    name="mapk"
                     value={form.mapk}
                     onChange={handleInput}
                     required
                   >
                     <option value="">-- Chọn phiếu khám cần thu --</option>
                     {benhnhan.map((pk) => (
-                      <option key={pk.mapk} value={pk.mapk}>
-                        {/* Sửa từ bn.hoten thành pk.hoten và bn.mabn thành pk.mapk */}
+                      <option key={pk.mapk} value={String(pk.mapk)}>
                         {pk.hoten || "Bệnh nhân"} (Mã PK: {pk.mapk})
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {/* Hiển thị tên bệnh nhân đã chọn */}
+                {form.hoten && (
+                  <div
+                    className="form-group"
+                    style={{
+                      background: "#f0fdf4",
+                      border: "1px solid #bbf7d0",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      marginBottom: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <i
+                      className="fas fa-user-check"
+                      style={{ color: "#16a34a" }}
+                    />
+                    <span style={{ color: "#15803d", fontWeight: 500 }}>
+                      {form.hoten}
+                    </span>
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label>
                     Tổng tiền (VNĐ) <span style={{ color: "red" }}>*</span>
@@ -618,6 +667,7 @@ export default function ThanhToanPage() {
                     required
                   />
                 </div>
+
                 <div className="form-group">
                   <label>Phương thức</label>
                   <input
@@ -628,6 +678,7 @@ export default function ThanhToanPage() {
                     style={{ background: "#f3f4f6" }}
                   />
                 </div>
+
                 <div className="form-group">
                   <label>Ghi chú</label>
                   <textarea
@@ -640,6 +691,7 @@ export default function ThanhToanPage() {
                   />
                 </div>
               </div>
+
               <div className="modal-form-footer">
                 <button
                   type="button"
@@ -664,7 +716,10 @@ export default function ThanhToanPage() {
       {/* Confirm hủy phiếu */}
       {showConfirm && (
         <div className="modal-overlay" onClick={() => setShowConfirm(null)}>
-          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="confirm-dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="confirm-icon">
               <i className="fas fa-exclamation-triangle"></i>
             </div>
