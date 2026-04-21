@@ -174,16 +174,30 @@ app.post("/login", (req, res) => {
   });
 });
 
+// THAY THẾ đoạn GET /phieuthu
 app.get("/phieuthu", (req, res) => {
   const sql = `
-    SELECT pt.mapt, pt.mapk, pt.manv, pt.tongtien, pt.ngaythu, pt.trangthai, pt.ghichu, bn.hoten 
+    SELECT pt.mapt, pt.mapk, pt.manv, pt.tongtien, pt.ngaythu, pt.trangthai, pt.ghichu, 
+           bn.hoten 
     FROM phieuthu pt
-    LEFT JOIN benhnhan bn ON pt.mapk = bn.mabn
+    LEFT JOIN phieukham pk ON pt.mapk = pk.mapk
+    LEFT JOIN dangkykham dk ON pk.madk = dk.madk
+    LEFT JOIN benhnhan bn ON dk.mabn = bn.mabn
     ORDER BY pt.ngaythu DESC
   `;
   db.query(sql, (err, data) => {
     if (err) return res.status(500).json(err);
     return res.json(data);
+  });
+});
+
+
+// THÊM route xóa phiếu thu
+app.delete("/xoaphieuthu/:mapt", (req, res) => {
+  const sql = `DELETE FROM phieuthu WHERE mapt = ?`;
+  db.query(sql, [req.params.mapt], (err, data) => {
+    if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
+    return res.json({ message: "Xóa thành công" });
   });
 });
 
@@ -278,19 +292,17 @@ app.get("/thongke/homay", (req, res) => {
   });
 });
 // Lấy danh sách phiếu khám để làm thanh toán
+// server.js — sửa GET /phieukham
 app.get("/phieukham", (req, res) => {
-  // Đảm bảo lấy đúng mapk từ bảng phieukham
-  // Đảm bảo dùng INNER JOIN để loại bỏ các bản ghi chưa có phiếu khám thực sự
   const sql = `
-    SELECT pk.mapk, bn.hoten 
+    SELECT pk.mapk, pk.madk, bn.hoten 
     FROM phieukham pk
     INNER JOIN dangkykham dk ON pk.madk = dk.madk
     INNER JOIN benhnhan bn ON dk.mabn = bn.mabn
     WHERE pk.mapk NOT IN (SELECT mapk FROM phieuthu WHERE trangthai != 'Da huy')
-`;
+  `;
   db.query(sql, (err, data) => {
     if (err) return res.status(500).json(err);
-    // Nếu data trả về có mapk rỗng, lỗi nằm ở dữ liệu bảng phieukham
     res.json(data);
   });
 });
@@ -899,3 +911,25 @@ app.get("/api/chi-phi-kham/:madk", (req, res) => {
         });
     });
 });
+
+
+app.delete("/api/dang-ky-kham/:madk", (req, res) => {
+  const { madk } = req.params;
+  db.query("DELETE FROM dangkykham WHERE madk = ?", [madk], (err) => {
+    if (err) return res.status(500).json({ message: "Lỗi xóa" });
+    res.json({ success: true });
+  });
+});
+
+app.get("/deletebn/:id",(req,res)=>{
+  db.connect((err)=>{
+    const sql="Delete from benhnhan where mabn=?";
+    db.query(sql,[req.params.id],(err,data)=>{
+      if(err){
+        return res.json(err)
+      }else{
+        return res.json(data)
+      }
+    })
+  })
+})
