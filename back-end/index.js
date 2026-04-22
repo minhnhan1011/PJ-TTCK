@@ -921,15 +921,3 @@ app.delete("/api/dang-ky-kham/:madk", (req, res) => {
   });
 });
 
-app.get("/deletebn/:id",(req,res)=>{
-  db.connect((err)=>{
-    const sql="Delete from benhnhan where mabn=?";
-    db.query(sql,[req.params.id],(err,data)=>{
-      if(err){
-        return res.json(err)
-      }else{
-        return res.json(data)
-      }
-    })
-  })
-})

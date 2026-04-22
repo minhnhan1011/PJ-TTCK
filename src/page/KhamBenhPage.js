@@ -521,16 +521,6 @@ export default function KhamBenhPage() {
                               >
                                 <i className="fas fa-flask" />
                               </button>
-
-                              {/* ✅ Nút Xóa */}
-                              <button
-                                className="btn-icon btn-delete"
-                                onClick={() => setDeleteItem(item)}
-                                title="Xóa phiếu khám"
-                                style={{ marginLeft: "8px", color: "#dc2626" }}
-                              >
-                                <i className="fas fa-trash-alt" />
-                              </button>
                             </td>
                           </tr>
                         );
