@@ -544,7 +544,8 @@ app.get("/api/don-thuoc", verifyUser, (req, res) => {
   const sql = `
     SELECT ct.mact, dt.madt, dt.mapk, ct.mat, ct.soluong, ct.lieudung,
            t.tent, t.dongia, t.donvi, lt.malt, lt.tenlt,
-           bn.hoten AS tenbn
+           bn.hoten AS tenbn,
+           dt.payment_status, dt.dispense_status, dt.paid_at
     FROM chitiet_donthuoc ct
     JOIN donthuoc dt ON ct.madt = dt.madt
     LEFT JOIN thuoc t ON ct.mat = t.mat
@@ -605,6 +606,60 @@ app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
   db.query("DELETE FROM chitiet_donthuoc WHERE mact=?", [req.params.id], (err) => {
     if (err) return res.status(500).json({ message: err.message });
     res.json({ Status: "Success" });
+  });
+});
+
+// GET - Dược sĩ xem danh sách đơn thuốc đã thanh toán, chờ giao
+app.get("/api/don-thuoc/cho-giao", verifyUser, (req, res) => {
+  const sql = `
+    SELECT dt.madt, dt.mapk, dt.payment_status, dt.dispense_status, dt.paid_at,
+           bn.hoten AS tenbn, pk.chuandoan, pk.ngaykham,
+           JSON_ARRAYAGG(
+             JSON_OBJECT('tent', t.tent, 'soluong', ct.soluong, 'lieudung', ct.lieudung, 'donvi', t.donvi)
+           ) AS danhSachThuoc
+    FROM donthuoc dt
+    JOIN phieukham pk ON dt.mapk = pk.mapk
+    JOIN dangkykham dk ON pk.madk = dk.madk
+    JOIN benhnhan bn ON dk.mabn = bn.mabn
+    LEFT JOIN chitiet_donthuoc ct ON dt.madt = ct.madt
+    LEFT JOIN thuoc t ON ct.mat = t.mat
+    WHERE dt.payment_status = 'Da thanh toan' AND dt.dispense_status = 'Chua giao'
+    GROUP BY dt.madt
+    ORDER BY dt.paid_at ASC
+  `;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json(data);
+  });
+});
+
+// PUT - Dược sĩ xác nhận đã giao thuốc
+app.put("/api/don-thuoc/giao/:madt", verifyUser, (req, res) => {
+  const { madt } = req.params;
+  // Kiểm tra đơn thuốc đã thanh toán chưa trước khi cho giao
+  const checkSql = `SELECT payment_status, dispense_status FROM donthuoc WHERE madt = ?`;
+  db.query(checkSql, [madt], (err, rows) => {
+    if (err) return res.status(500).json({ message: err.message });
+    if (rows.length === 0) return res.status(404).json({ message: "Không tìm thấy đơn thuốc" });
+    if (rows[0].payment_status !== 'Da thanh toan') {
+      return res.status(400).json({ message: "Đơn thuốc chưa được thanh toán, không thể giao" });
+    }
+    if (rows[0].dispense_status === 'Da giao') {
+      return res.status(400).json({ message: "Đơn thuốc đã được giao rồi" });
+    }
+    // Lấy manv của dược sĩ đang đăng nhập từ token
+    db.query("SELECT manv FROM taikhoan WHERE matk = ?", [req.matk], (errManv, manvRows) => {
+      const dispensed_by = manvRows && manvRows.length > 0 ? manvRows[0].manv : null;
+      const updateSql = `
+        UPDATE donthuoc
+        SET dispense_status = 'Da giao', dispensed_at = NOW(), dispensed_by = ?
+        WHERE madt = ?
+      `;
+      db.query(updateSql, [dispensed_by, madt], (err2) => {
+        if (err2) return res.status(500).json({ message: err2.message });
+        res.json({ message: "Đã giao thuốc thành công" });
+      });
+    });
   });
 });
 

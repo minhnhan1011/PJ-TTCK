@@ -23,6 +23,8 @@ export default function DonThuocPage() {
   const [form, setForm] = useState({ malt: "", mat: "", soluong: "", lieudung: "" });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+  const [showGiaoConfirm, setShowGiaoConfirm] = useState(null);
+  const [duocsiFilter, setDuocsiFilter] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [tongTienMapk, setTongTienMapk] = useState("");
   const [tongTien, setTongTien] = useState(null);
@@ -55,12 +57,25 @@ export default function DonThuocPage() {
     const map = {};
     filtered.forEach(item => {
       if (!map[item.madt]) {
-        map[item.madt] = { madt: item.madt, mapk: item.mapk, tenbn: item.tenbn, items: [] };
+        map[item.madt] = {
+          madt: item.madt, mapk: item.mapk, tenbn: item.tenbn,
+          payment_status: item.payment_status,
+          dispense_status: item.dispense_status,
+          paid_at: item.paid_at,
+          items: []
+        };
       }
       map[item.madt].items.push(item);
     });
     return Object.values(map);
   }, [filtered]);
+
+  // Dược sĩ: lọc chỉ đơn cần giao khi bật filter
+  const displayGroups = useMemo(() => {
+    if (userRole === "duocsi" && duocsiFilter)
+      return grouped.filter(g => g.payment_status === "Da thanh toan" && g.dispense_status === "Chua giao");
+    return grouped;
+  }, [grouped, userRole, duocsiFilter]);
 
   // Lọc thuốc theo loại thuốc đã chọn
   const getThuocByLoai = (malt) => {
@@ -147,6 +162,13 @@ export default function DonThuocPage() {
       .catch(err => message.error(err.response?.data?.message || "Không thể xóa!"));
   };
 
+  const handleGiaoThuoc = () => {
+    if (!showGiaoConfirm) return;
+    axios.put(`http://localhost:4000/api/don-thuoc/giao/${showGiaoConfirm.madt}`, {}, { withCredentials: true })
+      .then(() => { message.success("Đã xác nhận giao thuốc!"); setShowGiaoConfirm(null); loadData(); })
+      .catch(err => message.error(err.response?.data?.message || "Có lỗi xảy ra!"));
+  };
+
   const handleTinhTien = () => {
     if (!tongTienMapk) { message.warning("Vui lòng chọn phiếu khám!"); return; }
     axios.get(`http://localhost:4000/api/don-thuoc/tong-tien/${tongTienMapk}`, { withCredentials: true })
@@ -196,7 +218,15 @@ export default function DonThuocPage() {
                 <i className="fas fa-search"></i>
                 <input placeholder="Tìm theo mã PK, tên BN, loại thuốc, tên thuốc..." value={search} onChange={(e) => setSearch(e.target.value)} />
               </div>
-              <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng: <strong style={{ color: "#2563eb" }}>{grouped.length}</strong> đơn thuốc</div>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                {userRole === "duocsi" && (
+                  <label className="filter-toggle">
+                    <input type="checkbox" checked={duocsiFilter} onChange={e => setDuocsiFilter(e.target.checked)} />
+                    <span>Chỉ xem đơn cần giao</span>
+                  </label>
+                )}
+                <div style={{ fontSize: "0.85rem", color: "#6b7280" }}>Tổng: <strong style={{ color: "#2563eb" }}>{displayGroups.length}</strong> đơn thuốc</div>
+              </div>
             </div>
             <div style={{ overflowX: "auto" }}>
               <table className="data-table">
@@ -207,12 +237,15 @@ export default function DonThuocPage() {
                     <th>Mã PK</th>
                     <th>Bệnh nhân</th>
                     <th style={{ textAlign: "center" }}>Số thuốc</th>
+                    <th style={{ textAlign: "center" }}>Thanh toán</th>
+                    <th style={{ textAlign: "center" }}>Giao thuốc</th>
+                    {userRole === "duocsi" && <th style={{ textAlign: "center" }}>Thảo tác</th>}
                   </tr>
                 </thead>
                 <tbody>
-                  {grouped.length === 0 ? (
-                    <tr><td colSpan="5" className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
-                  ) : grouped.map(g => {
+                  {displayGroups.length === 0 ? (
+                    <tr><td colSpan={userRole === "duocsi" ? 8 : 7} className="empty-state"><p>Chưa có dữ liệu</p></td></tr>
+                  ) : displayGroups.map(g => {
                     const isOpen = expandedDt === g.madt;
                     return (
                       <React.Fragment key={g.madt}>
@@ -224,10 +257,29 @@ export default function DonThuocPage() {
                           <td className="code-cell">PK-{String(g.mapk).padStart(3, "0")}</td>
                           <td>{g.tenbn || "—"}</td>
                           <td style={{ textAlign: "center", fontWeight: 600, color: "#2563eb" }}>{g.items.length}</td>
+                          <td style={{ textAlign: "center" }}>
+                            <span className={`status-badge ${g.payment_status === "Da thanh toan" ? "badge-paid" : "badge-unpaid"}`}>
+                              {g.payment_status === "Da thanh toan" ? "Đã TT" : "Chưa TT"}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: "center" }}>
+                            <span className={`status-badge ${g.dispense_status === "Da giao" ? "badge-dispensed" : "badge-pending"}`}>
+                              {g.dispense_status === "Da giao" ? "Đã giao" : "Chưa giao"}
+                            </span>
+                          </td>
+                          {userRole === "duocsi" && (
+                            <td style={{ textAlign: "center" }} onClick={e => e.stopPropagation()}>
+                              {g.payment_status === "Da thanh toan" && g.dispense_status === "Chua giao" && (
+                                <button className="btn-giao" onClick={() => setShowGiaoConfirm(g)}>
+                                  <i className="fas fa-box-open"></i> Giao thuốc
+                                </button>
+                              )}
+                            </td>
+                          )}
                         </tr>
                         {isOpen && (
                           <tr className="dt-row-detail">
-                            <td colSpan="5" style={{ padding: 0 }}>
+                            <td colSpan={userRole === "duocsi" ? 8 : 7} style={{ padding: 0 }}>
                               <div className="dt-detail-wrapper">
                                 <table className="dt-detail-table">
                                   <thead>
@@ -271,7 +323,7 @@ export default function DonThuocPage() {
               </table>
             </div>
             <div className="table-pagination">
-              <div>Hiển thị <strong>{grouped.length}</strong> đơn thuốc</div>
+              <div>Hiển thị <strong>{displayGroups.length}</strong> đơn thuốc</div>
             </div>
           </div>
         </div>
@@ -384,6 +436,20 @@ export default function DonThuocPage() {
             <div className="confirm-actions">
               <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Hủy</button>
               <button className="btn-danger" onClick={handleDelete}>Xóa</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGiaoConfirm && (
+        <div className="modal-overlay" onClick={() => setShowGiaoConfirm(null)}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-icon confirm-icon-green"><i className="fas fa-box-open"></i></div>
+            <h3>Xác nhận giao thuốc</h3>
+            <p>Xác nhận đã giao thuốc đơn <strong>ĐT-{String(showGiaoConfirm.madt).padStart(3, "0")}</strong> cho bệnh nhân <strong>{showGiaoConfirm.tenbn}</strong>?</p>
+            <div className="confirm-actions">
+              <button className="btn-cancel" onClick={() => setShowGiaoConfirm(null)}>Hủy</button>
+              <button className="btn-giao-confirm" onClick={handleGiaoThuoc}><i className="fas fa-check"></i> Xác nhận giao</button>
             </div>
           </div>
         </div>

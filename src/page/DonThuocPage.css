@@ -258,3 +258,97 @@
     overflow-x: auto;
   }
 }
+
+/* ===== STATUS BADGES ===== */
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+.badge-unpaid {
+  background: #fef9c3;
+  color: #92400e;
+}
+.badge-dispensed {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.badge-pending {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ===== NÚT GIAO THUỐC (dược sĩ) ===== */
+.btn-giao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-giao:hover {
+  background: #1d4ed8;
+}
+
+.btn-giao-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-giao-confirm:hover {
+  background: #047857;
+}
+
+/* Icon xanh lá trong dialog xác nhận giao */
+.confirm-icon-green {
+  width: 3.5rem;
+  height: 3.5rem;
+  background: #dcfce7;
+  color: #059669;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 1rem;
+}
+
+/* Filter toggle cho dược sĩ */
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+.filter-toggle input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
