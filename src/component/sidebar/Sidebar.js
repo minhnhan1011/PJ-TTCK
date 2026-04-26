@@ -8,11 +8,11 @@ const navItems = [
   { to: "/nhan-vien", icon: "fa-user-md", label: "Quản lý Nhân sự", roles: ["admin","tieptan"] },
   { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Quản lý Đăng ký", roles: ["tieptan"] },
   { to: "/dich-vu", icon: "fa-microscope", label: "Dịch vụ y tế", roles: ["admin", "tieptan"] },
-  { to: "/kham-benh", icon: "fa-stethoscope", label: "Quản lý Khám bệnh", roles: ["bacsi","ktv"] },
+  { to: "/kham-benh", icon: "fa-stethoscope", label: "Quản lý Khám bệnh", roles: ["bacsi"] },
   { to: "/loai-thuoc", icon: "fa-pills", label: "Quản lý Loại thuốc", roles: ["admin", "duocsi"] },
   { to: "/don-thuoc", icon: "fa-prescription-bottle-alt", label: "Quản lý Đơn thuốc", roles: ["bacsi","duocsi","tieptan"] },
-  { to: "/thuoc", icon: "fa-capsules", label: "Quản lý Thuốc", roles: ["admin", "duocsi"] },
-  { to: "/xet-nghiem", icon: "fa-flask", label: "Phiếu Xét nghiệm", roles: ["bacsi", "ktv"] },
+  { to: "/thuoc", icon: "fa-capsules", label: "Quản lý Thuốc", roles: ["admin","duocsi"] },
+  { to: "/xet-nghiem", icon: "fa-flask", label: "Phiếu Xét nghiệm", roles: ["ktv"] },
   { to: "/thanh-toan", icon: "fa-credit-card", label: "Quản lý Thanh toán", roles: ["tieptan","admin"] },
 ];
 

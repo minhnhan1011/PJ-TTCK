@@ -43,7 +43,7 @@ function ModalChiTietChiPhi({ data, onClose }) {
         madk: data.madk,
         hoten: data.hoten,
         tongTien: data.tongTien,
-      })
+      }),
     );
     onClose();
     navigate("/thanh-toan");
@@ -58,7 +58,9 @@ function ModalChiTietChiPhi({ data, onClose }) {
       >
         <div className="modal-form-header">
           <h3>Chi tiết chi phí: {data.hoten}</h3>
-          <button className="btn-close" onClick={onClose}>×</button>
+          <button className="btn-close" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="modal-form-body">
@@ -73,13 +75,17 @@ function ModalChiTietChiPhi({ data, onClose }) {
             <tbody>
               {danhSachDV.length === 0 ? (
                 <tr>
-                  <td colSpan="2" style={{ textAlign: "center" }}>Chưa có dịch vụ.</td>
+                  <td colSpan="2" style={{ textAlign: "center" }}>
+                    Chưa có dịch vụ.
+                  </td>
                 </tr>
               ) : (
                 danhSachDV.map((ct, idx) => (
                   <tr key={idx}>
                     <td>{ct.ten}</td>
-                    <td style={{ textAlign: "right" }}>{(ct.gia || 0).toLocaleString()} đ</td>
+                    <td style={{ textAlign: "right" }}>
+                      {(ct.gia || 0).toLocaleString()} đ
+                    </td>
                   </tr>
                 ))
               )}
@@ -98,14 +104,18 @@ function ModalChiTietChiPhi({ data, onClose }) {
             <tbody>
               {danhSachThuoc.length === 0 ? (
                 <tr>
-                  <td colSpan="3" style={{ textAlign: "center" }}>Chưa có thuốc.</td>
+                  <td colSpan="3" style={{ textAlign: "center" }}>
+                    Chưa có thuốc.
+                  </td>
                 </tr>
               ) : (
                 danhSachThuoc.map((ct, idx) => (
                   <tr key={idx}>
                     <td>{ct.ten}</td>
                     <td>{ct.soluong}</td>
-                    <td style={{ textAlign: "right" }}>{(ct.thanh_tien || 0).toLocaleString()} đ</td>
+                    <td style={{ textAlign: "right" }}>
+                      {(ct.thanh_tien || 0).toLocaleString()} đ
+                    </td>
                   </tr>
                 ))
               )}
@@ -126,13 +136,18 @@ function ModalChiTietChiPhi({ data, onClose }) {
         </div>
 
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>Đóng</button>
+          <button className="btn-cancel" onClick={onClose}>
+            Đóng
+          </button>
           <button
             className="btn-save"
             style={{ background: "#16a34a", borderColor: "#16a34a" }}
             onClick={handleChuyenThanhToan}
           >
-            <i className="fas fa-credit-card" style={{ marginRight: "0.4rem" }} />
+            <i
+              className="fas fa-credit-card"
+              style={{ marginRight: "0.4rem" }}
+            />
             Thanh toán ngay
           </button>
         </div>
@@ -149,7 +164,16 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
   useEffect(() => {
     fetch("http://localhost:4000/api/dich-vu", { credentials: "include" })
       .then((res) => res.json())
-      .then((data) => setDanhSachDV(Array.isArray(data) ? data : []))
+      .then((data) => {
+        const ds = Array.isArray(data) ? data : [];
+
+        // 👉 CHỈ LẤY DỊCH VỤ "HOẠT ĐỘNG"
+        const filtered = ds.filter((dv) => dv.trangthai === "Hoat dong");
+
+        console.log("Dịch vụ sau filter:", filtered);
+
+        setDanhSachDV(filtered);
+      })
       .catch((err) => {
         console.error("Lỗi lấy dịch vụ:", err);
         setDanhSachDV([]);
@@ -161,7 +185,9 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
       message.warning("Vui lòng chọn một loại dịch vụ xét nghiệm!");
       return;
     }
-    const existing = JSON.parse(localStorage.getItem("xetnghiem_queue") || "[]");
+    const existing = JSON.parse(
+      localStorage.getItem("xetnghiem_queue") || "[]",
+    );
     const dvInfo = danhSachDV.find((d) => d.madv === parseInt(selectedDV));
 
     if (!dvInfo) {
@@ -185,9 +211,14 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-form modal-confirm" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-form modal-confirm"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-form-header">
-          <h3><i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm</h3>
+          <h3>
+            <i className="fas fa-flask" /> Xác nhận yêu cầu xét nghiệm
+          </h3>
         </div>
         <div className="modal-form-body">
           <p className="confirm-question">Chọn loại dịch vụ cần thực hiện:</p>
@@ -196,7 +227,12 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
               className="form-control"
               value={selectedDV}
               onChange={(e) => setSelectedDV(e.target.value)}
-              style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ddd" }}
+              style={{
+                width: "100%",
+                padding: "10px",
+                borderRadius: "5px",
+                border: "1px solid #ddd",
+              }}
             >
               <option value="">-- Chọn dịch vụ --</option>
               {danhSachDV?.map((dv) => (
@@ -214,7 +250,9 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
           </div>
         </div>
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy</button>
+          <button className="btn-cancel" onClick={onClose}>
+            Hủy
+          </button>
           <button className="btn-save btn-xetnghiem" onClick={handleXacNhan}>
             Có, gửi yêu cầu
           </button>
@@ -256,7 +294,10 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
       <div className="modal-form" onClick={(e) => e.stopPropagation()}>
         <div className="modal-form-header">
           <h3>
-            <i className="fas fa-stethoscope" style={{ marginRight: "0.5rem", color: "#2563eb" }} />
+            <i
+              className="fas fa-stethoscope"
+              style={{ marginRight: "0.5rem", color: "#2563eb" }}
+            />
             Cập nhật trạng thái khám
           </h3>
           <button className="btn-close" onClick={onClose}>
@@ -282,9 +323,24 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
             <label style={{ fontWeight: 600 }}>Trạng thái khám</label>
             <div className="trang-thai-options">
               {[
-                { value: "Cho kham", label: "Chờ khám", icon: "fa-clock", color: "#f97316" },
-                { value: "Dang kham", label: "Đang khám", icon: "fa-user-md", color: "#22c55e" },
-                { value: "Hoan thanh", label: "Hoàn thành", icon: "fa-check-circle", color: "#8b5cf6" },
+                {
+                  value: "Cho kham",
+                  label: "Chờ khám",
+                  icon: "fa-clock",
+                  color: "#f97316",
+                },
+                {
+                  value: "Dang kham",
+                  label: "Đang khám",
+                  icon: "fa-user-md",
+                  color: "#22c55e",
+                },
+                {
+                  value: "Hoan thanh",
+                  label: "Hoàn thành",
+                  icon: "fa-check-circle",
+                  color: "#8b5cf6",
+                },
               ].map(({ value, label, icon, color }) => (
                 <label
                   key={value}
@@ -305,8 +361,14 @@ function ModalCapNhatTrangThai({ item, onClose, onSaved }) {
           </div>
         </div>
         <div className="modal-form-footer">
-          <button className="btn-cancel" onClick={onClose}>Hủy</button>
-          <button className="btn-save" onClick={handleLuu} disabled={submitting}>
+          <button className="btn-cancel" onClick={onClose}>
+            Hủy
+          </button>
+          <button
+            className="btn-save"
+            onClick={handleLuu}
+            disabled={submitting}
+          >
             <i className="fas fa-save" style={{ marginRight: "0.4rem" }} />
             {submitting ? "Đang lưu..." : "Lưu trạng thái"}
           </button>
@@ -337,13 +399,18 @@ function ModalXacNhanXoa({ item, onClose, onDeleted }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
-        <div className="confirm-icon" style={{ color: "#dc2626" }}>
-          <i className="fas fa-trash-alt" style={{ fontSize: "2rem" }} />
+        <div className="confirm-icon-wrap">
+          <div
+            className="confirm-icon"
+            style={{ background: "#fee2e2", color: "#dc2626" }}
+          >
+            <i className="fas fa-trash-alt" style={{ fontSize: "1.8rem" }} />
+          </div>
         </div>
         <h3>Xóa phiếu khám?</h3>
         <p>
-          Bạn có chắc muốn xóa phiếu khám của{" "}
-          <strong>{item.hoten}</strong> (Mã: {item.madk})?
+          Bạn có chắc muốn xóa phiếu khám của <strong>{item.hoten}</strong> (Mã:{" "}
+          {item.madk})?
           <br />
           <span style={{ color: "#dc2626", fontSize: "0.85rem" }}>
             Hành động này không thể hoàn tác.
@@ -412,8 +479,8 @@ export default function KhamBenhPage() {
   };
 
   const danhSachLoc = danhSach.filter((d) => {
-    const khopSearch = [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some((f) =>
-      f.toLowerCase().includes(search.toLowerCase())
+    const khopSearch = [String(d.madk), d.hoten ?? "", d.tenbs ?? ""].some(
+      (f) => f.toLowerCase().includes(search.toLowerCase()),
     );
     const khopTT = filterTT ? d.trangthai === filterTT : true;
     return khopSearch && khopTT;
@@ -485,7 +552,9 @@ export default function KhamBenhPage() {
                             <td>{item.hoten}</td>
                             <td>{item.tenbs ?? "—"}</td>
                             <td>
-                              {new Date(item.ngaydangky).toLocaleDateString("vi-VN")}
+                              {new Date(item.ngaydangky).toLocaleDateString(
+                                "vi-VN",
+                              )}
                             </td>
                             <td>
                               <span className={`badge ${tt?.className ?? ""}`}>

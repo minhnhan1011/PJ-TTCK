@@ -124,6 +124,7 @@
 }
 
 /* workaround for browsers without color-mix support */
+/* SỬA LẠI ĐOẠN NÀY */
 @supports not (background: color-mix(in srgb, red 50%, blue)) {
   .tt-option:hover {
     background: #f0f7ff;
@@ -131,18 +132,33 @@
   .tt-option-active {
     background: #e0f2fe !important;
   }
+}
+
+/* Các thuộc tính vòng tròn icon confirm cần được đưa vào đúng class */
+.confirm-icon-wrap .confirm-icon {
   border-radius: 50%;
   background: #e0f2fe;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.8rem; color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #0284c7;
+  width: 64px;  /* Thêm kích thước để tạo thành hình tròn */
+  height: 64px;
+  margin: 0 auto; /* Căn giữa */
 }
+
 .confirm-question {
   text-align: center;
   font-size: 1rem;
   color: #374151;
   margin-bottom: 1rem;
 }
+
 .btn-xetnghiem {
   background: #0284c7 !important;
 }
-.btn-xetnghiem:hover { background: #0369a1 !important; }
+
+.btn-xetnghiem:hover {
+  background: #0369a1 !important;
+}

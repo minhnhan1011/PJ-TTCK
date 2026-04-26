@@ -59,9 +59,43 @@ const verifyUser = (req, res, next) => {
     });
   }
 };
+const verifyRole = (roles) => {
+  return (req, res, next) => {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(401).json({ message: "Chưa đăng nhập" });
+    }
+
+    jwt.verify(token, "jwt-secret-key", (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ message: "Token không hợp lệ" });
+      }
+
+      if (!roles.includes(decoded.vaitro)) {
+        return res.status(403).json({ message: "Không có quyền truy cập" });
+      }
+
+      req.user = decoded;
+      next();
+    });
+  };
+};
 
 app.get("/auth", verifyUser, (req, res) => {
-  return res.json({ Status: "Success", name: req.name, matk: req.matk });
+  const token = req.cookies.token;
+
+  jwt.verify(token, "jwt-secret-key", (err, decoded) => {
+    if (err) {
+      return res.json({ Status: "Error" });
+    }
+
+    return res.json({
+      Status: "Success",
+      name: decoded.name,
+      matk: decoded.matk,
+      vaitro: decoded.vaitro,
+    });
+  });
 });
 app.get("/logout", function (req, res) {
   res.clearCookie("token");
@@ -190,7 +224,6 @@ app.get("/phieuthu", (req, res) => {
     return res.json(data);
   });
 });
-
 
 // THÊM route xóa phiếu thu
 app.delete("/xoaphieuthu/:mapt", (req, res) => {
@@ -434,18 +467,33 @@ app.put("/api/dang-ky-kham/:madk", (req, res) => {
 
       // Khi chuyển sang "Dang kham" hoặc "Hoan thanh", tự động tạo phiếu khám nếu chưa có
       if (trangthai === "Dang kham" || trangthai === "Hoan thanh") {
-        db.query("SELECT mapk FROM phieukham WHERE madk=?", [madk], (err2, rows) => {
-          if (err2) return res.json({ message: "Cập nhật thành công (lỗi tạo PK)" });
-          if (rows.length > 0) return res.json({ message: "Cập nhật thành công", mapk: rows[0].mapk });
-          db.query(
-            "INSERT INTO phieukham (madk, manv, chuandoan, ngaykham) VALUES (?, ?, ?, NOW())",
-            [madk, manv, chuandoan || null],
-            (err3, result) => {
-              if (err3) return res.json({ message: "Cập nhật thành công (lỗi tạo PK)" });
-              res.json({ message: "Cập nhật thành công", mapk: result.insertId });
-            }
-          );
-        });
+        db.query(
+          "SELECT mapk FROM phieukham WHERE madk=?",
+          [madk],
+          (err2, rows) => {
+            if (err2)
+              return res.json({ message: "Cập nhật thành công (lỗi tạo PK)" });
+            if (rows.length > 0)
+              return res.json({
+                message: "Cập nhật thành công",
+                mapk: rows[0].mapk,
+              });
+            db.query(
+              "INSERT INTO phieukham (madk, manv, chuandoan, ngaykham) VALUES (?, ?, ?, NOW())",
+              [madk, manv, chuandoan || null],
+              (err3, result) => {
+                if (err3)
+                  return res.json({
+                    message: "Cập nhật thành công (lỗi tạo PK)",
+                  });
+                res.json({
+                  message: "Cập nhật thành công",
+                  mapk: result.insertId,
+                });
+              },
+            );
+          },
+        );
       } else {
         res.json({ message: "Cập nhật thành công" });
       }
@@ -571,11 +619,20 @@ app.post("/api/don-thuoc", verifyUser, (req, res) => {
   db.query("SELECT madt FROM donthuoc WHERE mapk=?", [mapk], (err, rows) => {
     if (err) return res.status(500).json({ message: err.message });
     const insertDetails = (madt) => {
-      const values = validItems.map((i) => [madt, i.mat, i.soluong, i.lieudung || ""]);
-      db.query("INSERT INTO chitiet_donthuoc (madt, mat, soluong, lieudung) VALUES ?", [values], (err2) => {
-        if (err2) return res.status(500).json({ message: err2.message });
-        res.json({ Status: "Success" });
-      });
+      const values = validItems.map((i) => [
+        madt,
+        i.mat,
+        i.soluong,
+        i.lieudung || "",
+      ]);
+      db.query(
+        "INSERT INTO chitiet_donthuoc (madt, mat, soluong, lieudung) VALUES ?",
+        [values],
+        (err2) => {
+          if (err2) return res.status(500).json({ message: err2.message });
+          res.json({ Status: "Success" });
+        },
+      );
     };
     if (rows.length > 0) {
       insertDetails(rows[0].madt);
@@ -603,10 +660,14 @@ app.put("/api/don-thuoc/:id", verifyUser, (req, res) => {
 });
 
 app.delete("/api/don-thuoc/:id", verifyUser, (req, res) => {
-  db.query("DELETE FROM chitiet_donthuoc WHERE mact=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json({ Status: "Success" });
-  });
+  db.query(
+    "DELETE FROM chitiet_donthuoc WHERE mact=?",
+    [req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json({ Status: "Success" });
+    },
+  );
 });
 
 // GET - Dược sĩ xem danh sách đơn thuốc đã thanh toán, chờ giao
@@ -640,26 +701,34 @@ app.put("/api/don-thuoc/giao/:madt", verifyUser, (req, res) => {
   const checkSql = `SELECT payment_status, dispense_status FROM donthuoc WHERE madt = ?`;
   db.query(checkSql, [madt], (err, rows) => {
     if (err) return res.status(500).json({ message: err.message });
-    if (rows.length === 0) return res.status(404).json({ message: "Không tìm thấy đơn thuốc" });
-    if (rows[0].payment_status !== 'Da thanh toan') {
-      return res.status(400).json({ message: "Đơn thuốc chưa được thanh toán, không thể giao" });
+    if (rows.length === 0)
+      return res.status(404).json({ message: "Không tìm thấy đơn thuốc" });
+    if (rows[0].payment_status !== "Da thanh toan") {
+      return res
+        .status(400)
+        .json({ message: "Đơn thuốc chưa được thanh toán, không thể giao" });
     }
-    if (rows[0].dispense_status === 'Da giao') {
+    if (rows[0].dispense_status === "Da giao") {
       return res.status(400).json({ message: "Đơn thuốc đã được giao rồi" });
     }
     // Lấy manv của dược sĩ đang đăng nhập từ token
-    db.query("SELECT manv FROM taikhoan WHERE matk = ?", [req.matk], (errManv, manvRows) => {
-      const dispensed_by = manvRows && manvRows.length > 0 ? manvRows[0].manv : null;
-      const updateSql = `
+    db.query(
+      "SELECT manv FROM taikhoan WHERE matk = ?",
+      [req.matk],
+      (errManv, manvRows) => {
+        const dispensed_by =
+          manvRows && manvRows.length > 0 ? manvRows[0].manv : null;
+        const updateSql = `
         UPDATE donthuoc
         SET dispense_status = 'Da giao', dispensed_at = NOW(), dispensed_by = ?
         WHERE madt = ?
       `;
-      db.query(updateSql, [dispensed_by, madt], (err2) => {
-        if (err2) return res.status(500).json({ message: err2.message });
-        res.json({ message: "Đã giao thuốc thành công" });
-      });
-    });
+        db.query(updateSql, [dispensed_by, madt], (err2) => {
+          if (err2) return res.status(500).json({ message: err2.message });
+          res.json({ message: "Đã giao thuốc thành công" });
+        });
+      },
+    );
   });
 });
 
@@ -714,10 +783,14 @@ app.get("/api/phieukham/list", verifyUser, (req, res) => {
 
 // Lấy thuốc theo loại (phục vụ cascading select khi kê đơn)
 app.get("/api/thuoc-theo-loai/:malt", verifyUser, (req, res) => {
-  db.query("SELECT * FROM thuoc WHERE malt=? AND trangthai='Con han' ORDER BY tent", [req.params.malt], (err, data) => {
-    if (err) return res.status(500).json({ message: err.message });
-    res.json(data);
-  });
+  db.query(
+    "SELECT * FROM thuoc WHERE malt=? AND trangthai='Con han' ORDER BY tent",
+    [req.params.malt],
+    (err, data) => {
+      if (err) return res.status(500).json({ message: err.message });
+      res.json(data);
+    },
+  );
 });
 
 app.get("/api/thuoc", verifyUser, (req, res) => {
@@ -819,18 +892,17 @@ app.listen(4000, () => {
   console.log("Server running on port 4000");
 });
 // GET - Lấy danh sách dịch vụ
-
-app.get("/api/dich-vu", verifyUser, (req, res) => {
-  const sql = "SELECT * FROM dichvu ORDER BY madv DESC";
-  db.query(sql, (err, data) => {
-    if (err)
-      return res.status(500).json({ message: "Lỗi truy vấn", error: err });
-    res.json(data);
+app.get("/api/dich-vu", (req, res) => {
+  const sql = "SELECT * FROM dichvu"; 
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json(err);
+    return res.json(result);
   });
 });
 
+
 // POST - Thêm dịch vụ mới
-app.post("/api/dich-vu", verifyUser, (req, res) => {
+app.post("/api/dich-vu", verifyRole(["admin"]), (req, res) => {
   // THÊM: lấy trangthai từ body
   const { tendv, gia, trangthai } = req.body;
   // SỬA: thêm cột trangthai vào câu lệnh SQL
@@ -843,7 +915,7 @@ app.post("/api/dich-vu", verifyUser, (req, res) => {
 });
 
 // PUT - Cập nhật dịch vụ
-app.put("/api/dich-vu/:madv", verifyUser, (req, res) => {
+app.put("/api/dich-vu/:madv", verifyRole(["admin"]), (req, res) => {
   // THÊM: lấy trangthai từ body
   const { tendv, gia, trangthai } = req.body;
   const { madv } = req.params;
@@ -857,14 +929,13 @@ app.put("/api/dich-vu/:madv", verifyUser, (req, res) => {
 });
 
 // DELETE - Xóa dịch vụ
-app.delete("/api/dich-vu/:madv", verifyUser, (req, res) => {
+app.delete("/api/dich-vu/:madv", verifyRole(["admin"]), (req, res) => {
   const { madv } = req.params;
   db.query("DELETE FROM dichvu WHERE madv=?", [madv], (err) => {
     if (err) return res.status(500).json({ message: "Lỗi xóa", error: err });
     res.json({ message: "Xóa thành công" });
   });
 });
-
 // API Hoàn thành xét nghiệm
 app.post("/api/hoan-thanh-xet-nghiem", (req, res) => {
   const { madk, ketqua, ghichu, madv, mapk } = req.body;
@@ -932,10 +1003,10 @@ app.post("/api/hoan-thanh-kham", (req, res) => {
   });
 });
 app.get("/api/chi-phi-kham/:madk", (req, res) => {
-    const madk = req.params.madk;
-    
-    // Câu lệnh lấy cả tiền thuốc và tiền dịch vụ dựa trên mã đăng ký (madk)
-    const sql = `
+  const madk = req.params.madk;
+
+  // Câu lệnh lấy cả tiền thuốc và tiền dịch vụ dựa trên mã đăng ký (madk)
+  const sql = `
         SELECT 'Thuoc' as loai, t.tent as ten, ct.soluong, t.dongia as gia, (ct.soluong * t.dongia) as thanh_tien
         FROM chitiet_donthuoc ct 
         JOIN donthuoc dt ON ct.madt = dt.madt
@@ -953,20 +1024,22 @@ app.get("/api/chi-phi-kham/:madk", (req, res) => {
         WHERE pk.madk = ?
     `;
 
-    db.query(sql, [madk, madk], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: "Lỗi lấy chi phí hệ thống" });
-        }
-        
-        const tongTien = results.reduce((sum, item) => sum + (Number(item.thanh_tien) || 0), 0);
-        res.json({
-            chiTiet: results,
-            tongTien: tongTien
-        });
-    });
-});
+  db.query(sql, [madk, madk], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Lỗi lấy chi phí hệ thống" });
+    }
 
+    const tongTien = results.reduce(
+      (sum, item) => sum + (Number(item.thanh_tien) || 0),
+      0,
+    );
+    res.json({
+      chiTiet: results,
+      tongTien: tongTien,
+    });
+  });
+});
 
 app.delete("/api/dang-ky-kham/:madk", (req, res) => {
   const { madk } = req.params;
@@ -975,4 +1048,3 @@ app.delete("/api/dang-ky-kham/:madk", (req, res) => {
     res.json({ success: true });
   });
 });
-

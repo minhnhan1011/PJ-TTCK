@@ -16,8 +16,9 @@
 
 /* Khi là Ngừng hoạt động -> Màu đỏ */
 .status-badge.inactive {
-  background-color: #ffebee !important;
-  color: #c62828 !important;
+    background-color: #fff1f0; /* Nền đỏ nhạt */
+    color: #f5222d;            /* Chữ đỏ */
+    border: 1px solid #ffa39e;
 }
 
 /* Modal Overlay */

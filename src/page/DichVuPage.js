@@ -12,13 +12,17 @@ export default function DichVuPage() {
   const [editItem, setEditItem] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     tendv: "",
     gia: "",
-    trangthai: "Hoạt động",
+    trangthai: "Hoat dong",
   });
   const [formErrors, setFormErrors] = useState({});
   const [showConfirm, setShowConfirm] = useState(null);
+
+  // 👉 LẤY ROLE TỪ LOCALSTORAGE
+  const role = localStorage.getItem("vaitro");
 
   axios.defaults.withCredentials = true;
 
@@ -26,6 +30,7 @@ export default function DichVuPage() {
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:4000/api/dich-vu");
+      // Sắp xếp dữ liệu theo mã dịch vụ tăng dần
       const sortedData = res.data.sort((a, b) => a.madv - b.madv);
       setData(sortedData);
     } catch (err) {
@@ -40,13 +45,15 @@ export default function DichVuPage() {
   }, []);
 
   const openAdd = () => {
+    if (role !== "admin") return;
     setEditItem(null);
-    setForm({ tendv: "", gia: "", trangthai: "Hoạt động" });
+    setForm({ tendv: "", gia: "", trangthai: "Hoat dong" });
     setFormErrors({});
     setShowModal(true);
   };
 
   const openEdit = (item) => {
+    if (role !== "admin") return;
     setEditItem(item);
     setForm({ tendv: item.tendv, gia: item.gia, trangthai: item.trangthai });
     setFormErrors({});
@@ -54,6 +61,11 @@ export default function DichVuPage() {
   };
 
   const handleSave = async () => {
+    if (role !== "admin") {
+      message.error("Bạn không có quyền thực hiện thao tác này!");
+      return;
+    }
+
     if (!form.tendv || !form.gia) {
       setFormErrors({
         tendv: !form.tendv ? "Vui lòng nhập tên dịch vụ" : "",
@@ -85,6 +97,7 @@ export default function DichVuPage() {
   };
 
   const handleDelete = async () => {
+    if (role !== "admin") return;
     try {
       await axios.delete(`http://localhost:4000/api/dich-vu/${showConfirm}`);
       message.success("Xóa dịch vụ thành công!");
@@ -110,9 +123,13 @@ export default function DichVuPage() {
               <h1>Danh mục Dịch vụ Khám & Xét nghiệm</h1>
               <p>Quản lý cấu hình đơn giá dịch vụ y tế.</p>
             </div>
-            <button className="btn-primary" onClick={openAdd}>
-              <i className="fas fa-plus-circle"></i> Thêm Dịch vụ mới
-            </button>
+
+            {/* 👉 CHỈ ADMIN THẤY NÚT THÊM */}
+            {role === "admin" && (
+              <button className="btn-primary" onClick={openAdd}>
+                <i className="fas fa-plus-circle"></i> Thêm Dịch vụ mới
+              </button>
+            )}
           </div>
 
           <Spin spinning={loading} tip="Đang tải...">
@@ -127,21 +144,25 @@ export default function DichVuPage() {
                   />
                 </div>
               </div>
+
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th style={{ width: "100px" }}>Mã DV</th>
+                    <th style={{ width: "100px" }}>STT</th>
                     <th>Tên Dịch vụ</th>
                     <th style={{ textAlign: "right" }}>Giá Dịch vụ (VNĐ)</th>
                     <th style={{ textAlign: "center" }}>Trạng thái</th>
-                    <th style={{ textAlign: "right" }}>Thao tác</th>
+                    {/* 👉 CHỈ HIỆN TIÊU ĐỀ CỘT THAO TÁC NẾU LÀ ADMIN */}
+                    {role === "admin" && (
+                      <th style={{ textAlign: "right" }}>Thao tác</th>
+                    )}
                   </tr>
                 </thead>
+
                 <tbody>
                   {filteredData.map((item, index) => (
                     <tr key={item.madv}>
-                      {/* index bắt đầu từ 0, nên +1 sẽ ra 1, 2, 3... theo đúng thứ tự hàng */}
-                      <td>DV{index + 1}</td>
+                      <td>{index + 1}</td>
                       <td>
                         <strong>{item.tendv}</strong>
                       </td>
@@ -150,25 +171,31 @@ export default function DichVuPage() {
                       </td>
                       <td style={{ textAlign: "center" }}>
                         <span
-                          className={`status-badge ${item.trangthai === "Hoạt động" ? "active" : "inactive"}`}
+                          className={`status-badge ${item.trangthai === "Hoat dong" ? "active" : "inactive"}`}
                         >
-                          {item.trangthai}
+                          {item.trangthai === "Hoat dong"
+                            ? "Hoạt động"
+                            : "Ngưng nhận"}
                         </span>
                       </td>
-                      <td style={{ textAlign: "right" }}>
-                        <button
-                          className="btn-icon edit"
-                          onClick={() => openEdit(item)}
-                        >
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button
-                          className="btn-icon delete"
-                          onClick={() => setShowConfirm(item.madv)}
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
-                      </td>
+
+                      {/*CHỈ HIỆN CÁC NÚT SỬA/XÓA NẾU LÀ ADMIN */}
+                      {role === "admin" && (
+                        <td style={{ textAlign: "right" }}>
+                          <button
+                            className="btn-icon edit"
+                            onClick={() => openEdit(item)}
+                          >
+                            <i className="fas fa-edit"></i>
+                          </button>
+                          <button
+                            className="btn-icon delete"
+                            onClick={() => setShowConfirm(item.madv)}
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -178,17 +205,14 @@ export default function DichVuPage() {
         </div>
       </div>
 
-      {/* MODAL THEO GIAO DIỆN BẢNG 2 */}
-      {showModal && (
+      {/* MODAL THÊM/SỬA (CHỈ RENDER NẾU LÀ ADMIN) */}
+      {showModal && role === "admin" && (
         <div className="modal-overlay">
           <div className="modal-container">
             <div className="modal-header">
-              <div className="header-left">
-                <i className="fas fa-stethoscope modal-icon-blue"></i>
-                <span className="modal-title">
-                  {editItem ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới"}
-                </span>
-              </div>
+              <span className="modal-title">
+                {editItem ? "Cập nhật Dịch vụ" : "Thêm Dịch vụ mới"}
+              </span>
               <button
                 className="btn-close-x"
                 onClick={() => setShowModal(false)}
@@ -198,66 +222,64 @@ export default function DichVuPage() {
             </div>
 
             <div className="modal-body">
-              <div className="input-group-new">
-                <label>
-                  Tên Dịch vụ <span className="text-red">*</span>
-                </label>
+              <div className="form-group">
+                <label>Tên dịch vụ</label>
                 <input
-                  type="text"
-                  placeholder="Nhập tên dịch vụ..."
+                  className={formErrors.tendv ? "error" : ""}
+                  placeholder="Nhập tên dịch vụ"
                   value={form.tendv}
                   onChange={(e) => setForm({ ...form, tendv: e.target.value })}
-                  className={formErrors.tendv ? "input-error" : ""}
                 />
                 {formErrors.tendv && (
-                  <small className="error-text">{formErrors.tendv}</small>
+                  <span className="error-text">{formErrors.tendv}</span>
                 )}
               </div>
 
-              <div className="input-group-new">
-                <label>
-                  Giá Dịch vụ (VNĐ) <span className="text-red">*</span>
-                </label>
+              <div className="form-group">
+                <label>Giá dịch vụ</label>
                 <input
                   type="number"
-                  placeholder="VD: 200000"
+                  className={formErrors.gia ? "error" : ""}
+                  placeholder="Nhập giá tiền"
                   value={form.gia}
                   onChange={(e) => setForm({ ...form, gia: e.target.value })}
-                  className={formErrors.gia ? "input-error" : ""}
                 />
                 {formErrors.gia && (
-                  <small className="error-text">{formErrors.gia}</small>
+                  <span className="error-text">{formErrors.gia}</span>
                 )}
-                <div className="input-group-new">
-                  <label>Trạng thái</label>
-                  <select
-                    value={form.trangthai}
-                    onChange={(e) =>
-                      setForm({ ...form, trangthai: e.target.value })
-                    }
-                    className="modal-select"
-                  >
-                    <option value="Hoạt động">Hoạt động</option>
-                    <option value="Ngừng hoạt động">Ngừng hoạt động</option>
-                  </select>
-                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Trạng thái</label>
+                <select
+                  value={form.trangthai}
+                  onChange={(e) =>
+                    setForm({ ...form, trangthai: e.target.value })
+                  }
+                >
+                  <option value="Hoat dong">Hoạt động</option>
+                  <option value="Ngung nhan">Ngưng nhận</option>
+                </select>
               </div>
             </div>
 
             <div className="modal-footer">
               <button
-                className="btn-huy-new"
+                className="btn-secondary"
                 onClick={() => setShowModal(false)}
               >
                 Hủy
               </button>
               <button
-                className="btn-luu-new"
+                className="btn-primary"
                 onClick={handleSave}
                 disabled={submitting}
               >
-                <i className="fas fa-save"></i>{" "}
-                {submitting ? "Đang lưu..." : editItem ? "Cập nhật" : "Lưu"}
+                {submitting
+                  ? "Đang lưu..."
+                  : editItem
+                    ? "Cập nhật"
+                    : "Lưu dịch vụ"}
               </button>
             </div>
           </div>
@@ -267,40 +289,19 @@ export default function DichVuPage() {
       {/* MODAL XÁC NHẬN XÓA */}
       {showConfirm && (
         <div className="modal-overlay">
-          <div className="confirm-dialog">
-            <i
-              className="fas fa-exclamation-triangle"
-              style={{ color: "#ef4444", fontSize: "2rem" }}
-            ></i>
-            <h3>Xác nhận xóa?</h3>
-            <p>Dịch vụ này sẽ bị xóa vĩnh viễn khỏi danh mục.</p>
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                justifyContent: "center",
-                marginTop: "20px",
-              }}
-            >
-              <button
-                className="btn-huy-new"
-                onClick={() => setShowConfirm(null)}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-danger"
-                onClick={handleDelete}
-                style={{
-                  background: "#ef4444",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 20px",
-                  borderRadius: "6px",
-                  cursor: "pointer",
-                }}
-              >
-                Xóa
+          <div className="modal-container confirm-modal">
+            <div className="modal-body">
+              <i className="fas fa-exclamation-triangle warning-icon"></i>
+              <h3>Xác nhận xóa?</h3>
+              <p>
+                Bạn có chắc chắn muốn xóa dịch vụ này không? Hành động này không
+                thể hoàn tác.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowConfirm(null)}>Hủy</button>
+              <button className="btn-danger" onClick={handleDelete}>
+                Đồng ý xóa
               </button>
             </div>
           </div>
