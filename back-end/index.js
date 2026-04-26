@@ -857,24 +857,32 @@ app.get("/api/nhanvien", verifyUser, (req, res) => {
 });
 
 app.post("/api/nhanvien", verifyUser, (req, res) => {
-  const { hoten, chucvu, sdt, diachi } = req.body;
+  // THÊM: Lấy thêm biến trangthai từ Front-end gửi lên
+  const { hoten, chucvu, sdt, diachi, trangthai } = req.body; 
   if (!hoten || !chucvu) {
     return res.status(400).json({ Message: "Họ tên và chức vụ là bắt buộc" });
   }
+  // SỬA: Cập nhật câu lệnh INSERT để chèn trạng thái vào database
   const sql =
-    "INSERT INTO nhanvien (hoten, chucvu, sdt, diachi) VALUES (?, ?, ?, ?)";
-  db.query(sql, [hoten, chucvu, sdt, diachi], (err, result) => {
+    "INSERT INTO nhanvien (hoten, chucvu, sdt, diachi, trangthai) VALUES (?, ?, ?, ?, ?)";
+  
+  // Nếu không truyền lên thì mặc định là 1 (Đang làm)
+  const statusValue = trangthai !== undefined ? trangthai : 1; 
+
+  db.query(sql, [hoten, chucvu, sdt, diachi, statusValue], (err, result) => {
     if (err) return res.status(500).json(err);
     res.json({ Status: "Success", id: result.insertId });
   });
 });
 
 app.put("/api/nhanvien/:id", verifyUser, (req, res) => {
-  const { hoten, chucvu, sdt, diachi } = req.body;
+  // THÊM: Lấy thêm biến trangthai để cập nhật
+  const { hoten, chucvu, sdt, diachi, trangthai } = req.body;
   const id = req.params.id;
+  // SỬA: Thêm trangthai = ? vào câu lệnh UPDATE
   const sql =
-    "UPDATE nhanvien SET hoten = ?, chucvu = ?, sdt = ?, diachi = ? WHERE manv = ?";
-  db.query(sql, [hoten, chucvu, sdt, diachi, id], (err, result) => {
+    "UPDATE nhanvien SET hoten = ?, chucvu = ?, sdt = ?, diachi = ?, trangthai = ? WHERE manv = ?";
+  db.query(sql, [hoten, chucvu, sdt, diachi, trangthai, id], (err, result) => {
     if (err) return res.status(500).json(err);
     res.json({ Status: "Success" });
   });
@@ -887,7 +895,6 @@ app.delete("/api/nhanvien/:id", verifyUser, (req, res) => {
     res.json({ Status: "Success" });
   });
 });
-
 app.listen(4000, () => {
   console.log("Server running on port 4000");
 });

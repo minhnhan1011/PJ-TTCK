@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import { Table, Button, Space, message, Modal, Form, Input, Select } from 'antd';
-import { SearchOutlined } from '@ant-design/icons'; // Thêm icon tìm kiếm
+import { Table, Button, Space, message, Modal, Form, Input, Select, Tag } from 'antd'; // Thêm import Tag
+import { SearchOutlined } from '@ant-design/icons';
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import "./NhanVienPage.css";
@@ -11,7 +11,7 @@ const NhanVienPage = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [searchText, setSearchText] = useState(''); // State để lưu nội dung tìm kiếm
+  const [searchText, setSearchText] = useState('');
   const [form] = Form.useForm();
 
   const loadData = async () => {
@@ -28,7 +28,6 @@ const NhanVienPage = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  // --- LOGIC TÌM KIẾM THEO TÊN HOẶC CHỨC VỤ ---
   const filteredData = useMemo(() => {
     const lowerSearch = searchText.toLowerCase();
     return data.filter(item => 
@@ -79,12 +78,24 @@ const NhanVienPage = () => {
     });
   };
 
+  // THÊM CỘT TRẠNG THÁI VÀO ĐÂY
   const columns = [
     { title: 'Mã NV', dataIndex: 'manv', key: 'manv', width: 80 },
     { title: 'Họ tên', dataIndex: 'hoten', key: 'hoten' },
     { title: 'Chức vụ', dataIndex: 'chucvu', key: 'chucvu' },
     { title: 'Số điện thoại', dataIndex: 'sdt', key: 'sdt' },
     { title: 'Địa chỉ', dataIndex: 'diachi', key: 'diachi' },
+    {
+      title: 'Trạng thái',
+      dataIndex: 'trangthai',
+      key: 'trangthai',
+      render: (trangthai) => {
+        // Render màu sắc tùy theo trạng thái
+        let color = trangthai === 1 ? 'green' : 'volcano';
+        let text = trangthai === 1 ? 'Đang làm' : 'Nghỉ làm';
+        return <Tag color={color}>{text}</Tag>;
+      }
+    },
     {
       title: 'Thao tác',
       align: 'right',
@@ -104,7 +115,6 @@ const NhanVienPage = () => {
         <Header />
         <div className="page-content" style={{ padding: '24px' }}>
           
-          {/* PHẦN TIÊU ĐỀ VÀ TÌM KIẾM MỚI DỜI XUỐNG ĐÂY */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h2 style={{ fontWeight: 'bold', margin: 0 }}>Quản lý Nhân viên</h2>
             
@@ -121,7 +131,7 @@ const NhanVienPage = () => {
           
           <div className="table-container" style={{ background: '#fff', padding: '20px', borderRadius: '8px' }}>
             <Table 
-              dataSource={filteredData} // Sử dụng dữ liệu đã lọc
+              dataSource={filteredData} 
               columns={columns} 
               rowKey="manv" 
               loading={loading} 
@@ -152,7 +162,6 @@ const NhanVienPage = () => {
             </Select>
           </Form.Item>
 
-          {/* Ràng buộc 10 số điện thoại */}
           <Form.Item 
             name="sdt" 
             label="Số điện thoại"
@@ -167,6 +176,20 @@ const NhanVienPage = () => {
           <Form.Item name="diachi" label="Địa chỉ">
             <Input.TextArea placeholder="Nhập địa chỉ..." rows={2} />
           </Form.Item>
+
+          {/* THÊM TRƯỜNG CHỌN TRẠNG THÁI VÀO FORM */}
+          <Form.Item 
+            name="trangthai" 
+            label="Trạng thái" 
+            rules={[{ required: true, message: 'Chọn trạng thái!' }]}
+            initialValue={1} // Mặc định khi mở form thêm mới là "Đang làm"
+          >
+            <Select placeholder="Chọn trạng thái">
+              <Select.Option value={1}>Đang làm</Select.Option>
+              <Select.Option value={0}>Nghỉ làm</Select.Option>
+            </Select>
+          </Form.Item>
+
         </Form>
       </Modal>
     </div>
