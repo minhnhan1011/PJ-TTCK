@@ -180,7 +180,7 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const sql = "SELECT * FROM taikhoan WHERE tendn = ?";
+  const sql = "SELECT * FROM taikhoan WHERE tendn = ? AND matkhau=?";
   db.query(sql, [req.body.tendn, req.body.matkhau], (err, data) => {
     if (err)
       return res.json({ Status: "Error", Error: "Lỗi truy vấn dữ liệu" });
