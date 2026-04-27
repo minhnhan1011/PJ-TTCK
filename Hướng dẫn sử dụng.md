@@ -18,7 +18,6 @@
    - 3.3. [Bác Sĩ (Khám Bệnh)](#33-vai-trò-bác-sĩ-khám-bệnh)
    - 3.4. [Kỹ Thuật Viên (Xét Nghiệm)](#34-vai-trò-kỹ-thuật-viên-xét-nghiệm)
    - 3.5. [Dược Sĩ (Quản Lý Thuốc)](#35-vai-trò-dược-sĩ-quản-lý-thuốc)
-   - 3.6. [Thu Ngân (Thanh Toán)](#36-vai-trò-thu-ngân-thanh-toán)
 4. [Bảng Phân Quyền Tổng Hợp](#4-bảng-phân-quyền-tổng-hợp)
 5. [Danh Sách Trang & Đường Dẫn](#5-danh-sách-trang--đường-dẫn)
 6. [Lỗi Thường Gặp & Giải Pháp](#6-lỗi-thường-gặp--giải-pháp)
@@ -111,7 +110,6 @@ Hệ thống ClinicFlow được thiết kế để tin học hóa toàn bộ qu
 | Lễ tân | `tieptan` | Bệnh nhân, Nhân viên, Đăng ký khám, Dịch vụ, Đơn thuốc, Thanh toán |
 | Bác sĩ | `bacsi` | Khám bệnh, Đơn thuốc, Xét nghiệm |
 | Dược sĩ | `duocsi` | Loại thuốc, Thuốc, Đơn thuốc |
-| Thu ngân | `thungan` | Thanh toán |
 | Kỹ thuật viên | `ktv` | Khám bệnh, Xét nghiệm |
 
 ### 2.2. Đăng Ký (`/register`)
@@ -231,7 +229,7 @@ Hiển thị "Bảng điều khiển Giám đốc" gồm:
 
 #### F. Thanh Toán (`/thanh-toan`)
 
-*(Xem chi tiết tại mục 3.6 — Thu Ngân)*
+*(Xem chi tiết tại mục 3.2.E — Lễ Tân)*
 
 ---
 
@@ -304,9 +302,35 @@ Hiển thị "Bảng điều khiển Giám đốc" gồm:
 
 Lễ tân có quyền xem danh sách đơn thuốc nhưng **không thể** thêm/sửa/xóa.
 
-#### D. Thanh Toán (`/thanh-toan`) — Xem
+#### E. Thanh Toán (`/thanh-toan`)
 
-Lễ tân có thể xem danh sách thanh toán.
+**📌 Mục đích:** Lập hóa đơn, thu tiền, in phiếu thu
+
+**Giao diện 2 phần:**
+
+**Phần trên — 4 Thẻ Thống Kê Hôm Nay:**
+- 📝 Số hóa đơn hôm nay
+- 💰 Tổng doanh thu hôm nay
+- ⏳ Chờ thanh toán
+- ✅ Đã thanh toán
+
+**Phần dưới — 2 cột:**
+
+| Cột trái: Form tạo phiếu thu | Cột phải: Xem trước hóa đơn |
+|-------------------------------|------------------------------|
+| Chọn phiếu khám (dropdown) | Tự động render hóa đơn |
+| Tổng tiền (tự tính) | Hiển thị chi tiết: dịch vụ + thuốc |
+| Phương thức: Tiền mặt | Bệnh nhân, mã phiếu, ngày |
+| Ghi chú (tùy chọn) | Tổng tiền |
+| [Tạo phiếu thu] [In hóa đơn] | |
+
+**Mã phiếu thu tự sinh:** `PT{YYYYMMDD}{4 số cuối}` — VD: `PT202604200001`
+
+**Bảng lịch sử phiếu thu:** Mã PT, Phiếu khám, NV thu, Tổng tiền, Ngày, Trạng thái, Hành động
+
+**Hủy phiếu thu:** Nhấn nút hủy → Trạng thái chuyển sang "Đã hủy"
+
+**In hóa đơn:** Mở cửa sổ mới → HTML hóa đơn format chuẩn → Ctrl+P để in
 
 ---
 
@@ -431,57 +455,21 @@ Dược sĩ xem đơn thuốc để cấp phát, nhưng **không thể sửa/xó
 
 ---
 
-### 3.6. VAI TRÒ: THU NGÂN (Thanh Toán)
-
-**Menu hiển thị:** Thanh toán
-
-#### A. Thanh Toán (`/thanh-toan`)
-
-**📌 Mục đích:** Lập hóa đơn, thu tiền, in phiếu thu
-
-**Giao diện 2 phần:**
-
-**Phần trên — 4 Thẻ Thống Kê Hôm Nay:**
-- 📝 Số hóa đơn hôm nay
-- 💰 Tổng doanh thu hôm nay
-- ⏳ Chờ thanh toán
-- ✅ Đã thanh toán
-
-**Phần dưới — 2 cột:**
-
-| Cột trái: Form tạo phiếu thu | Cột phải: Xem trước hóa đơn |
-|-------------------------------|------------------------------|
-| Chọn phiếu khám (dropdown) | Tự động render hóa đơn |
-| Tổng tiền (tự tính) | Hiển thị chi tiết: dịch vụ + thuốc |
-| Phương thức: Tiền mặt | Bệnh nhân, mã phiếu, ngày |
-| Ghi chú (tùy chọn) | Tổng tiền |
-| [Tạo phiếu thu] [In hóa đơn] | |
-
-**Mã phiếu thu tự sinh:** `PT{YYYYMMDD}{4 số cuối}` — VD: `PT202604200001`
-
-**Bảng lịch sử phiếu thu:** Mã PT, Phiếu khám, NV thu, Tổng tiền, Ngày, Trạng thái, Hành động
-
-**Hủy phiếu thu:** Nhấn nút hủy → Trạng thái chuyển sang "Đã hủy"
-
-**In hóa đơn:** Mở cửa sổ mới → HTML hóa đơn format chuẩn → Ctrl+P để in
-
----
-
 ## 4. Bảng Phân Quyền Tổng Hợp
 
-| Trang | Đường dẫn | Admin | Lễ Tân | Bác Sĩ | Dược Sĩ | Thu Ngân | KTV |
-|-------|-----------|:-----:|:------:|:------:|:-------:|:--------:|:---:|
-| Dashboard | `/` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Bệnh nhân | `/benh-nhan` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Đăng ký khám | `/dang-ky-kham` | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Khám bệnh | `/kham-benh` | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
-| Xét nghiệm | `/xet-nghiem` | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
-| Dịch vụ | `/dich-vu` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Loại thuốc | `/loai-thuoc` | ✅ CRUD | ❌ | ❌ | 🔍 Xem | ❌ | ❌ |
-| Thuốc | `/thuoc` | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| Đơn thuốc | `/don-thuoc` | ❌ | 🔍 Xem | ✅ CRUD | 🔍 Xem | ❌ | ❌ |
-| Thanh toán | `/thanh-toan` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
-| Nhân viên | `/nhan-vien` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Trang | Đường dẫn | Admin | Lễ Tân | Bác Sĩ | Dược Sĩ | KTV |
+|-------|-----------|:-----:|:------:|:------:|:-------:|:---:|
+| Dashboard | `/` | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Bệnh nhân | `/benh-nhan` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Đăng ký khám | `/dang-ky-kham` | ❌ | ✅ | ❌ | ❌ | ❌ |
+| Khám bệnh | `/kham-benh` | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Xét nghiệm | `/xet-nghiem` | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Dịch vụ | `/dich-vu` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Loại thuốc | `/loai-thuoc` | ✅ CRUD | ❌ | ❌ | 🔍 Xem | ❌ |
+| Thuốc | `/thuoc` | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Đơn thuốc | `/don-thuoc` | ❌ | 🔍 Xem | ✅ CRUD | 🔍 Xem | ❌ |
+| Thanh toán | `/thanh-toan` | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Nhân viên | `/nhan-vien` | ✅ | ✅ | ❌ | ❌ | ❌ |
 
 *Chú thích:* ✅ = Đầy đủ quyền | 🔍 = Chỉ xem | ❌ = Không hiện trên sidebar
 
@@ -609,12 +597,7 @@ Dược sĩ xem đơn thuốc để cấp phát, nhưng **không thể sửa/xó
 - [ ] Kiểm tra thuốc sắp hết tồn kho (≤ 5)
 - [ ] Cập nhật số lượng sau mỗi lần xuất kho
 
-**💰 Thu Ngân:**
-- [ ] Xử lý thanh toán cho bệnh nhân đã khám xong
-- [ ] In hóa đơn cho bệnh nhân
-- [ ] Kiểm tra tổng doanh thu cuối ngày
-
-**👨‍💼 Admin:**
+**‍💼 Admin:**
 - [ ] Xem dashboard thống kê
 - [ ] Kiểm tra nhân sự và dịch vụ
 - [ ] Backup dữ liệu định kỳ

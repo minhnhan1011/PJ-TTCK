@@ -1,0 +1,247 @@
+============================================================
+       KỊCH BẢN DEMO HỆ THỐNG QUẢN LÝ PHÒNG KHÁM
+                     ClinicFlow
+============================================================
+Ngày lập: 27/04/2026
+Thời gian demo dự kiến: 20 - 30 phút
+URL ứng dụng : http://localhost:3000
+URL backend   : http://localhost:4000
+============================================================
+
+[CHUẨN BỊ TRƯỚC KHI DEMO]
+------------------------------------------------------------
+1. Khởi động backend:  node back-end/index.js  (port 4000)
+2. Khởi động frontend: npm start               (port 3000)
+3. Đảm bảo MySQL đang chạy, database "qlphongkham" đã import
+4. Chuẩn bị sẵn các tài khoản demo:
+   - Admin    : admin     / (mật khẩu đã có trong DB)
+   - Tiếp tân : tieptan1  / (mật khẩu đã có trong DB)
+   - Bác sĩ   : bacsi1    / (mật khẩu đã có trong DB)
+   - Dược sĩ  : duocsi1   / (mật khẩu đã có trong DB)
+   - KTV      : ktv1      / (mật khẩu đã có trong DB)
+============================================================
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 1: XÁC THỰC TÀI KHOẢN (3 phút)                   ║
+╚══════════════════════════════════════════════════════════╝
+
+BƯỚC 1.1 — ĐĂNG KÝ TÀI KHOẢN MỚI
+  Mô tả: Tạo tài khoản người dùng mới qua giao diện
+  Thao tác:
+    1. Truy cập http://localhost:3000/register
+    2. Điền đầy đủ thông tin: Họ tên, Tên đăng nhập, Mật khẩu,
+       Xác nhận mật khẩu, Email, SĐT
+    3. Nhấn "Đăng ký"
+    4. Hệ thống thông báo "Đăng ký tài khoản thành công!"
+  Điểm nhấn: Mật khẩu được mã hóa bcrypt trước khi lưu DB
+
+BƯỚC 1.2 — ĐĂNG NHẬP VỚI TÀI KHOẢN ADMIN
+  Mô tả: Đăng nhập và xem phân quyền vai trò
+  Thao tác:
+    1. Truy cập http://localhost:3000/login
+    2. Nhập tài khoản admin
+    3. Nhấn "Đăng nhập"
+    4. Hệ thống chuyển hướng về trang chủ với tiêu đề
+       "Bảng điều khiển Giám đốc"
+  Điểm nhấn: JWT token lưu trong cookie, vai trò lưu localStorage
+             → Sidebar hiển thị menu theo đúng quyền
+
+BƯỚC 1.3 — QUÊN MẬT KHẨU
+  Mô tả: Luồng lấy lại mật khẩu
+  Thao tác:
+    1. Truy cập http://localhost:3000/forgot-password
+    2. Nhập email đã đăng ký
+    3. Xem thông báo hướng dẫn
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 2: TỔNG QUAN DASHBOARD (Admin) (2 phút)           ║
+╚══════════════════════════════════════════════════════════╝
+
+  Thao tác: (Đang đăng nhập với tài khoản admin)
+    1. Xem 4 thẻ thống kê:
+       - Bệnh nhân hôm nay
+       - Đang chờ khám
+       - Doanh thu (VNĐ)
+       - Bác sĩ trực
+    2. Xem bảng danh sách hàng đợi hiện tại
+    3. Nhấn "Đăng ký khám mới" trực tiếp từ Dashboard
+  Điểm nhấn: Dashboard chỉ hiển thị với vai trò Admin
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 3: QUẢN LÝ NHÂN SỰ (Admin) (3 phút)              ║
+╚══════════════════════════════════════════════════════════╝
+
+  Thao tác:
+    1. Vào menu "Quản lý Nhân sự" (/nhan-vien)
+    2. Xem danh sách nhân viên toàn phòng khám
+    3. Thêm nhân viên mới (điền tên, chức vụ, SĐT, ...)
+    4. Chỉnh sửa thông tin nhân viên
+    5. Xóa nhân viên (xác nhận trước khi xóa)
+  Điểm nhấn: Phân quyền — chỉ admin/tiếp tân thấy menu này
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 4: QUẢN LÝ DỊCH VỤ Y TẾ (Admin) (2 phút)        ║
+╚══════════════════════════════════════════════════════════╝
+
+  Thao tác:
+    1. Vào menu "Dịch vụ y tế" (/dich-vu)
+    2. Xem danh sách dịch vụ, giá tiền
+    3. Thêm dịch vụ mới (chỉ admin mới thực hiện được)
+    4. Sửa tên / giá dịch vụ
+    5. Xóa dịch vụ
+  Điểm nhấn: API /api/dich-vu dùng verifyRole(["admin"])
+             → Nếu đăng nhập bằng vai trò khác sẽ bị từ chối
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 5: QUY TRÌNH KHÁM BỆNH HOÀN CHỈNH (10 phút)     ║
+╚══════════════════════════════════════════════════════════╝
+
+--- BƯỚC 5.1: TIẾP TÂN — QUẢN LÝ BỆNH NHÂN ---
+  Đăng xuất admin → Đăng nhập tài khoản tieptan1
+  Thao tác:
+    1. Vào menu "Quản lý Bệnh nhân" (/benh-nhan)
+    2. Thêm bệnh nhân mới:
+       - Họ tên: Nguyễn Văn A
+       - Ngày sinh: 15/03/1990
+       - Giới tính: Nam
+       - Địa chỉ: 123 Lê Lợi, TP.HCM
+       - SĐT: 0901234567
+    3. Bấm "Lưu" → Hệ thống thêm bệnh nhân thành công
+    4. Thử tìm kiếm / chỉnh sửa / xóa bệnh nhân
+
+--- BƯỚC 5.2: TIẾP TÂN — ĐĂNG KÝ KHÁM ---
+  Thao tác:
+    1. Vào menu "Quản lý Đăng ký" (/dang-ky-kham)
+    2. Tạo phiếu đăng ký mới:
+       - Chọn bệnh nhân: Nguyễn Văn A (vừa tạo)
+       - Chọn bác sĩ phụ trách
+       - Chọn ngày khám, ca khám
+       - Ghi chú triệu chứng ban đầu
+    3. Bấm "Đăng ký" → Phiếu đăng ký được tạo, trạng thái "Đang chờ"
+    4. Xem danh sách hàng đợi, sửa / hủy đăng ký
+
+--- BƯỚC 5.3: BÁC SĨ — KHÁM BỆNH ---
+  Đăng xuất tiếp tân → Đăng nhập tài khoản bacsi1
+  Thao tác:
+    1. Vào menu "Quản lý Khám bệnh" (/kham-benh)
+    2. Hệ thống hiển thị danh sách bệnh nhân đang chờ khám
+    3. Chọn bệnh nhân Nguyễn Văn A → Bắt đầu khám
+    4. Điền phiếu khám: chẩn đoán, triệu chứng, chỉ định
+    5. Chỉ định xét nghiệm (nếu cần)
+    6. Kê đơn thuốc (chuyển sang bước 5.4)
+    7. Bấm "Hoàn thành khám" → Trạng thái phiếu khám cập nhật
+
+--- BƯỚC 5.4: BÁC SĨ — KÊ ĐƠN THUỐC ---
+  Thao tác (vẫn đăng nhập bacsi1):
+    1. Vào menu "Quản lý Đơn thuốc" (/don-thuoc)
+    2. Tạo đơn thuốc mới gắn với phiếu khám vừa tạo
+    3. Thêm thuốc vào đơn: chọn loại thuốc, tên thuốc, số lượng, cách dùng
+    4. Bấm "Lưu đơn" → Đơn thuốc ở trạng thái "Chờ cấp phát"
+
+--- BƯỚC 5.5: KTV — PHIẾU XÉT NGHIỆM ---
+  Đăng xuất bác sĩ → Đăng nhập tài khoản ktv1
+  Thao tác:
+    1. Vào menu "Phiếu Xét nghiệm" (/xet-nghiem)
+    2. Xem danh sách phiếu xét nghiệm được chỉ định
+    3. Chọn phiếu, nhập kết quả xét nghiệm
+    4. Bấm "Hoàn thành xét nghiệm" → Trạng thái cập nhật
+  Điểm nhấn: Kết quả xét nghiệm tự động cập nhật về phiếu khám bác sĩ
+
+--- BƯỚC 5.6: DƯỢC SĨ — CẤP PHÁT THUỐC ---
+  Đăng xuất KTV → Đăng nhập tài khoản duocsi1
+  Thao tác:
+    1. Vào menu "Quản lý Đơn thuốc" (/don-thuoc)
+    2. Xem danh sách đơn thuốc "Chờ cấp phát"
+    3. Kiểm tra đơn thuốc của Nguyễn Văn A
+    4. Bấm "Giao thuốc" → Trạng thái chuyển "Đã cấp phát"
+    5. (Tùy chọn) Vào "Quản lý Thuốc" (/thuoc) để xem tồn kho
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 6: QUẢN LÝ KHO THUỐC (Dược sĩ) (3 phút)         ║
+╚══════════════════════════════════════════════════════════╝
+
+--- 6.1: LOẠI THUỐC ---
+  Thao tác:
+    1. Vào menu "Quản lý Loại thuốc" (/loai-thuoc)
+    2. Thêm loại thuốc mới (VD: Kháng sinh, Giảm đau, Vitamin...)
+    3. Sửa tên loại thuốc
+    4. Xóa loại thuốc
+
+--- 6.2: DANH MỤC THUỐC ---
+  Thao tác:
+    1. Vào menu "Quản lý Thuốc" (/thuoc)
+    2. Xem danh sách thuốc theo loại
+    3. Thêm thuốc mới: tên, loại thuốc, đơn vị, giá, số lượng tồn
+    4. Chỉnh sửa thông tin thuốc
+    5. Xóa thuốc khỏi danh mục
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 7: THANH TOÁN (Tiếp tân / Admin) (3 phút)        ║
+╚══════════════════════════════════════════════════════════╝
+
+  Đăng xuất → Đăng nhập tieptan1 (hoặc admin)
+  Thao tác:
+    1. Vào menu "Quản lý Thanh toán" (/thanh-toan)
+    2. Xem danh sách phiếu thu
+    3. Tạo phiếu thu mới cho bệnh nhân Nguyễn Văn A:
+       - Chi phí khám bệnh (từ phiếu khám)
+       - Chi phí xét nghiệm (từ dịch vụ)
+       - Chi phí thuốc (từ đơn thuốc)
+       - Hệ thống tự tính tổng tiền
+    4. Xác nhận thanh toán → Phiếu thu lưu thành công
+    5. Xem chi tiết phiếu thu / hủy phiếu thu
+  Điểm nhấn: Tổng tiền = tiền khám + tiền xét nghiệm + tiền thuốc
+
+
+╔══════════════════════════════════════════════════════════╗
+║  PHẦN 8: KIỂM TRA PHÂN QUYỀN (2 phút)                  ║
+╚══════════════════════════════════════════════════════════╝
+
+  Mục đích: Minh họa hệ thống phân quyền hoạt động đúng
+  Thao tác:
+    1. Đăng nhập với tài khoản bacsi1
+       → Sidebar CHỈ hiển thị: Khám bệnh, Đơn thuốc
+       → KHÔNG thấy: Bệnh nhân, Nhân sự, Dịch vụ, Thuốc, Thanh toán
+    2. Đăng nhập với tài khoản ktv1
+       → Sidebar CHỈ hiển thị: Phiếu Xét nghiệm
+    3. Thử truy cập trực tiếp URL /dich-vu khi không phải admin
+       → API trả về lỗi "Không có quyền truy cập"
+  Điểm nhấn: Phân quyền 2 lớp:
+             - Frontend: Sidebar filter theo role từ localStorage
+             - Backend : verifyRole middleware bảo vệ API
+
+
+╔══════════════════════════════════════════════════════════╗
+║  TỔNG KẾT CHỨC NĂNG HỆ THỐNG                           ║
+╚══════════════════════════════════════════════════════════╝
+
+  STT | Chức năng                | Vai trò sử dụng
+  ----|--------------------------|--------------------------------
+   1  | Đăng ký / Đăng nhập     | Tất cả
+   2  | Quên mật khẩu           | Tất cả
+   3  | Dashboard tổng quan     | Admin
+   4  | Quản lý Bệnh nhân       | Admin, Tiếp tân
+   5  | Quản lý Nhân sự         | Admin, Tiếp tân
+   6  | Đăng ký khám            | Tiếp tân
+   7  | Dịch vụ y tế            | Admin (CRUD), Tiếp tân (xem)
+   8  | Khám bệnh               | Bác sĩ
+   9  | Đơn thuốc               | Bác sĩ, Dược sĩ, Tiếp tân
+  10  | Phiếu Xét nghiệm        | KTV
+  11  | Quản lý Loại thuốc      | Admin, Dược sĩ
+  12  | Quản lý Thuốc (kho)     | Admin, Dược sĩ
+  13  | Thanh toán              | Admin, Tiếp tân
+
+============================================================
+  CÔNG NGHỆ SỬ DỤNG:
+  - Frontend : ReactJS, React Router, Ant Design, Axios
+  - Backend  : Node.js, Express.js
+  - Database : MySQL
+  - Bảo mật : JWT (cookie), bcrypt, CORS, phân quyền RBAC
+============================================================
