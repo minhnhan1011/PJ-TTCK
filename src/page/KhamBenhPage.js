@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
 import { message, Spin } from "antd";
@@ -29,24 +28,15 @@ async function apiFetch(path, options = {}) {
 
 // --- MODAL CHI TIẾT THANH TOÁN ---
 function ModalChiTietChiPhi({ data, onClose }) {
-  const navigate = useNavigate();
+  const [daThanhToan, setDaThanhToan] = useState(false);
 
   const chiTiet = Array.isArray(data?.chiTiet) ? data.chiTiet : [];
   const danhSachThuoc = chiTiet.filter((item) => item.loai === "Thuoc");
   const danhSachDV = chiTiet.filter((item) => item.loai === "Dich vu");
 
-  const handleChuyenThanhToan = () => {
-    localStorage.setItem(
-      "thanhtoan_prefill",
-      JSON.stringify({
-        mapk: data.mapk,
-        madk: data.madk,
-        hoten: data.hoten,
-        tongTien: data.tongTien,
-      }),
-    );
-    onClose();
-    navigate("/thanh-toan");
+  const handleThanhToan = () => {
+    setDaThanhToan(true);
+    message.success(`Đã xác nhận thanh toán cho ${data.hoten}!`);
   };
 
   return (
@@ -64,92 +54,144 @@ function ModalChiTietChiPhi({ data, onClose }) {
         </div>
 
         <div className="modal-form-body">
-          <h4 style={{ color: "#7c3aed" }}>Dịch vụ kỹ thuật</h4>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Tên dịch vụ</th>
-                <th style={{ textAlign: "right" }}>Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              {danhSachDV.length === 0 ? (
-                <tr>
-                  <td colSpan="2" style={{ textAlign: "center" }}>
-                    Chưa có dịch vụ.
-                  </td>
-                </tr>
-              ) : (
-                danhSachDV.map((ct, idx) => (
-                  <tr key={idx}>
-                    <td>{ct.ten}</td>
-                    <td style={{ textAlign: "right" }}>
-                      {(ct.gia || 0).toLocaleString()} đ
-                    </td>
+          {daThanhToan ? (
+            // --- Màn hình xác nhận thanh toán thành công ---
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "40px 20px",
+                gap: "16px",
+              }}
+            >
+              <div
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  borderRadius: "50%",
+                  background: "#dcfce7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <i
+                  className="fas fa-check-circle"
+                  style={{ fontSize: "2.5rem", color: "#16a34a" }}
+                />
+              </div>
+              <h3 style={{ margin: 0, color: "#16a34a", fontSize: "1.3rem" }}>
+                Thanh toán thành công!
+              </h3>
+              <p style={{ margin: 0, color: "#6b7280", textAlign: "center" }}>
+                Đã xác nhận thanh toán cho <strong>{data.hoten}</strong>
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "1.4rem",
+                  fontWeight: "bold",
+                  color: "#dc2626",
+                }}
+              >
+                {(data.tongTien || 0).toLocaleString()} VNĐ
+              </p>
+            </div>
+          ) : (
+            // --- Nội dung chi tiết chi phí ---
+            <>
+              <h4 style={{ color: "#7c3aed" }}>Dịch vụ kỹ thuật</h4>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Tên dịch vụ</th>
+                    <th style={{ textAlign: "right" }}>Thành tiền</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {danhSachDV.length === 0 ? (
+                    <tr>
+                      <td colSpan="2" style={{ textAlign: "center" }}>
+                        Chưa có dịch vụ.
+                      </td>
+                    </tr>
+                  ) : (
+                    danhSachDV.map((ct, idx) => (
+                      <tr key={idx}>
+                        <td>{ct.ten}</td>
+                        <td style={{ textAlign: "right" }}>
+                          {(ct.gia || 0).toLocaleString()} đ
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
 
-          <h4 style={{ marginTop: "20px", color: "#059669" }}>Đơn thuốc</h4>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Tên thuốc</th>
-                <th>SL</th>
-                <th style={{ textAlign: "right" }}>Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              {danhSachThuoc.length === 0 ? (
-                <tr>
-                  <td colSpan="3" style={{ textAlign: "center" }}>
-                    Chưa có thuốc.
-                  </td>
-                </tr>
-              ) : (
-                danhSachThuoc.map((ct, idx) => (
-                  <tr key={idx}>
-                    <td>{ct.ten}</td>
-                    <td>{ct.soluong}</td>
-                    <td style={{ textAlign: "right" }}>
-                      {(ct.thanh_tien || 0).toLocaleString()} đ
-                    </td>
+              <h4 style={{ marginTop: "20px", color: "#059669" }}>Đơn thuốc</h4>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Tên thuốc</th>
+                    <th>SL</th>
+                    <th style={{ textAlign: "right" }}>Thành tiền</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {danhSachThuoc.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" style={{ textAlign: "center" }}>
+                        Chưa có thuốc.
+                      </td>
+                    </tr>
+                  ) : (
+                    danhSachThuoc.map((ct, idx) => (
+                      <tr key={idx}>
+                        <td>{ct.ten}</td>
+                        <td>{ct.soluong}</td>
+                        <td style={{ textAlign: "right" }}>
+                          {(ct.thanh_tien || 0).toLocaleString()} đ
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
 
-          <div
-            style={{
-              marginTop: "20px",
-              textAlign: "right",
-              fontSize: "1.4rem",
-              fontWeight: "bold",
-              color: "#dc2626",
-            }}
-          >
-            TỔNG CỘNG: {(data.tongTien || 0).toLocaleString()} VNĐ
-          </div>
+              <div
+                style={{
+                  marginTop: "20px",
+                  textAlign: "right",
+                  fontSize: "1.4rem",
+                  fontWeight: "bold",
+                  color: "#dc2626",
+                }}
+              >
+                TỔNG CỘNG: {(data.tongTien || 0).toLocaleString()} VNĐ
+              </div>
+            </>
+          )}
         </div>
 
         <div className="modal-form-footer">
           <button className="btn-cancel" onClick={onClose}>
             Đóng
           </button>
-          <button
-            className="btn-save"
-            style={{ background: "#16a34a", borderColor: "#16a34a" }}
-            onClick={handleChuyenThanhToan}
-          >
-            <i
-              className="fas fa-credit-card"
-              style={{ marginRight: "0.4rem" }}
-            />
-            Thanh toán ngay
-          </button>
+          {!daThanhToan && (
+            <button
+              className="btn-save"
+              style={{ background: "#16a34a", borderColor: "#16a34a" }}
+              onClick={handleThanhToan}
+            >
+              <i
+                className="fas fa-credit-card"
+                style={{ marginRight: "0.4rem" }}
+              />
+              Thanh toán ngay
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -166,12 +208,7 @@ function ModalXacNhanXetNghiem({ item, onClose }) {
       .then((res) => res.json())
       .then((data) => {
         const ds = Array.isArray(data) ? data : [];
-
-        // 👉 CHỈ LẤY DỊCH VỤ "HOẠT ĐỘNG"
         const filtered = ds.filter((dv) => dv.trangthai === "Hoat dong");
-
-        console.log("Dịch vụ sau filter:", filtered);
-
         setDanhSachDV(filtered);
       })
       .catch((err) => {
@@ -444,7 +481,7 @@ export default function KhamBenhPage() {
   const [editItem, setEditItem] = useState(null);
   const [xetNghiemItem, setXetNghiemItem] = useState(null);
   const [chiTietPhi, setChiTietPhi] = useState(null);
-  const [deleteItem, setDeleteItem] = useState(null); // ← state cho modal xóa
+  const [deleteItem, setDeleteItem] = useState(null);
 
   const taiDanhSach = async () => {
     setLoading(true);
@@ -562,7 +599,6 @@ export default function KhamBenhPage() {
                               </span>
                             </td>
                             <td style={{ textAlign: "right" }}>
-                              {/* Xem chi phí */}
                               <button
                                 className="btn-icon btn-view"
                                 onClick={() => xemChiPhi(item)}
@@ -572,7 +608,6 @@ export default function KhamBenhPage() {
                                 <i className="fas fa-file-invoice-dollar" />
                               </button>
 
-                              {/* Cập nhật trạng thái */}
                               <button
                                 className="btn-icon btn-edit"
                                 onClick={() => setEditItem(item)}
@@ -581,7 +616,6 @@ export default function KhamBenhPage() {
                                 <i className="fas fa-stethoscope" />
                               </button>
 
-                              {/* Yêu cầu xét nghiệm */}
                               <button
                                 className="btn-icon btn-flask"
                                 onClick={() => setXetNghiemItem(item)}
@@ -623,7 +657,6 @@ export default function KhamBenhPage() {
         />
       )}
 
-      {/* ✅ Modal xác nhận xóa */}
       {deleteItem && (
         <ModalXacNhanXoa
           item={deleteItem}
