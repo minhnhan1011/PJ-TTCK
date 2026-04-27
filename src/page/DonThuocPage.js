@@ -193,7 +193,7 @@ export default function DonThuocPage() {
           </div>
 
           {/* Tính tiền thuốc theo mã PK */}
-          <div className="tinh-tien-bar">
+          {userRole !== "duocsi" && <div className="tinh-tien-bar">
             <div className="tinh-tien-group">
               <select value={tongTienMapk} onChange={e => { setTongTienMapk(e.target.value); setTongTien(null); }} style={{ minWidth: "280px" }}>
                 <option value="">-- Chọn phiếu khám --</option>
@@ -210,7 +210,7 @@ export default function DonThuocPage() {
                 Tổng tiền thuốc PK <strong>#{tongTienMapk}</strong>: <span className="tong-tien-value">{Number(tongTien).toLocaleString()} đ</span>
               </div>
             )}
-          </div>
+          </div>}
 
           <div className="table-container">
             <div className="table-toolbar" style={{ justifyContent: "space-between" }}>
