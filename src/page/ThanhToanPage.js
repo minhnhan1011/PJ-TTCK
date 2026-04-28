@@ -123,12 +123,12 @@ export default function ThanhToanPage() {
     }
   };
 
- const handleThanhToan = (e) => {
-  e.preventDefault();
-  if (!form.mapk || !form.tongtien) {
-    alert("Vui lòng nhập đầy đủ thông tin bệnh nhân và tổng tiền!");
-    return;
-  }
+  const handleThanhToan = (e) => {
+    e.preventDefault();
+    if (!form.mapk || !form.tongtien) {
+      alert("Vui lòng nhập đầy đủ thông tin bệnh nhân và tổng tiền!");
+      return;
+    }
     const finalData = {
       mapt: form.mapt,
       mapk: form.mapk,
@@ -140,18 +140,20 @@ export default function ThanhToanPage() {
       ngaythu: new Date().toISOString().split("T")[0],
     };
     axios
-    .post("http://localhost:4000/themphieuthu", finalData)
-    .then(() => {
-      alert("Thanh toán thành công!");
-      
-      setShowModal(false); 
-      fetchPhieuthu();
-      fetchThongke();
-      fetchBenhnhan();
-    })
-    .catch((err) => {
+      .post("http://localhost:4000/themphieuthu", finalData)
+      .then(() => {
+        alert("Thanh toán thành công!");
+
+        setShowModal(false);
+        fetchPhieuthu();
+        fetchThongke();
+        fetchBenhnhan();
+      })
+      .catch((err) => {
         console.error("Chi tiết lỗi:", err.response?.data || err.message);
-        alert("Có lỗi xảy ra khi lưu vào database! Hãy kiểm tra mã phiếu khám.");
+        alert(
+          "Có lỗi xảy ra khi lưu vào database! Hãy kiểm tra mã phiếu khám.",
+        );
       });
   };
 
@@ -209,23 +211,51 @@ export default function ThanhToanPage() {
     `);
     win.document.close();
     win.focus();
-    setTimeout(() => { win.print(); win.close(); }, 300);
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 300);
   };
 
   const filteredPhieuthu = phieuthu.filter(
     (pt) =>
-      (pt.mapt && String(pt.mapt).toLowerCase().includes(search.toLowerCase())) ||
-      (pt.hoten && pt.hoten.toLowerCase().includes(search.toLowerCase()))
+      (pt.mapt &&
+        String(pt.mapt).toLowerCase().includes(search.toLowerCase())) ||
+      (pt.hoten && pt.hoten.toLowerCase().includes(search.toLowerCase())),
   );
 
   const trangthaiColor = (tt) => {
     if (!tt) return {};
     if (tt.includes("thanh toan") || tt.includes("Thanh toán"))
-      return { color: "#16a34a", background: "#dcfce7", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600 };
+      return {
+        color: "#16a34a",
+        background: "#dcfce7",
+        padding: "3px 10px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 600,
+      };
     if (tt.includes("huy") || tt.includes("Hủy"))
-      return { color: "#dc2626", background: "#fee2e2", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600 };
-    return { color: "#d97706", background: "#fef3c7", padding: "3px 10px", borderRadius: 12, fontSize: 12, fontWeight: 600 };
+      return {
+        color: "#dc2626",
+        background: "#fee2e2",
+        padding: "3px 10px",
+        borderRadius: 12,
+        fontSize: 12,
+        fontWeight: 600,
+      };
+    return {
+      color: "#d97706",
+      background: "#fef3c7",
+      padding: "3px 10px",
+      borderRadius: 12,
+      fontSize: 12,
+      fontWeight: 600,
+    };
   };
+
+  const [paymentMethod, setPaymentMethod] = useState("tienmat");
+  const [showQR, setShowQR] = useState(false);
 
   return (
     <div className="page-layout">
@@ -233,7 +263,6 @@ export default function ThanhToanPage() {
       <div className="page-main">
         <Header />
         <div className="page-content">
-
           {/* ===== TOP BAR ===== */}
           <div className="page-topbar">
             <div>
@@ -269,7 +298,9 @@ export default function ThanhToanPage() {
             </div>
             <div className="stat-card blue">
               <div className="stat-label">Doanh thu hôm nay</div>
-              <div className="stat-number">{Number(thongke.doanhThu || 0).toLocaleString("vi-VN")}</div>
+              <div className="stat-number">
+                {Number(thongke.doanhThu || 0).toLocaleString("vi-VN")}
+              </div>
             </div>
             <div className="stat-card orange">
               <div className="stat-label">Chờ thanh toán</div>
@@ -283,7 +314,6 @@ export default function ThanhToanPage() {
 
           {/* ===== TWO COL: FORM + INVOICE PREVIEW ===== */}
           <div className="two-col-layout">
-
             {/* LEFT: Form thanh toán */}
             <div className="panel">
               <h2>Thông tin Thanh toán</h2>
@@ -297,7 +327,9 @@ export default function ThanhToanPage() {
                     className="field-input"
                     required
                   >
-                    <option value="">-- Chọn bệnh nhân cần thanh toán --</option>
+                    <option value="">
+                      -- Chọn bệnh nhân cần thanh toán --
+                    </option>
                     {benhnhan.map((item) => (
                       <option key={item.mapk} value={String(item.mapk)}>
                         Mã PK: {item.mapk} - {item.hoten}
@@ -307,7 +339,9 @@ export default function ThanhToanPage() {
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
-                  <label className="field-label">Tổng tiền (VNĐ) <span style={{ color: "red" }}>*</span></label>
+                  <label className="field-label">
+                    Tổng tiền (VNĐ) <span style={{ color: "red" }}>*</span>
+                  </label>
                   <input
                     type="number"
                     className="field-input"
@@ -322,13 +356,123 @@ export default function ThanhToanPage() {
 
                 <div style={{ marginBottom: "1rem" }}>
                   <label className="field-label">Phương thức thanh toán</label>
-                  <div className="payment-methods">
-                    <label>
-                      <input type="radio" name="payment" defaultChecked />
-                      <i className="fas fa-money-bill-wave" style={{ color: "#16a34a", marginRight: "0.25rem" }}></i>
+                  <div
+                    className="payment-methods"
+                    style={{ display: "flex", gap: "0.75rem" }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="tienmat"
+                        checked={paymentMethod === "tienmat"}
+                        onChange={() => {
+                          setPaymentMethod("tienmat");
+                          setShowQR(false);
+                        }}
+                      />
+                      <i
+                        className="fas fa-money-bill-wave"
+                        style={{ color: "#16a34a" }}
+                      ></i>
                       Tiền mặt
                     </label>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="payment"
+                        value="chuyenkhoan"
+                        checked={paymentMethod === "chuyenkhoan"}
+                        onChange={() => {
+                          setPaymentMethod("chuyenkhoan");
+                          setShowQR(true);
+                        }}
+                      />
+                      <i
+                        className="fas fa-qrcode"
+                        style={{ color: "#2563eb" }}
+                      ></i>
+                      Chuyển khoản
+                    </label>
                   </div>
+
+                  {showQR && (
+                    <div
+                      style={{
+                        marginTop: "1rem",
+                        padding: "1rem",
+                        border: "1px solid #bfdbfe",
+                        borderRadius: 12,
+                        background: "#eff6ff",
+                        textAlign: "center",
+                      }}
+                    >
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: "#1d4ed8",
+                          fontWeight: 600,
+                          marginBottom: "0.75rem",
+                        }}
+                      >
+                        <i className="fas fa-qrcode"></i> Quét mã để thanh toán
+                      </p>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=BANK:VCB|ACC:1234567890|NAME:PHONG KHAM CLINICFLOW|AMOUNT:${form.tongtien || 0}|MSG:Thanh toan ${form.mapt}`}
+                        alt="QR chuyển khoản"
+                        style={{
+                          width: 180,
+                          height: 180,
+                          borderRadius: 8,
+                          border: "1px solid #bfdbfe",
+                          display: "block", // ← thêm dòng này
+                          margin: "0 auto", // ← thêm dòng này
+                        }}
+                      />
+                      <div
+                        style={{
+                          marginTop: "0.75rem",
+                          fontSize: 12,
+                          color: "#1e40af",
+                          lineHeight: 1.8,
+                        }}
+                      >
+                        <div>
+                          <strong>Ngân hàng:</strong> Vietcombank
+                        </div>
+                        <div>
+                          <strong>STK:</strong> 1234567890
+                        </div>
+                        <div>
+                          <strong>Tên:</strong> PHONG KHAM CLINICFLOW
+                        </div>
+                        <div>
+                          <strong>Số tiền:</strong>{" "}
+                          {form.tongtien
+                            ? Number(form.tongtien).toLocaleString("vi-VN") +
+                              " VNĐ"
+                            : "--"}
+                        </div>
+                        <div>
+                          <strong>Nội dung:</strong> Thanh toan {form.mapt}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
@@ -343,7 +487,11 @@ export default function ThanhToanPage() {
                   />
                 </div>
 
-                <button type="submit" className="btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
                   <i className="fas fa-check"></i> Xác nhận Thanh toán
                 </button>
               </form>
@@ -354,9 +502,15 @@ export default function ThanhToanPage() {
               <h2>Hóa đơn</h2>
               <div className="invoice-preview" ref={invoiceRef}>
                 <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-                  <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>ClinicFlow</h3>
-                  <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>123 Nguyễn Văn Linh, Q7, TP.HCM</p>
-                  <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>ĐT: 0123 456 789</p>
+                  <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>
+                    ClinicFlow
+                  </h3>
+                  <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+                    123 Nguyễn Văn Linh, Q7, TP.HCM
+                  </p>
+                  <p style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+                    ĐT: 0123 456 789
+                  </p>
                 </div>
                 <div className="invoice-meta">
                   <div className="meta-row">
@@ -407,11 +561,18 @@ export default function ThanhToanPage() {
                     ) : form.tongtien ? (
                       <tr>
                         <td>Dịch vụ khám chữa bệnh</td>
-                        <td style={{ textAlign: "right" }}>{formatVND(form.tongtien)}</td>
+                        <td style={{ textAlign: "right" }}>
+                          {formatVND(form.tongtien)}
+                        </td>
                       </tr>
                     ) : (
                       <tr>
-                        <td colSpan="2" style={{ textAlign: "center", color: "#9ca3af" }}>Chưa có dữ liệu</td>
+                        <td
+                          colSpan="2"
+                          style={{ textAlign: "center", color: "#9ca3af" }}
+                        >
+                          Chưa có dữ liệu
+                        </td>
                       </tr>
                     )}
                   </tbody>
@@ -424,15 +585,32 @@ export default function ThanhToanPage() {
                     </tr>
                   </tfoot>
                 </table>
-                <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#6b7280", marginTop: "1rem" }}>
+                <p
+                  style={{
+                    textAlign: "center",
+                    fontSize: "0.85rem",
+                    color: "#6b7280",
+                    marginTop: "1rem",
+                  }}
+                >
                   Cảm ơn quý khách đã sử dụng dịch vụ!
                 </p>
               </div>
-              <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={handlePrint}>
+              <div
+                style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}
+              >
+                <button
+                  className="btn-secondary"
+                  style={{ flex: 1 }}
+                  onClick={handlePrint}
+                >
                   <i className="fas fa-print"></i> In hóa đơn
                 </button>
-                <button className="btn-secondary green" style={{ flex: 1 }} onClick={handlePrint}>
+                <button
+                  className="btn-secondary green"
+                  style={{ flex: 1 }}
+                  onClick={handlePrint}
+                >
                   <i className="fas fa-download"></i> Tải PDF
                 </button>
               </div>
@@ -470,23 +648,46 @@ export default function ThanhToanPage() {
                   {filteredPhieuthu.length > 0 ? (
                     filteredPhieuthu.map((pt, idx) => (
                       <tr key={idx}>
-                        <td style={{ fontWeight: 600, color: "#1d4ed8", fontSize: 13 }}>{pt.mapt}</td>
+                        <td
+                          style={{
+                            fontWeight: 600,
+                            color: "#1d4ed8",
+                            fontSize: 13,
+                          }}
+                        >
+                          {pt.mapt}
+                        </td>
                         {/* ✅ hoten giờ lấy đúng từ benhnhan qua join ở backend */}
-                        <td>{pt.hoten || <span style={{ color: "#9ca3af" }}>--</span>}</td>
+                        <td>
+                          {pt.hoten || (
+                            <span style={{ color: "#9ca3af" }}>--</span>
+                          )}
+                        </td>
                         <td>{pt.mapk}</td>
                         <td style={{ textAlign: "right", fontWeight: 500 }}>
                           {Number(pt.tongtien).toLocaleString("vi-VN")}
                         </td>
                         <td>
-                          {pt.ngaythu ? new Date(pt.ngaythu).toLocaleString("vi-VN") : "--"}
+                          {pt.ngaythu
+                            ? new Date(pt.ngaythu).toLocaleString("vi-VN")
+                            : "--"}
                         </td>
                         <td>{pt.manv}</td>
                         <td>
-                          <span style={trangthaiColor(pt.trangthai)}>{pt.trangthai}</span>
+                          <span style={trangthaiColor(pt.trangthai)}>
+                            {pt.trangthai}
+                          </span>
                         </td>
                         {/* ✅ MỚI: Cả nút Hủy lẫn nút Xóa */}
                         <td>
-                          <div style={{ display: "flex", gap: "0.4rem", justifyContent: "center", flexWrap: "wrap" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "0.4rem",
+                              justifyContent: "center",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             {pt.trangthai !== "Da huy" && (
                               <button
                                 className="btn btn-danger btn-sm"
@@ -502,7 +703,11 @@ export default function ThanhToanPage() {
                                 }}
                                 onClick={() => setShowConfirm(pt.mapt)}
                               >
-                                <i className="fas fa-ban" style={{ marginRight: 4 }}></i>Hủy
+                                <i
+                                  className="fas fa-ban"
+                                  style={{ marginRight: 4 }}
+                                ></i>
+                                Hủy
                               </button>
                             )}
                             <button
@@ -518,7 +723,11 @@ export default function ThanhToanPage() {
                               }}
                               onClick={() => setShowDeleteConfirm(pt.mapt)}
                             >
-                              <i className="fas fa-trash" style={{ marginRight: 4 }}></i>Xóa
+                              <i
+                                className="fas fa-trash"
+                                style={{ marginRight: 4 }}
+                              ></i>
+                              Xóa
                             </button>
                           </div>
                         </td>
@@ -534,7 +743,13 @@ export default function ThanhToanPage() {
                 </tbody>
               </table>
             </div>
-            <div style={{ padding: "0.75rem 1rem", color: "#6b7280", fontSize: 14 }}>
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                color: "#6b7280",
+                fontSize: 14,
+              }}
+            >
               Hiển thị <strong>{filteredPhieuthu.length}</strong> phiếu thu
             </div>
           </div>
@@ -551,16 +766,24 @@ export default function ThanhToanPage() {
           >
             <div className="modal-form-header">
               <h3>
-                <i className="fas fa-file-invoice" style={{ marginRight: "0.5rem", color: "#16a34a" }}></i>
+                <i
+                  className="fas fa-file-invoice"
+                  style={{ marginRight: "0.5rem", color: "#16a34a" }}
+                ></i>
                 Tạo Hóa đơn mới
               </h3>
-              <button className="btn-close" onClick={() => { setShowModal(false); setChiPhiDetail(null); }}>
+              <button
+                className="btn-close"
+                onClick={() => {
+                  setShowModal(false);
+                  setChiPhiDetail(null);
+                }}
+              >
                 <i className="fas fa-times"></i>
               </button>
             </div>
             <form onSubmit={handleThanhToan}>
               <div className="modal-form-body">
-
                 <div className="form-group">
                   <label>Mã phiếu thu</label>
                   <input
@@ -573,7 +796,9 @@ export default function ThanhToanPage() {
                 </div>
 
                 <div className="form-group">
-                  <label>Bệnh nhân <span style={{ color: "red" }}>*</span></label>
+                  <label>
+                    Bệnh nhân <span style={{ color: "red" }}>*</span>
+                  </label>
                   <select
                     className="field-input"
                     name="mapk"
@@ -591,23 +816,46 @@ export default function ThanhToanPage() {
                 </div>
 
                 {form.hoten && (
-                  <div style={{
-                    background: "#f0fdf4", border: "1px solid #bbf7d0",
-                    borderRadius: 8, padding: "10px 14px", marginBottom: "1rem",
-                    display: "flex", alignItems: "center", gap: 8,
-                  }}>
-                    <i className="fas fa-user-check" style={{ color: "#16a34a" }} />
-                    <span style={{ color: "#15803d", fontWeight: 500 }}>{form.hoten}</span>
+                  <div
+                    style={{
+                      background: "#f0fdf4",
+                      border: "1px solid #bbf7d0",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      marginBottom: "1rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <i
+                      className="fas fa-user-check"
+                      style={{ color: "#16a34a" }}
+                    />
+                    <span style={{ color: "#15803d", fontWeight: 500 }}>
+                      {form.hoten}
+                    </span>
                   </div>
                 )}
 
                 {loadingChiPhi && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    color: "#6b7280", fontSize: 13, marginBottom: "1rem",
-                    padding: "8px 12px", background: "#f9fafb", borderRadius: 6,
-                  }}>
-                    <i className="fas fa-spinner fa-spin" style={{ color: "#16a34a" }}></i>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      color: "#6b7280",
+                      fontSize: 13,
+                      marginBottom: "1rem",
+                      padding: "8px 12px",
+                      background: "#f9fafb",
+                      borderRadius: 6,
+                    }}
+                  >
+                    <i
+                      className="fas fa-spinner fa-spin"
+                      style={{ color: "#16a34a" }}
+                    ></i>
                     Đang tính chi phí...
                   </div>
                 )}
@@ -615,32 +863,122 @@ export default function ThanhToanPage() {
                 {!loadingChiPhi && chiPhiDetail && chiPhiDetail.length > 0 && (
                   <div className="form-group">
                     <label>Chi tiết chi phí</label>
-                    <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden", marginBottom: "0.5rem" }}>
-                      <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+                    <div
+                      style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      <table
+                        style={{
+                          width: "100%",
+                          fontSize: 13,
+                          borderCollapse: "collapse",
+                        }}
+                      >
                         <thead>
                           <tr style={{ background: "#f3f4f6" }}>
-                            <th style={{ padding: "6px 10px", textAlign: "left", fontWeight: 600, color: "#374151" }}>Loại</th>
-                            <th style={{ padding: "6px 10px", textAlign: "left", fontWeight: 600, color: "#374151" }}>Tên</th>
-                            <th style={{ padding: "6px 10px", textAlign: "center", fontWeight: 600, color: "#374151" }}>SL</th>
-                            <th style={{ padding: "6px 10px", textAlign: "right", fontWeight: 600, color: "#374151" }}>Thành tiền</th>
+                            <th
+                              style={{
+                                padding: "6px 10px",
+                                textAlign: "left",
+                                fontWeight: 600,
+                                color: "#374151",
+                              }}
+                            >
+                              Loại
+                            </th>
+                            <th
+                              style={{
+                                padding: "6px 10px",
+                                textAlign: "left",
+                                fontWeight: 600,
+                                color: "#374151",
+                              }}
+                            >
+                              Tên
+                            </th>
+                            <th
+                              style={{
+                                padding: "6px 10px",
+                                textAlign: "center",
+                                fontWeight: 600,
+                                color: "#374151",
+                              }}
+                            >
+                              SL
+                            </th>
+                            <th
+                              style={{
+                                padding: "6px 10px",
+                                textAlign: "right",
+                                fontWeight: 600,
+                                color: "#374151",
+                              }}
+                            >
+                              Thành tiền
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
                           {chiPhiDetail.map((item, i) => (
-                            <tr key={i} style={{ borderTop: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                            <tr
+                              key={i}
+                              style={{
+                                borderTop: "1px solid #f3f4f6",
+                                background: i % 2 === 0 ? "#fff" : "#fafafa",
+                              }}
+                            >
                               <td style={{ padding: "6px 10px" }}>
-                                <span style={{
-                                  background: item.loai === "Thuoc" ? "#dbeafe" : "#fef9c3",
-                                  color: item.loai === "Thuoc" ? "#1d4ed8" : "#92400e",
-                                  borderRadius: 4, padding: "1px 7px", fontSize: 11, fontWeight: 600,
-                                }}>
+                                <span
+                                  style={{
+                                    background:
+                                      item.loai === "Thuoc"
+                                        ? "#dbeafe"
+                                        : "#fef9c3",
+                                    color:
+                                      item.loai === "Thuoc"
+                                        ? "#1d4ed8"
+                                        : "#92400e",
+                                    borderRadius: 4,
+                                    padding: "1px 7px",
+                                    fontSize: 11,
+                                    fontWeight: 600,
+                                  }}
+                                >
                                   {item.loai === "Thuoc" ? "Thuốc" : "Dịch vụ"}
                                 </span>
                               </td>
-                              <td style={{ padding: "6px 10px", color: "#374151" }}>{item.ten}</td>
-                              <td style={{ padding: "6px 10px", textAlign: "center", color: "#6b7280" }}>{item.soluong}</td>
-                              <td style={{ padding: "6px 10px", textAlign: "right", fontWeight: 500, color: "#111827" }}>
-                                {Number(item.thanh_tien).toLocaleString("vi-VN")}
+                              <td
+                                style={{
+                                  padding: "6px 10px",
+                                  color: "#374151",
+                                }}
+                              >
+                                {item.ten}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "6px 10px",
+                                  textAlign: "center",
+                                  color: "#6b7280",
+                                }}
+                              >
+                                {item.soluong}
+                              </td>
+                              <td
+                                style={{
+                                  padding: "6px 10px",
+                                  textAlign: "right",
+                                  fontWeight: 500,
+                                  color: "#111827",
+                                }}
+                              >
+                                {Number(item.thanh_tien).toLocaleString(
+                                  "vi-VN",
+                                )}
                               </td>
                             </tr>
                           ))}
@@ -650,19 +988,37 @@ export default function ThanhToanPage() {
                   </div>
                 )}
 
-                {!loadingChiPhi && chiPhiDetail && chiPhiDetail.length === 0 && form.mapk && (
-                  <div style={{
-                    background: "#fffbeb", border: "1px solid #fde68a",
-                    borderRadius: 8, padding: "10px 14px", marginBottom: "1rem",
-                    fontSize: 13, color: "#92400e", display: "flex", alignItems: "center", gap: 8,
-                  }}>
-                    <i className="fas fa-exclamation-triangle" style={{ color: "#d97706" }}></i>
-                    Không tìm thấy chi tiết chi phí. Vui lòng nhập tổng tiền thủ công.
-                  </div>
-                )}
+                {!loadingChiPhi &&
+                  chiPhiDetail &&
+                  chiPhiDetail.length === 0 &&
+                  form.mapk && (
+                    <div
+                      style={{
+                        background: "#fffbeb",
+                        border: "1px solid #fde68a",
+                        borderRadius: 8,
+                        padding: "10px 14px",
+                        marginBottom: "1rem",
+                        fontSize: 13,
+                        color: "#92400e",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <i
+                        className="fas fa-exclamation-triangle"
+                        style={{ color: "#d97706" }}
+                      ></i>
+                      Không tìm thấy chi tiết chi phí. Vui lòng nhập tổng tiền
+                      thủ công.
+                    </div>
+                  )}
 
                 <div className="form-group">
-                  <label>Tổng tiền (VNĐ) <span style={{ color: "red" }}>*</span></label>
+                  <label>
+                    Tổng tiền (VNĐ) <span style={{ color: "red" }}>*</span>
+                  </label>
                   <input
                     type="number"
                     className="field-input"
@@ -672,15 +1028,40 @@ export default function ThanhToanPage() {
                     onChange={handleInput}
                     min="0"
                     required
-                    style={chiPhiDetail && chiPhiDetail.length > 0
-                      ? { background: "#f0fdf4", fontWeight: 600, color: "#15803d" }
-                      : {}}
+                    style={
+                      chiPhiDetail && chiPhiDetail.length > 0
+                        ? {
+                            background: "#f0fdf4",
+                            fontWeight: 600,
+                            color: "#15803d",
+                          }
+                        : {}
+                    }
                   />
                   {chiPhiDetail && chiPhiDetail.length > 0 && (
-                    <span style={{ fontSize: 12, color: "#16a34a", marginTop: 4, display: "block" }}>
-                      <i className="fas fa-check-circle"></i> Đã tự động tính từ đơn thuốc &amp; dịch vụ
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "#16a34a",
+                        marginTop: 4,
+                        display: "block",
+                      }}
+                    >
+                      <i className="fas fa-check-circle"></i> Đã tự động tính từ
+                      đơn thuốc &amp; dịch vụ
                     </span>
                   )}
+                </div>
+
+                <div className="form-group">
+                  <label>Phương thức</label>
+                  <input
+                    type="text"
+                    className="field-input"
+                    value="Tiền mặt"
+                    readOnly
+                    style={{ background: "#f3f4f6" }}
+                  />
                 </div>
 
                 <div className="form-group">
@@ -708,11 +1089,21 @@ export default function ThanhToanPage() {
               </div>
 
               <div className="modal-form-footer">
-                <button type="button" className="btn-cancel" onClick={() => { setShowModal(false); setChiPhiDetail(null); }}>
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => {
+                    setShowModal(false);
+                    setChiPhiDetail(null);
+                  }}
+                >
                   Hủy
                 </button>
                 <button type="submit" className="btn-save">
-                  <i className="fas fa-check" style={{ marginRight: "0.4rem" }}></i>
+                  <i
+                    className="fas fa-check"
+                    style={{ marginRight: "0.4rem" }}
+                  ></i>
                   Xác nhận Thanh toán
                 </button>
               </div>
@@ -730,11 +1121,22 @@ export default function ThanhToanPage() {
             </div>
             <h3>Hủy Phiếu thu?</h3>
             <p>
-              Trạng thái phiếu thu <strong>{showConfirm}</strong> sẽ được cập nhật thành "Đã hủy".
+              Trạng thái phiếu thu <strong>{showConfirm}</strong> sẽ được cập
+              nhật thành "Đã hủy".
             </p>
             <div className="confirm-actions">
-              <button className="btn-cancel" onClick={() => setShowConfirm(null)}>Đóng</button>
-              <button className="btn-danger" onClick={() => handleHuy(showConfirm)}>Xác nhận hủy</button>
+              <button
+                className="btn-cancel"
+                onClick={() => setShowConfirm(null)}
+              >
+                Đóng
+              </button>
+              <button
+                className="btn-danger"
+                onClick={() => handleHuy(showConfirm)}
+              >
+                Xác nhận hủy
+              </button>
             </div>
           </div>
         </div>
@@ -742,19 +1144,32 @@ export default function ThanhToanPage() {
 
       {/* ===== ✅ MỚI: CONFIRM XÓA PHIẾU ===== */}
       {showDeleteConfirm && (
-        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(null)}>
+        <div
+          className="modal-overlay"
+          onClick={() => setShowDeleteConfirm(null)}
+        >
           <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
-            <div className="confirm-icon" style={{ color: "#dc2626", background: "#fee2e2" }}>
+            <div
+              className="confirm-icon"
+              style={{ color: "#dc2626", background: "#fee2e2" }}
+            >
               <i className="fas fa-trash"></i>
             </div>
             <h3>Xóa Phiếu thu?</h3>
             <p>
               Phiếu thu <strong>{showDeleteConfirm}</strong> sẽ bị{" "}
-              <span style={{ color: "#dc2626", fontWeight: 600 }}>xóa vĩnh viễn</span>{" "}
+              <span style={{ color: "#dc2626", fontWeight: 600 }}>
+                xóa vĩnh viễn
+              </span>{" "}
               khỏi hệ thống. Hành động này <strong>không thể hoàn tác</strong>.
             </p>
             <div className="confirm-actions">
-              <button className="btn-cancel" onClick={() => setShowDeleteConfirm(null)}>Đóng</button>
+              <button
+                className="btn-cancel"
+                onClick={() => setShowDeleteConfirm(null)}
+              >
+                Đóng
+              </button>
               <button
                 className="btn-danger"
                 style={{ background: "#dc2626" }}
