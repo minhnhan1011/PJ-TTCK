@@ -1,3 +1,42 @@
+/* ===== TWO-COLUMN LAYOUT ===== */
+.xn-content {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.xn-left {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+.xn-right {
+  flex: 1;
+  min-width: 0;
+  background: #fff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  min-height: 280px;
+}
+
+.xn-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.empty-queue {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* ===== CARD ===== */
 .xn-card {
   background: #fff;
   border: 1.5px solid #e5e7eb;
@@ -32,6 +71,20 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+  .xn-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .xn-left {
+    width: 100%;
+  }
+
+  .xn-right {
+    width: 100%;
+    min-height: 200px;
+  }
+
   .xn-form {
     padding: 1rem;
   }
@@ -51,6 +104,9 @@
 }
 
 @media (max-width: 480px) {
+  .xn-section-title {
+    font-size: 0.9rem;
+  }
   .xn-form-title {
     font-size: 0.95rem;
   }

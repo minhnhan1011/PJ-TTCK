@@ -294,10 +294,14 @@
   .modal-content {
     width: 95vw;
     border-radius: 12px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
   .modal-container {
     width: 95vw;
     border-radius: 10px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
   .confirm-dialog {
     width: 90vw;
