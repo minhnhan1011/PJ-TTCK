@@ -141,15 +141,12 @@ app.post("/register", (req, res) => {
       });
     }
 
-    // --- Hash mật khẩu trước khi lưu ---
     bcrypt.hash(matkhau, 10, (hashErr, hashedPassword) => {
       if (hashErr) {
         console.error("Lỗi hash mật khẩu:", hashErr);
         return res.json({ Status: "error", Message: "Lỗi server." });
       }
 
-      // --- Insert vào bảng taikhoan ---
-      // vaitro mặc định = 'user' (hoặc để admin tự gán sau)
       const insertSql = `
         INSERT INTO taikhoan (tendn, matkhau, vaitro, hoten, email, sdt)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -208,7 +205,50 @@ app.post("/login", (req, res) => {
   });
 });
 
-// THAY THẾ đoạn GET /phieuthu
+//tong quan
+// API Lấy dữ liệu tổng hợp cho Dashboard
+app.get("/api/stats/dashboard", verifyUser, (req, res) => {
+  const sql = `
+    SELECT 
+      (SELECT COUNT(*) FROM benhnhan) AS tongBenhNhan,
+      (SELECT COUNT(*) FROM dangkykham WHERE DATE(ngaydangky) = CURDATE()) AS khamHomNay,
+      (SELECT COUNT(*) FROM thuoc WHERE soluong < 10) AS thuocSapHet,
+      (SELECT SUM(tongtien) FROM phieuthu WHERE trangthai = 'Da thanh toan' AND DATE(ngaythu) = CURDATE()) AS doanhThuHomNay
+  `;
+  
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    res.json(data[0]);
+  });
+});
+app.get("/api/stats/recent-activities", verifyUser, (req, res) => {
+  const sql = `
+    SELECT dk.madk, bn.hoten, dk.lydokham, dk.trangthai, dk.ngaydangky
+    FROM dangkykham dk
+    JOIN benhnhan bn ON dk.mabn = bn.mabn
+    ORDER BY dk.ngaydangky DESC
+    LIMIT 5
+  `;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    res.json(data);
+  });
+});
+app.get("/api/stats/revenue-chart", verifyUser, (req, res) => {
+  const sql = `
+    SELECT DATE(ngaythu) as ngay, SUM(tongtien) as doanhthu
+    FROM phieuthu
+    WHERE ngaythu >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    AND trangthai = 'Da thanh toan'
+    GROUP BY DATE(ngaythu)
+    ORDER BY ngay ASC
+  `;
+  db.query(sql, (err, data) => {
+    if (err) return res.status(500).json(err);
+    res.json(data);
+  });
+});
+//phieu thu
 app.get("/phieuthu", (req, res) => {
   const sql = `
     SELECT pt.mapt, pt.mapk, pt.manv, pt.tongtien, pt.ngaythu, pt.trangthai, pt.ghichu, 

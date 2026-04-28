@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import "./Sidebar.css";
 
 const navItems = [
-  { to: "/", icon: "fa-chart-pie", label: "Tổng quan", roles: ["admin"] },
   { to: "/benh-nhan", icon: "fa-users", label: "Quản lý Bệnh nhân", roles: ["tieptan","admin"] },
   { to: "/nhan-vien", icon: "fa-user-md", label: "Quản lý Nhân sự", roles: ["admin","tieptan"] },
   { to: "/dang-ky-kham", icon: "fa-clipboard-list", label: "Quản lý Đăng ký", roles: ["tieptan"] },

@@ -123,12 +123,12 @@ export default function ThanhToanPage() {
     }
   };
 
-  const handleThanhToan = (e) => {
-    e.preventDefault();
-    if (!form.mapk || !form.tongtien) {
-      alert("Vui lòng nhập đầy đủ thông tin bệnh nhân và tổng tiền!");
-      return;
-    }
+ const handleThanhToan = (e) => {
+  e.preventDefault();
+  if (!form.mapk || !form.tongtien) {
+    alert("Vui lòng nhập đầy đủ thông tin bệnh nhân và tổng tiền!");
+    return;
+  }
     const finalData = {
       mapt: form.mapt,
       mapk: form.mapk,
@@ -140,26 +140,16 @@ export default function ThanhToanPage() {
       ngaythu: new Date().toISOString().split("T")[0],
     };
     axios
-      .post("http://localhost:4000/themphieuthu", finalData)
-      .then(() => {
-        alert("Thanh toán thành công!");
-        setShowModal(false);
-        setChiPhiDetail(null);
-        setForm({
-          mapt: generateMaPT(),
-          mapk: "",
-          manv: 1,
-          tongtien: "",
-          trangthai: "Da thanh toan",
-          ghichu: "",
-          hoten: "",
-          ngaythu: new Date().toLocaleDateString("vi-VN"),
-        });
-        fetchPhieuthu();
-        fetchThongke();
-        fetchBenhnhan();
-      })
-      .catch((err) => {
+    .post("http://localhost:4000/themphieuthu", finalData)
+    .then(() => {
+      alert("Thanh toán thành công!");
+      
+      setShowModal(false); 
+      fetchPhieuthu();
+      fetchThongke();
+      fetchBenhnhan();
+    })
+    .catch((err) => {
         console.error("Chi tiết lỗi:", err.response?.data || err.message);
         alert("Có lỗi xảy ra khi lưu vào database! Hãy kiểm tra mã phiếu khám.");
       });

@@ -83,10 +83,10 @@ function ModalChiTietChiPhi({ data, onClose }) {
                 />
               </div>
               <h3 style={{ margin: 0, color: "#16a34a", fontSize: "1.3rem" }}>
-                Thanh toán thành công!
+                Đã gửi yêu cầu thanh toán thành công
               </h3>
               <p style={{ margin: 0, color: "#6b7280", textAlign: "center" }}>
-                Đã xác nhận thanh toán cho <strong>{data.hoten}</strong>
+                Đã xác nhận cho <strong>{data.hoten}</strong>
               </p>
               <p
                 style={{
@@ -189,7 +189,7 @@ function ModalChiTietChiPhi({ data, onClose }) {
                 className="fas fa-credit-card"
                 style={{ marginRight: "0.4rem" }}
               />
-              Thanh toán ngay
+              Gửi yêu cầu thanh toán
             </button>
           )}
         </div>
