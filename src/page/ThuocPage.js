@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
-import { Table, Tag, Button, Space, message, Modal, Form, Input, InputNumber, DatePicker, Select, Badge, Card, Row, Col } from 'antd';
+import { Table, Tag, Button, Space, message, Modal, Form, Input, InputNumber, DatePicker, Select, Badge, Card, Row, Col, Popconfirm } from 'antd';
 import { SearchOutlined, AlertOutlined, BoxPlotOutlined, CalendarOutlined } from '@ant-design/icons';
 import Sidebar from "../component/sidebar/Sidebar";
 import Header from "../component/header/Header";
@@ -13,9 +13,12 @@ const ThuocPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [loaiThuoc, setLoaiThuoc] = useState([]); 
-  const [searchText, setSearchText] = useState(''); // State tìm kiếm
-  const [filterStatus, setFilterStatus] = useState('all'); // State bộ lọc
+  const [searchText, setSearchText] = useState(''); 
+  const [filterStatus, setFilterStatus] = useState('all'); 
   const [form] = Form.useForm();
+
+  // LẤY ROLE TỪ LOCALSTORAGE
+  const currentUserRole = localStorage.getItem('vaitro')?.trim()?.toLowerCase(); 
 
   const loadData = async () => {
     setLoading(true);
@@ -63,6 +66,7 @@ const ThuocPage = () => {
     return { expired, warning, lowStock };
   }, [thuocList]);
 
+  // HÀM LƯU / CẬP NHẬT THÔNG TIN THUỐC
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -85,6 +89,21 @@ const ThuocPage = () => {
     } catch (error) { message.error("Kiểm tra lại dữ liệu!"); }
   };
 
+  // HÀM XÓA MỀM (NGỪNG KINH DOANH)
+  const handleSoftDelete = async (mat) => {
+    try {
+      await axios.put(`http://localhost:4000/api/thuoc/status/${mat}`, { 
+          trangthai: 'Ngừng kinh doanh' 
+      }, { withCredentials: true });
+      
+      message.success("Đã ngừng kinh doanh loại thuốc này!");
+      loadData(); // Tải lại bảng để cập nhật màu sắc
+    } catch (error) {
+      message.error("Lỗi khi thao tác xóa!");
+    }
+  };
+
+  // KHAI BÁO CÁC CỘT DỮ LIỆU CƠ BẢN
   const columns = [
     { title: 'TÊN THUỐC', dataIndex: 'tent', key: 'tent', render: (t) => <b>{t}</b> },
     { title: 'LOẠI', dataIndex: 'tenlt', key: 'tenlt' },
@@ -96,8 +115,10 @@ const ThuocPage = () => {
     { 
       title: 'TỒN KHO', 
       render: (_, r) => (
-        <Badge count={r.soluong <= 5 ? 'Gấp' : 0} offset={[10, 0]}>
-          <b style={{ color: r.soluong <= 5 ? '#ef4444' : 'inherit' }}>{r.soluong} {r.donvi}</b>
+        <Badge count={r.soluong <= 5 && r.trangthai !== 'Ngừng kinh doanh' ? 'Gấp' : 0} offset={[10, 0]}>
+          <b style={{ color: r.soluong <= 5 && r.trangthai !== 'Ngừng kinh doanh' ? '#ef4444' : 'inherit' }}>
+            {r.soluong} {r.donvi}
+          </b>
         </Badge>
       )
     },
@@ -112,25 +133,51 @@ const ThuocPage = () => {
     },
     {
       title: 'TRẠNG THÁI',
-      dataIndex: 'hansudung',
-      render: (hsd) => {
-        const diff = moment(hsd).diff(moment(), 'months');
-        if (moment(hsd).isBefore(moment())) return <Tag color="red">Hết hạn</Tag>;
+      dataIndex: 'trangthai', // Đọc trực tiếp biến trangthai từ Database
+      render: (trangthai_db, r) => {
+        // Ưu tiên kiểm tra xem có bị Admin xóa mềm chưa
+        if (trangthai_db === 'Ngừng kinh doanh') {
+            return <Tag color="default">Ngừng kinh doanh</Tag>;
+        }
+
+        // Nếu vẫn còn kinh doanh thì kiểm tra hạn sử dụng bình thường
+        const diff = moment(r.hansudung).diff(moment(), 'months');
+        if (moment(r.hansudung).isBefore(moment())) return <Tag color="red">Hết hạn</Tag>;
         if (diff <= 6) return <Tag color="orange">Cảnh báo ({diff} th)</Tag>;
         return <Tag color="green">An toàn</Tag>;
       }
-    },
-    {
-      title: 'THAO TÁC',
-      render: (_, r) => (
-        <Button type="link" onClick={() => {
-          setEditingItem(r);
-          form.setFieldsValue({...r, ngaysanxuat: moment(r.ngaysanxuat), hansudung: moment(r.hansudung)});
-          setIsModalOpen(true);
-        }}>Sửa</Button>
-      )
     }
   ];
+
+  // CHỈ THÊM CỘT THAO TÁC NẾU LÀ ADMIN
+  if (currentUserRole === 'admin') {
+    columns.push({
+      title: 'THAO TÁC',
+      render: (_, r) => (
+        <Space>
+          {/* Khóa nút sửa nếu đã ngừng kinh doanh */}
+          <Button type="link" onClick={() => {
+            setEditingItem(r);
+            form.setFieldsValue({...r, ngaysanxuat: moment(r.ngaysanxuat), hansudung: moment(r.hansudung)});
+            setIsModalOpen(true);
+          }} disabled={r.trangthai === 'Ngừng kinh doanh'}>Sửa</Button>
+
+          {/* Nút Xóa (Chỉ hiện nếu thuốc chưa bị ngừng kinh doanh) */}
+          {r.trangthai !== 'Ngừng kinh doanh' && (
+            <Popconfirm
+              title="Ngừng kinh doanh thuốc này?"
+              description="Thuốc sẽ bị ẩn khỏi danh sách kê đơn của bác sĩ."
+              onConfirm={() => handleSoftDelete(r.mat)}
+              okText="Xóa"
+              cancelText="Hủy"
+            >
+              <Button type="link" danger>Xóa</Button>
+            </Popconfirm>
+          )}
+        </Space>
+      )
+    });
+  }
 
   return (
     <div className="page-layout">
@@ -138,7 +185,6 @@ const ThuocPage = () => {
       <div className="page-main">
         <Header />
         <div className="page-content">
-          {/* PHẦN THỐNG KÊ NHANH (BADGES) */}
           <Row gutter={16} style={{ marginBottom: 20 }}>
             <Col span={6}>
               <Card size="small" className="stat-card" onClick={() => setFilterStatus('all')} style={{cursor:'pointer', borderLeft: '4px solid #3b82f6'}}>
@@ -177,7 +223,13 @@ const ThuocPage = () => {
                 <Select.Option value="expired">Đã hết hạn</Select.Option>
               </Select>
             </Space>
-            <Button type="primary" size="large" onClick={() => { setEditingItem(null); form.resetFields(); setIsModalOpen(true); }}>+ Nhập thuốc</Button>
+            
+            {/* CHỈ HIỆN NÚT NHẬP THUỐC CHO ADMIN */}
+            {currentUserRole === 'admin' && (
+              <Button type="primary" size="large" onClick={() => { setEditingItem(null); form.resetFields(); setIsModalOpen(true); }}>
+                + Nhập thuốc
+              </Button>
+            )}
           </div>
 
           <div className="table-container">

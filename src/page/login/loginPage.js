@@ -28,18 +28,32 @@ function LoginPage() {
     try {
       const res = await axios.post("http://localhost:4000/login", values);
 
-      if (res.data.Status === "Success") {
-        // Lưu role vào localStorage
-        // Lưu ý: Kiểm tra xem Backend trả về res.data.vaitro hay res.data.role
-        const userRole = res.data.vaitro; 
-        localStorage.setItem("vaitro", userRole);
+      // 1. IN RA CONSOLE ĐỂ XEM ĐÚNG CẤU TRÚC BACKEND TRẢ VỀ
+      console.log("Dữ liệu Backend trả về:", res.data);
 
-        alert("Đăng nhập thành công!");
+      if (res.data.Status === "Success") {
+        // 2. LẤY ROLE (Hãy chỉnh lại dòng này nếu console.log ở trên báo cấu trúc khác)
+        // Ví dụ: Nếu console log ra { Status: 'Success', user: { vaitro: 'duocsi' } }
+        // Thì bạn phải đổi thành: const userRole = res.data.user.vaitro;
+        const userRole = res.data.vaitro; 
+
+        // 3. CHẶN LỖI NẾU KHÔNG LẤY ĐƯỢC ROLE
+        if (!userRole) {
+          alert("Hệ thống đăng nhập thành công nhưng không tìm thấy quyền (vaitro) từ server gửi về!");
+          return;
+        }
+
+        // Xóa quyền cũ đi cho chắc chắn trước khi lưu quyền mới
+        localStorage.removeItem("vaitro");
         
-        // Dùng cái này để chuyển hướng nhanh mà không reset app
-        navigate("/"); 
-        // Hoặc nếu muốn reset hoàn toàn để Header nhận role mới ngay lập tức:
-        // window.location.href = "/";
+        // Lưu quyền mới vào dạng chữ thường và xóa khoảng trắng
+        localStorage.setItem("vaitro", userRole.trim().toLowerCase());
+
+        alert("Đăng nhập thành công với quyền: " + userRole);
+        
+        // 4. ÉP TẢI LẠI TRANG ĐỂ RESET TOÀN BỘ COMPONENT
+        // Thay vì dùng navigate("/") có thể giữ lại state cũ, ta ép tải lại trang luôn
+        window.location.href = "/thuoc"; 
       } else {
         alert(res.data.Error || "Tài khoản hoặc mật khẩu không đúng");
       }
