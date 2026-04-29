@@ -37,14 +37,16 @@ export default function LoginPage() {
 
           if (role) {
             localStorage.setItem("userRole", role);
-            
+
             // Dùng href để reload toàn bộ ứng dụng, đảm bảo Sidebar nhận Role mới
             window.location.href = "/";
           } else {
             message.error("Không tìm thấy vai trò người dùng!");
           }
         } else {
-          message.error(res.data.Error || "Tài khoản hoặc mật khẩu không đúng!");
+          message.error(
+            res.data.Error || "Tài khoản hoặc mật khẩu không đúng!",
+          );
         }
       })
       .catch((err) => {
@@ -89,9 +91,6 @@ export default function LoginPage() {
             </button>
           </form>
         </Spin>
-        <p className="signup-text">
-          Nhân viên mới? <Link to="/register">Đăng ký tài khoản</Link>
-        </p>
       </div>
     </div>
   );
