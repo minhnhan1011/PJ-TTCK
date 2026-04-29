@@ -87,9 +87,6 @@ export default function LoginPage() {
             <button className="login-btn" type="submit" disabled={loading}>
               {loading ? "Đang xử lý..." : "Đăng nhập ngay"}
             </button>
-            <div className="login-links">
-              <Link to="/forgot-password">Quên mật khẩu?</Link>
-            </div>
           </form>
         </Spin>
         <p className="signup-text">
